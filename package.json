@@ -1,7 +1,8 @@
 {
   "dependencies": {
     "ink": "^2.3.0",
-    "react": "^16.9.0"
+    "react": "^16.9.0",
+    "serverless": "^1.50.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.5",

@@ -1,4 +1,5 @@
 import React from 'react';
+import Serverless from 'serverless';
 import {render, Box, Static, TestResults} from 'ink';
 
 const funcs = [
@@ -7,14 +8,20 @@ const funcs = [
 	{ title: "function 3", id: 3},
 ]
 
-const Demo = () => (
-<>
-	<Static>
-		{funcs.map(func => (
-			func.title
-		))}
-	</Static>
-</>
-);
+const serverless = new Serverless();
+
+const Demo = () => {
+	console.log(JSON.stringify(serverless.init()));
+	console.log(JSON.stringify(serverless.run("logs")));
+	return (
+		<>
+			<Static>
+				{funcs.map(func => (
+					func.title
+				))}
+			</Static>
+		</>
+	)
+};
 
 render(<Demo/>);

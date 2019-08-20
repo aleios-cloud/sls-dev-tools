@@ -14,3 +14,7 @@ The Chrome Dev Tools for the Serverless World
 
 - ./node_modules/.bin/babel index.js --out-dir lib --watch
 - node lib/index.js
+
+# Deploy Lambdas
+
+- `sls deploy`

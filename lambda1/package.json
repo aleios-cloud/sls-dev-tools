@@ -1,0 +1,45 @@
+{
+  "name": "lambda1",
+  "version": "1.1.0",
+  "description": "A template for creating a lambda with serverless on AWS with babel7 with the option to add a lambda layer",
+  "main": "handler.js",
+  "scripts": {
+    "deploy": "sls deploy",
+    "lint": "eslint .",
+    "start": "sls offline start",
+    "test": "yarn lint && yarn jest"
+  },
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/robcronin/serverless-lambda-with-optional-layer-template"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.2.2",
+    "@babel/plugin-proposal-class-properties": "^7.2.3",
+    "@babel/plugin-proposal-json-strings": "^7.2.0",
+    "@babel/plugin-syntax-dynamic-import": "^7.2.0",
+    "@babel/plugin-syntax-import-meta": "^7.2.0",
+    "@babel/plugin-transform-runtime": "^7.2.0",
+    "@babel/preset-env": "^7.2.3",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-jest": "^23.6.0",
+    "babel-loader": "^8.0.5",
+    "babel-plugin-source-map-support": "^2.0.1",
+    "eslint": "^5.12.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "jest": "^23.6.0",
+    "prettier": "^1.15.3",
+    "serverless-offline": "^3.31.3",
+    "serverless-webpack": "^5.2.0",
+    "webpack": "^4.28.3",
+    "webpack-node-externals": "^1.7.2"
+  },
+  "dependencies": {
+    "@babel/runtime": "7.2.0",
+    "axios": "^0.19.0",
+    "source-map-support": "^0.5.9"
+  }
+}

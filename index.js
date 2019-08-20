@@ -17,7 +17,10 @@ const Demo = () => {
 		<>
 			<Static>
 				{funcs.map(func => (
-					func.title
+					<div style={{display: "flex", flexDirection: "row"}} key={func.id}>
+						<div>{"\u03BB "}</div>
+						<div>{func.title}</div>
+					</div>
 				))}
 			</Static>
 		</>

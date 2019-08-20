@@ -7,3 +7,10 @@
 
 # sls-dev-tools
 The Chrome Dev Tools for the Serverless World
+
+
+
+# Working
+
+- ./node_modules/.bin/babel index.js --out-dir lib --watch
+- node lib/index.js

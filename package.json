@@ -15,7 +15,7 @@
   },
   "scripts": {
     "tool": "node lib/index.js",
-    "watch": "babel index.js --out-dir lib --watch"
+    "watch": "babel src --out-dir lib --watch"
   },
   "babel": {
     "presets": [

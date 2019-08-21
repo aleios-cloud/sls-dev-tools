@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import AWS from 'aws-sdk';
-import { render, Color, Box } from 'ink';
-import Spinner from 'ink-spinner';
+import { render, Color } from 'ink';
+
+import LogGroup from "./components/LogGroup.js";
 
 const stackName = 'example stack';
 
@@ -76,18 +77,9 @@ class Demo extends Component {
         {''}
         --- Log Group ----
         {this.state.logGroups.map(logGroup => (
-          <div
-            style={{ display: 'flex', flexDirection: 'row' }}
-            key={logGroup.arn}
-          >
-            <>
-              <Color green>
-                <Spinner type="dots" />
-              </Color>
-            </>
-            <div>{`  ${logGroup.logGroupName}`}</div>
-          </div>
+          <LogGroup logGroup={logGroup} key={logGroup.arn} />
         ))}
+
       </>
     );
   }

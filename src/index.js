@@ -54,30 +54,26 @@ class Demo extends Component {
         console.log(err, err.stack);
       } else {
         this.setState({ logGroups: data.logGroups });
-        this.getLogEvents(data.logGroups)
+        this.getLogEvents(data.logGroups);
       }
     });
   }
 
-	getLogEvents(logGroups) {
-
-		logGroups.forEach(group => {
-			var params = {
-				logGroupName: group.logGroupName,
-				limit: 10,
-				// logStreamName: `${group.logGroupName}-sls-debugger-2`,
-			};
-			this.cloudwatchLogs.filterLogEvents(params, (err, data) => {
-				if (err) {
-					console.log(err, err.stack);
-				}
-				else {
-					console.log(data)
-				}
-			});
-		});
-
-	}
+  getLogEvents(logGroups) {
+    logGroups.forEach(group => {
+      var params = {
+        logGroupName: group.logGroupName,
+        limit: 10,
+      };
+      this.cloudwatchLogs.filterLogEvents(params, (err, data) => {
+        if (err) {
+          console.log(err, err.stack);
+        } else {
+          console.log(data);
+        }
+      });
+    });
+  }
 
   render() {
     return (

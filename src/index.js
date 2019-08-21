@@ -18,7 +18,7 @@ ___                      _             ___            _____         _
 class Demo extends Component {
   constructor(props) {
     super(props);
-    this.state = { funcs: [], logGroups: [] };
+    this.state = { funcs: [], logGroups: [], logs: {} };
   }
 
   componentDidMount() {
@@ -60,6 +60,7 @@ class Demo extends Component {
   }
 
   getLogEvents(logGroups) {
+    const logs = {}
     logGroups.forEach(group => {
       var params = {
         logGroupName: group.logGroupName,
@@ -69,10 +70,11 @@ class Demo extends Component {
         if (err) {
           console.log(err, err.stack);
         } else {
-          console.log(data);
+          logs[group.arn] = data.events;
         }
       });
     });
+    this.setState({ logs })
   }
 
   render() {

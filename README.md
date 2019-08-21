@@ -10,10 +10,10 @@ The Chrome Dev Tools for the Serverless World
 
 
 
-# Working
+# To Run
 
-- ./node_modules/.bin/babel index.js --out-dir lib --watch
-- node lib/index.js
+- Run `yarn watch`
+- Then `STACK_NAME={YOUR_STACK} yarn tool`
 
 # Deploy Lambdas
 

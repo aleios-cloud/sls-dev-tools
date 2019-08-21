@@ -4,7 +4,7 @@ import { render, Color } from 'ink';
 
 import LogGroup from './components/LogGroup.js';
 
-const stackName = 'example stack';
+const stackName = process.env.STACK_NAME;
 
 const logo = `
 ___                      _             ___            _____         _    

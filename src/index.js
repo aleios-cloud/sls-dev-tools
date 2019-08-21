@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import AWS from 'aws-sdk';
-import { render, Color } from 'ink';
+import { render, Color, Box } from 'ink';
 
 import LogGroup from './components/LogGroup.js';
+import FullWidthSeparator from './components/Seperator.js';
 
 const stackName = process.env.STACK_NAME;
 
@@ -92,6 +93,11 @@ class Demo extends Component {
           </div>
         ))}
         {''}
+          <FullWidthSeparator />
+            <Box flexGrow={1} alignItems="center" justifyContent="center" >
+              <div>Logs</div>
+            </Box>
+          <FullWidthSeparator />
         --- Log Group ----
         {this.state.logGroups.map(logGroup => (
           <LogGroup logGroup={logGroup} key={logGroup.arn} />

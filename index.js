@@ -1,22 +1,31 @@
 import React, { Component } from 'react';
 import AWS from 'aws-sdk';
-import {render, Box, Static, TestResults} from 'ink';
+import {render, Color, Box} from 'ink';
+import Spinner from 'ink-spinner';
 
-const funcs = [
-	{ title: "function 1", id: 1},
-	{ title: "function 2", id: 2},
-	{ title: "function 3", id: 3},
-]
+const stackName = "example stack"
+
+
+const logo = `
+___                      _             ___            _____         _    
+/ __| ___ _ ___ _____ _ _| |___ ______ |   \ _____ __ |_   _|__  ___| |___
+\\__ \\/ -_) '_\\ V / -_) '_| / -_|_-<_-< | |) / -_) V /   | |/ _ \\/ _ \\ (_-<
+|___/\\___|_|  \\_/\\___|_| |_\\___/__/__/ |___/\\___|\\_/    |_|\\___/\\___/_/__/
+																		   
+
+`
 
 class Demo extends Component {
 	constructor(props) {
 		super(props);
-		this.state = { funcs: [] };
+		this.state = { funcs: [], logGroups: [] };
 	}
 
 	componentDidMount() {
 		this.cloudformation = new AWS.CloudFormation({ region: 'eu-west-2'});
-		this.getLambdasForStackName("cerebro-corazon-staging-dev");
+		this.cloudwatchLogs = new AWS.CloudWatchLogs({ region: 'eu-west-2'});
+		this.getLambdasForStackName(stackName);
+		this.getLogs(stackName)
 	}
 
 	getLambdasForStackName(stackName) {
@@ -33,17 +42,44 @@ class Demo extends Component {
 		});
 	}
 
+	getLogs(stackName) {
+		const that = this;
+		var params = {
+			logGroupNamePrefix: `/aws/lambda/${stackName}`,
+		};
+		  that.cloudwatchLogs.describeLogGroups(params, function(err, data) {
+			if (err) {
+				console.log(err, err.stack);
+			}
+			else {
+				that.setState({logGroups: data.logGroups})
+			}
+		  });
+	}
+
 	render() {
 		return (
 			<>
-				<Static>
+				<Color green>
+					{logo}
+				</Color>
+				--- Functions ---
 					{this.state.funcs.map(func => (
 						<div style={{display: "flex", flexDirection: "row"}} key={func.PhysicalResourceId}>
 							<div>{"\u03BB "}</div>
 							<div>{func.LogicalResourceId}</div>
 						</div>
 					))}
-				</Static>
+				{""}
+				--- Log Group ----
+					{this.state.logGroups.map(logGroup => (
+						<div style={{display: "flex", flexDirection: "row"}} key={logGroup.arn}>
+								<>
+									<Color green><Spinner type="dots"/></Color>
+								</>
+							<div>{`  ${logGroup.logGroupName}`}</div>
+						</div>
+					))}
 			</>
 		)
 	}

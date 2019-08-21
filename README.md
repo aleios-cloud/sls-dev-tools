@@ -18,3 +18,10 @@ The Chrome Dev Tools for the Serverless World
 # Deploy Lambdas
 
 - `sls deploy`
+
+
+## Core Team
+
+| [Ben Ellerby](https://github.com/BenEllerby)                            | [Rob Cronin](https://github.com/robcronin)                            |
+|-------------------------------------------------------------------------|-----------------------------------------------------------------------|
+| ![Ben Ellerby](https://avatars2.githubusercontent.com/u/11080984?s=150) | ![Rob Cronin](https://avatars3.githubusercontent.com/u/32868346?s=150) |

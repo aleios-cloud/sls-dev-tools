@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "aws-sdk": "^2.514.0",
     "ink": "^2.3.0",
     "react": "^16.9.0",
     "serverless": "^1.50.0"

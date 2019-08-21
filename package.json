@@ -13,6 +13,10 @@
     "@babel/preset-env": "^7.5.5",
     "@babel/preset-react": "^7.0.0"
   },
+  "scripts": {
+    "tool": "node lib/index.js",
+    "watch": "babel index.js --out-dir lib --watch"
+  },
   "babel": {
     "presets": [
       "@babel/preset-react",

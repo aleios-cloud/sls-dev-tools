@@ -25,7 +25,7 @@ class Demo extends Component {
     this.cloudformation = new AWS.CloudFormation({ region: 'eu-west-2' });
     this.cloudwatchLogs = new AWS.CloudWatchLogs({ region: 'eu-west-2' });
     this.getLambdasForStackName(stackName);
-    this.getLogs(stackName);
+    this.getLogGroups(stackName);
   }
 
   getLambdasForStackName(stackName) {
@@ -45,7 +45,7 @@ class Demo extends Component {
     );
   }
 
-  getLogs(stackName) {
+  getLogGroups(stackName) {
     var params = {
       logGroupNamePrefix: `/aws/lambda/${stackName}`,
     };
@@ -54,9 +54,30 @@ class Demo extends Component {
         console.log(err, err.stack);
       } else {
         this.setState({ logGroups: data.logGroups });
+        this.getLogEvents(data.logGroups)
       }
     });
   }
+
+	getLogEvents(logGroups) {
+
+		logGroups.forEach(group => {
+			var params = {
+				logGroupName: group.logGroupName,
+				limit: 10,
+				// logStreamName: `${group.logGroupName}-sls-debugger-2`,
+			};
+			this.cloudwatchLogs.filterLogEvents(params, (err, data) => {
+				if (err) {
+					console.log(err, err.stack);
+				}
+				else {
+					console.log(data)
+				}
+			});
+		});
+
+	}
 
   render() {
     return (

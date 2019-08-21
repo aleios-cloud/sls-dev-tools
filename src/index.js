@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import AWS from 'aws-sdk';
 import { render, Color } from 'ink';
 
-import LogGroup from "./components/LogGroup.js";
+import LogGroup from './components/LogGroup.js';
 
 const stackName = 'example stack';
 
@@ -29,14 +29,13 @@ class Demo extends Component {
   }
 
   getLambdasForStackName(stackName) {
-    const that = this;
     return this.cloudformation.listStackResources(
       { StackName: stackName },
-      function(err, data) {
+      (err, data) => {
         if (err) {
           console.log(err, err.stack);
         } else {
-          that.setState({
+          this.setState({
             funcs: data.StackResourceSummaries.filter(
               res => res.ResourceType === 'AWS::Lambda::Function',
             ),
@@ -47,15 +46,14 @@ class Demo extends Component {
   }
 
   getLogs(stackName) {
-    const that = this;
     var params = {
       logGroupNamePrefix: `/aws/lambda/${stackName}`,
     };
-    that.cloudwatchLogs.describeLogGroups(params, function(err, data) {
+    this.cloudwatchLogs.describeLogGroups(params, (err, data) => {
       if (err) {
         console.log(err, err.stack);
       } else {
-        that.setState({ logGroups: data.logGroups });
+        this.setState({ logGroups: data.logGroups });
       }
     });
   }
@@ -79,7 +77,6 @@ class Demo extends Component {
         {this.state.logGroups.map(logGroup => (
           <LogGroup logGroup={logGroup} key={logGroup.arn} />
         ))}
-
       </>
     );
   }

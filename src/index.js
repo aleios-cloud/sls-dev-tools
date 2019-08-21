@@ -56,6 +56,9 @@ class Demo extends Component {
       } else {
         this.setState({ logGroups: data.logGroups });
         this.getLogEvents(data.logGroups);
+        this.interval = setInterval(() => {
+          this.getLogEvents(data.logGroups);
+        }, 5000);
       }
     });
   }

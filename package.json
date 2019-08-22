@@ -1,8 +1,12 @@
 {
+  "name": "sls-dev-tools",
+  "bin": "./build/cli.js",
   "dependencies": {
     "aws-sdk": "^2.514.0",
     "ink": "^2.3.0",
     "ink-spinner": "^3.0.1",
+    "pastel": "^1.0.3",
+    "prop-types": "^15.7.2",
     "react": "^16.9.0",
     "serverless": "^1.50.0"
   },
@@ -14,8 +18,9 @@
     "@babel/preset-react": "^7.0.0"
   },
   "scripts": {
-    "tool": "node lib/index.js",
-    "watch": "babel src --out-dir lib --watch"
+    "build": "pastel build",
+    "dev": "pastel dev",
+    "prepare": "pastel build"
   },
   "babel": {
     "presets": [

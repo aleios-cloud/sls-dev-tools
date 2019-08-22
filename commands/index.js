@@ -1,11 +1,10 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import AWS from 'aws-sdk';
 import { render, Color, Box } from 'ink';
 
-import LogGroup from './components/LogGroup.js';
-import FullWidthSeparator from './components/Seperator.js';
-
-const stackName = process.env.STACK_NAME;
+import LogGroup from '../components/LogGroup.js';
+import FullWidthSeparator from '../components/Seperator.js';
 
 const logo = `
 ___                      _             ___            _____         _    
@@ -25,8 +24,8 @@ class Demo extends Component {
   componentDidMount() {
     this.cloudformation = new AWS.CloudFormation({ region: 'eu-west-2' });
     this.cloudwatchLogs = new AWS.CloudWatchLogs({ region: 'eu-west-2' });
-    this.getLambdasForStackName(stackName);
-    this.getLogGroups(stackName);
+    this.getLambdasForStackName(this.props.stackName);
+    this.getLogGroups(this.props.stackName);
   }
 
   getLambdasForStackName(stackName) {
@@ -110,4 +109,9 @@ class Demo extends Component {
   }
 }
 
-render(<Demo />);
+
+Demo.propTypes = {
+	stackName: PropTypes.string.isRequired
+};
+
+export default Demo

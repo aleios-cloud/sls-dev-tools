@@ -15,6 +15,8 @@ ___                      _             ___            _____         _
 
 `;
 
+
+/// Chrome Dev Tools for the Serverless World
 class Demo extends Component {
   constructor(props) {
     super(props);

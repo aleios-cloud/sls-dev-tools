@@ -10,10 +10,10 @@ The Chrome Dev Tools for the Serverless World
 
 
 ```
-➜  sls-dev-tools git:(master) sls-dev-tools --help                        
+➜  sls-dev-tools git:(master) ✗ sls-dev-tools --help
 sls-dev-tools
 
-* command
+Chrome Dev Tools for the Serverless World
 
 Options:
   --help        Show help                                              [boolean]

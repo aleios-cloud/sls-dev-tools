@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import AWS from 'aws-sdk';
-import { render, Color, Box } from 'ink';
+import { Color, Box } from 'ink';
 
 import LogGroup from '../components/LogGroup.js';
 import FullWidthSeparator from '../components/Seperator.js';
+import Table from '../components/Table'
 
 const logo = `
 ___                      _             ___            _____         _    
@@ -14,8 +15,6 @@ ___                      _             ___            _____         _
 																		   
 
 `;
-
-
 /// Chrome Dev Tools for the Serverless World
 class Demo extends Component {
   constructor(props) {
@@ -57,11 +56,21 @@ class Demo extends Component {
       } else {
         this.setState({ logGroups: data.logGroups });
         this.getLogEvents(data.logGroups);
-        this.interval = setInterval(() => {
-          this.getLogEvents(data.logGroups);
-        }, 5000);
+        // this.interval = setInterval(() => {
+        //   this.getLogEvents(data.logGroups);
+        // }, 5000);
       }
     });
+  }
+
+
+  lambdasToTable(lambdas) {
+    return lambdas.map(lam => ({
+        '\u03BB ': '\u03BB ',
+        logical: lam.LogicalResourceId,
+        physical: lam.PhysicalResourceId,
+        lastUpdate: lam.LastUpdatedTimestamp,
+    }))
   }
 
   getLogEvents(logGroups) {
@@ -84,18 +93,10 @@ class Demo extends Component {
 
   render() {
     return (
-      <>
+      <Box flexGrow={1} flexDirection="column" height="100%">
         <Color green>{logo}</Color>
         --- Functions ---
-        {this.state.funcs.map(func => (
-          <div
-            style={{ display: 'flex', flexDirection: 'row' }}
-            key={func.PhysicalResourceId}
-          >
-            <div>{'\u03BB '}</div>
-            <div>{func.LogicalResourceId}</div>
-          </div>
-        ))}
+        <Table data={this.lambdasToTable(this.state.funcs)} />
         {''}
           <FullWidthSeparator />
             <Box flexGrow={1} alignItems="center" justifyContent="center" >
@@ -106,7 +107,7 @@ class Demo extends Component {
         {this.state.logGroups.map(logGroup => (
           <LogGroup logGroup={logGroup} key={logGroup.arn} />
         ))}
-      </>
+      </Box>
     );
   }
 }

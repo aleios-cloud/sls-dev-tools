@@ -1,10 +1,3 @@
-   _____                           __                  ____               ______            __    
-  / ___/___  ______   _____  _____/ /__  __________   / __ \___ _   __   /_  __/___  ____  / /____
-  \__ \/ _ \/ ___/ | / / _ \/ ___/ / _ \/ ___/ ___/  / / / / _ \ | / /    / / / __ \/ __ \/ / ___/
- ___/ /  __/ /   | |/ /  __/ /  / /  __(__  |__  )  / /_/ /  __/ |/ /    / / / /_/ / /_/ / (__  ) 
-/____/\___/_/    |___/\___/_/  /_/\___/____/____/  /_____/\___/|___/    /_/  \____/\____/_/____/  
-                                                                                                  
-
 # sls-dev-tools
 The Chrome Dev Tools for the Serverless World
 
@@ -12,8 +5,26 @@ The Chrome Dev Tools for the Serverless World
 
 # To Run
 
-- Run `yarn watch`
-- Then `STACK_NAME={YOUR_STACK} yarn tool`
+- Run `yarn dev`
+- Then `sls-dev-tools --stackName=my-stack`
+
+
+```
+➜  sls-dev-tools git:(master) sls-dev-tools --help                        
+sls-dev-tools
+
+* command
+
+Options:
+  --help        Show help                                              [boolean]
+  --version     Show version number                                    [boolean]
+  --stack-name                                               [string] [required]
+```
+
+# Build
+
+- `yarn build`
+
 
 # Deploy Lambdas
 

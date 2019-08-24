@@ -4,9 +4,9 @@
   "dependencies": {
     "aws-sdk": "^2.514.0",
     "blessed": "^0.1.81",
+    "blessed-contrib": "^4.8.16",
     "prop-types": "^15.7.2",
     "react": "^16.9.0",
-    "react-blessed": "^0.6.1",
     "serverless": "^1.50.0"
   },
   "devDependencies": {
@@ -17,8 +17,9 @@
     "@babel/preset-react": "^7.0.0"
   },
   "scripts": {
-    "build": "babel blessedTest.js --out-dir lib",
-    "dev": "babel blessedTest.js --out-dir lib --watch"
+    "build": "babel contrib.js --out-dir lib",
+    "dev": "babel contrib.js --out-dir lib --watch",
+    "start": "node ./lib/contrib.js"
   },
   "babel": {
     "presets": [

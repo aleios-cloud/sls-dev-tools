@@ -3,11 +3,10 @@
   "bin": "./build/cli.js",
   "dependencies": {
     "aws-sdk": "^2.514.0",
-    "ink": "^2.3.0",
-    "ink-spinner": "^3.0.1",
-    "pastel": "^1.0.3",
+    "blessed": "^0.1.81",
     "prop-types": "^15.7.2",
     "react": "^16.9.0",
+    "react-blessed": "^0.6.1",
     "serverless": "^1.50.0"
   },
   "devDependencies": {
@@ -18,9 +17,8 @@
     "@babel/preset-react": "^7.0.0"
   },
   "scripts": {
-    "build": "pastel build",
-    "dev": "pastel dev",
-    "prepare": "pastel build"
+    "build": "babel blessedTest.js --out-dir lib",
+    "dev": "babel blessedTest.js --out-dir lib --watch"
   },
   "babel": {
     "presets": [

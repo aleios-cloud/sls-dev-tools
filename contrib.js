@@ -4,8 +4,46 @@ var blessed = require('blessed')
 import AWS from 'aws-sdk';
 
 var screen = blessed.screen()
-const lambdaFunctions = [];
 const cloudformation = new AWS.CloudFormation({ region: 'eu-west-2' });
+const cloudwatch = new AWS.CloudWatch({ region: 'eu-west-2' });
+
+const getLambdaMetrics = (functionName, cb) => {
+  var params = {
+    EndTime: new Date || 'Wed Dec 31 1969 16:00:00 GMT-0800 (PST)' || 123456789, /* required */
+    MetricDataQueries: [ /* required */
+      {
+        Id: 'testing', /* required */
+        MetricStat: {
+          Metric: { /* required */
+            Dimensions: [
+              {
+                Name: "FunctionName",
+                Value: functionName
+            },
+            {
+                Name: "Resource",
+                Value: functionName
+            }
+              /* more items */
+            ],
+            MetricName: 'Duration',
+            Namespace: 'AWS/Lambda'
+          },
+          Period: '300', /* required */
+          Stat: 'Average', /* required */
+        },
+        ReturnData: true || false
+      },
+      /* more items */
+    ],
+    StartTime: "2019-08-18T17:10:00.000Z"
+  };
+  cloudwatch.getMetricData(params, function(err, data) {
+    if (err) console.log(err, err.stack); // an error occurred
+    else     cb(data);           // successful response
+  });
+}
+
 
 //create layout and widgets
 
@@ -85,12 +123,13 @@ var errorsLine = grid.set(4, 9, 4, 3, contrib.line,
   , maxY: 60
   , showLegend: true })
 
-var transactionsLine = grid.set(0, 0, 6, 6, contrib.line, 
-          { showNthLabel: 5
-          , maxY: 100
-          , label: 'Total Transactions'
+var invocationsLineGraph = grid.set(0, 0, 6, 6, contrib.line, 
+          { 
+          maxY: 5000
+          , label: 'Average Invocation Duration'
           , showLegend: true
-          , legend: {width: 10}})
+          , xPadding: 10
+          , legend: {width: 50}})
 
 var map = grid.set(6, 0, 4, 6, contrib.map, {label: 'Servers Location'})
 
@@ -125,12 +164,24 @@ fillBar()
 setInterval(fillBar, 2000)
 
 
+function randomColor() {
+  return [Math.random() * 255,Math.random()*255, Math.random()*255]
+}
 
 function generateTable() {
   getLambdasForStackName(process.argv[2], (lambdaFunctions => {
     table.setData({headers: ['logical', 'updated'], data: lambdaFunctions})
     table.rows.on('select', (item, index) => {
-      console.log(item.content);
+      const funcName = item.content.split("        ")[0]
+      getLambdaMetrics(funcName, metrics => {
+        const functionDurationData = {
+          title: funcName,
+          style: { line: randomColor() },
+          x: metrics.MetricDataResults[0].Timestamps,
+          y: metrics.MetricDataResults[0].Values,
+        }
+        setLineData([functionDurationData], invocationsLineGraph)
+      })
     })
   }));
 }
@@ -231,18 +282,17 @@ var latencyData = {
    y: [5, 1, 7, 5]
 }
 
-setLineData([transactionsData, transactionsData1], transactionsLine)
-setLineData([errorsData], errorsLine)
+// setLineData([errorsData], errorsLine)
 // setLineData([latencyData], latencyLine)
 
-setInterval(function() {
-   setLineData([transactionsData, transactionsData1], transactionsLine)
-   screen.render()
-}, 500)
+// setInterval(function() {
+//    setLineData([transactionsData, transactionsData1], invocationsLineGraph)
+//    screen.render()
+// }, 500)
 
-setInterval(function() {   
-    setLineData([errorsData], errorsLine)
-}, 1500)
+// setInterval(function() {   
+//     setLineData([errorsData], errorsLine)
+// }, 1500)
 
 var pct = 0.00;
 
@@ -263,15 +313,17 @@ setInterval(function() {
    screen.render()
 }, 500)
 
-function setLineData(mockData, line) {
-  for (var i=0; i<mockData.length; i++) {
-    var last = mockData[i].y[mockData[i].y.length-1]
-    mockData[i].y.shift()
-    var num = Math.max(last + Math.round(Math.random()*10) - 5, 10)    
-    mockData[i].y.push(num)  
-  }
+function setLineData(data, line) {
+  // for (var i=0; i<mockData.length; i++) {
+  //   var last = mockData[i].y[mockData[i].y.length-1]
+  //   mockData[i].y.shift()
+  //   var num = Math.max(last + Math.round(Math.random()*10) - 5, 10)    
+  //   mockData[i].y.push(num)  
+  // }
   
-  line.setData(mockData)
+  // console.log(mockData)
+
+  line.setData(data)
 }
 
 
@@ -288,7 +340,7 @@ screen.on('resize', function() {
   table.emit('attach');
   errorsLine.emit('attach');
   titleBox.emit('attach');
-  transactionsLine.emit('attach');
+  invocationsLineGraph.emit('attach');
   map.emit('attach');
   log.emit('attach');
 });

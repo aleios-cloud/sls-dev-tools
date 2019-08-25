@@ -6,7 +6,7 @@ The Chrome Dev Tools for the Serverless World
 # To Run
 
 - Run `yarn watch`
-- Then `STACK_NAME={YOUR_STACK} yarn start`
+- Then `yarn start {YOUR_STACK}`
 
 
 ```

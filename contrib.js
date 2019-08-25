@@ -127,7 +127,7 @@ setInterval(fillBar, 2000)
 
 
 function generateTable() {
-  getLambdasForStackName("stackName", (lambdaFunctions => {
+  getLambdasForStackName(process.env.stackName, (lambdaFunctions => {
     table.setData({headers: ['logical', 'updated'], data: lambdaFunctions})
     table.rows.on('select', (item, index) => {
       console.log(item.content);

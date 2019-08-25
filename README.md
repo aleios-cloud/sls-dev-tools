@@ -5,8 +5,8 @@ The Chrome Dev Tools for the Serverless World
 
 # To Run
 
-- Run `yarn dev`
-- Then `sls-dev-tools --stackName=my-stack`
+- Run `yarn watch`
+- Then `STACK_NAME={YOUR_STACK} yarn start`
 
 
 ```

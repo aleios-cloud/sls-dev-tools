@@ -92,7 +92,7 @@ var transactionsLine = grid.set(0, 0, 6, 6, contrib.line,
           , showLegend: true
           , legend: {width: 10}})
 
-var map = grid.set(6, 0, 6, 6, contrib.map, {label: 'Servers Location'})
+var map = grid.set(6, 0, 4, 6, contrib.map, {label: 'Servers Location'})
 
 var log = grid.set(8, 6, 4, 2, contrib.log, 
   { fg: "green"
@@ -127,13 +127,34 @@ setInterval(fillBar, 2000)
 
 
 function generateTable() {
-  getLambdasForStackName("cerebro-gavinw-dev", (lambdaFunctions => {
+  getLambdasForStackName("stackName", (lambdaFunctions => {
     table.setData({headers: ['logical', 'updated'], data: lambdaFunctions})
     table.rows.on('select', (item, index) => {
       console.log(item.content);
     })
   }));
 }
+
+const logo = `                   
+ ___  __    ___      ____  ____  _  _     ____  _____  _____  __    ___ 
+/ __)(  )  / __) ___(  _ \\( ___)( \\/ )___(_  _)(  _  )(  _  )(  )  / __)
+\\__ \\ )(__ \\__ \\(___))(_) ))__)  \\  /(___) )(   )(_)(  )(_)(  )(__ \\__ \\
+(___/(____)(___/    (____/(____)  \\/      (__) (_____)(_____)(____)(___/
+`
+
+const titleBox = grid.set(10, 0, 2, 6, blessed.box, {
+  tags: true,
+  content: logo +
+      '\n Chrome Dev Tools for the Serverless World.' +
+      '\n    - Select a function from the list on the right',
+  style: {
+      fg: 'green',
+      border: {
+          fg: 'green'
+      }
+  }
+});
+
 
 generateTable()
 table.focus()
@@ -266,9 +287,12 @@ screen.on('resize', function() {
   bar.emit('attach');
   table.emit('attach');
   errorsLine.emit('attach');
+  titleBox.emit('attach');
   transactionsLine.emit('attach');
   map.emit('attach');
   log.emit('attach');
 });
+
+screen.title = "sls-dev-tools"
 
 screen.render()

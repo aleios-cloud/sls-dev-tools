@@ -163,8 +163,8 @@ function randomColor() {
 function generateTable() {
   getLambdasForStackName(process.argv[2], (lambdaFunctions => {
     table.setData({headers: ['logical', 'updated'], data: lambdaFunctions})
-    table.rows.on('select', (item, index) => {
-      const funcName = item.content.split("        ")[0]
+    table.rows.on('select', (item) => {
+      const funcName = item.content.split("   ")[0]
       getLambdaMetrics(funcName, metrics => {
         const functionDurationData = {
           title: funcName,
@@ -181,6 +181,10 @@ function generateTable() {
 
 
 const getLogEvents = (logGroupName, logStreamNames) => {
+  if (logStreamNames.length === 0) {
+    log.setContent('ERROR: No log streams found for this function.');
+    return;
+  }
   var params = {
     logGroupName: logGroupName,
     interleaved: true,

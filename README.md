@@ -7,19 +7,6 @@ The Chrome Dev Tools for the Serverless World
 - Run `yarn watch`
 - Then `yarn start {YOUR_STACK} {YOUR_REGION}`
 
-
-```
-➜  sls-dev-tools git:(master) ✗ sls-dev-tools --help
-sls-dev-tools
-
-Chrome Dev Tools for the Serverless World
-
-Options:
-  --help        Show help                                              [boolean]
-  --version     Show version number                                    [boolean]
-  --stack-name                                               [string] [required]
-```
-
 # Build
 
 - `yarn build`

@@ -4,9 +4,9 @@ var blessed = require('blessed')
 import AWS from 'aws-sdk';
 
 var screen = blessed.screen({smartCSR: true})
-const cloudformation = new AWS.CloudFormation({ region: 'eu-west-2' });
-const cloudwatch = new AWS.CloudWatch({ region: 'eu-west-2' });
-const cloudwatchLogs = new AWS.CloudWatchLogs({ region: 'eu-west-2' });
+const cloudformation = new AWS.CloudFormation({ region: process.argv[3] });
+const cloudwatch = new AWS.CloudWatch({ region: process.argv[3] });
+const cloudwatchLogs = new AWS.CloudWatchLogs({ region: process.argv[3] });
 
 const getLambdaMetrics = (functionName, cb) => {
   var params = {

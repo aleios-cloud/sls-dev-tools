@@ -3,9 +3,10 @@ var blessed = require('blessed')
 
 import AWS from 'aws-sdk';
 
-var screen = blessed.screen()
+var screen = blessed.screen({smartCSR: true})
 const cloudformation = new AWS.CloudFormation({ region: 'eu-west-2' });
 const cloudwatch = new AWS.CloudWatch({ region: 'eu-west-2' });
+const cloudwatchLogs = new AWS.CloudWatchLogs({ region: 'eu-west-2' });
 
 const getLambdaMetrics = (functionName, cb) => {
   var params = {
@@ -64,15 +65,6 @@ var donut = grid.set(8, 8, 4, 2, contrib.donut,
   data: [{label: 'Storage', percent: 87}]
 })
 
-// var latencyLine = grid.set(8, 8, 4, 2, contrib.line, 
-//   { style: 
-//     { line: "yellow"
-//     , text: "green"
-//     , baseline: "black"}
-//   , xLabelPadding: 3
-//   , xPadding: 5
-//   , label: 'Network Latency (sec)'})
-
 var gauge_two = grid.set(8, 10, 2, 2, contrib.gauge, {label: 'Deployment Progress', percent: 80})
 
 var sparkline = grid.set(10, 10, 2, 2, contrib.sparkline, 
@@ -102,11 +94,9 @@ var table =  grid.set(0, 6, 4, 6, contrib.table,
         if (err) {
           console.log(err, err.stack);
         } else {
-          console.log(1)
           setData(data.StackResourceSummaries.filter(
             res => res.ResourceType === 'AWS::Lambda::Function',
             ).map(lam => [lam.PhysicalResourceId, lam.LastUpdatedTimestamp]));
-            console.log(2)
            screen.render()        
         }
       },
@@ -114,16 +104,16 @@ var table =  grid.set(0, 6, 4, 6, contrib.table,
   }
 
 
-var errorsLine = grid.set(4, 9, 4, 3, contrib.line, 
-  { style: 
-    { line: "red"
-    , text: "white"
-    , baseline: "black"}
-  , label: 'Errors Rate'
-  , maxY: 60
-  , showLegend: true })
+// var errorsLine = grid.set(4, 9, 4, 3, contrib.line, 
+//   { style: 
+//     { line: "red"
+//     , text: "white"
+//     , baseline: "black"}
+//   , label: 'Errors Rate'
+//   , maxY: 60
+//   , showLegend: true })
 
-var invocationsLineGraph = grid.set(0, 0, 6, 6, contrib.line, 
+var invocationsLineGraph = grid.set(2, 0, 6, 6, contrib.line, 
           { 
           maxY: 5000
           , label: 'Average Invocation Duration'
@@ -131,17 +121,19 @@ var invocationsLineGraph = grid.set(0, 0, 6, 6, contrib.line,
           , xPadding: 10
           , legend: {width: 50}})
 
-var map = grid.set(6, 0, 4, 6, contrib.map, {label: 'Servers Location'})
+var map = grid.set(4, 9, 4, 3, contrib.map, {label: 'Servers Location'})
 
-var log = grid.set(8, 6, 4, 2, contrib.log, 
+var log = grid.set(8, 0, 4, 8, blessed.log, 
   { fg: "green"
   , selectedFg: "green"
-  , label: 'Server Log'})
+  , label: 'Server Log'
+  , interactive: true
+  , scrollbar: { bg: 'blue' }
+  , mouse: true })
 
 
 //dummy data
 var servers = ['US1', 'US2', 'EU1', 'AU1', 'AS1', 'JP1']
-var commands = ['grep', 'node', 'java', 'timer', '~/ls -l', 'netns', 'watchdog', 'gulp', 'tar -xvf', 'awk', 'npm install']
 
 
 var gauge_percent_two = 0
@@ -182,9 +174,62 @@ function generateTable() {
         }
         setLineData([functionDurationData], invocationsLineGraph)
       })
+      getLogStreams(`/aws/lambda/${funcName}`)
     })
   }));
 }
+
+
+const getLogEvents = (logGroupName, logStreamNames) => {
+  var params = {
+    logGroupName: logGroupName,
+    interleaved: true,
+    logStreamNames,
+    limit: 10,
+  };
+  cloudwatchLogs.filterLogEvents(params, (err, data) => {
+    if (err) {
+      console.log(err, err.stack);
+    } else {
+      const events = data.events
+      log.setContent('')
+      events.forEach(event => { log.log(event.message)})
+    }
+  });
+}
+
+const getLogStreams = logGroupName => {
+  var params = {
+    logGroupName,
+    descending: true,
+    limit: 5,
+    orderBy: "LastEventTime",
+  };
+  cloudwatchLogs.describeLogStreams(params, function(err, data) {
+    if (err) console.log(err, err.stack); // an error occurred
+    else {
+      getLogEvents(logGroupName, data.logStreams.map(stream => stream.logStreamName))
+    }
+  });
+}
+
+// const getLogs = (stackName) => {
+//   var params = {
+//     logGroupNamePrefix: `/aws/lambda/${stackName}`,
+//   };
+//   cloudwatchLogs.describeLogGroups(params, (err, data) => {
+//     if (err) {
+//       console.log(err, err.stack);
+//     } else {
+//       // console.log(data.logGroups)
+//       // getLogEvents(data.logGroups.filter(group => group.logGroupName === "/aws/lambda/example")[0].logGroupName);
+//       getLogStreams(data.logGroups.filter(group => group.logGroupName === "/aws/lambda/example")[0].logGroupName);
+//     }
+//   });
+// }
+
+
+
 
 const logo = `                   
  ___  __    ___      ____  ____  _  _     ____  _____  _____  __    ___ 
@@ -193,7 +238,7 @@ const logo = `
 (___/(____)(___/    (____/(____)  \\/      (__) (_____)(_____)(____)(___/
 `
 
-const titleBox = grid.set(10, 0, 2, 6, blessed.box, {
+const titleBox = grid.set(0, 0, 2, 6, blessed.box, {
   tags: true,
   content: logo +
       '\n Chrome Dev Tools for the Serverless World.' +
@@ -209,18 +254,6 @@ const titleBox = grid.set(10, 0, 2, 6, blessed.box, {
 
 generateTable()
 table.focus()
-// setInterval(generateTable, 3000)
-
-
-//set log dummy data
-setInterval(() => {
-   var rnd = Math.round(Math.random()*2)
-   if (rnd==0) log.log('starting process ' + commands[Math.round(Math.random()*(commands.length-1))])   
-   else if (rnd==1) log.log('terminating server ' + servers[Math.round(Math.random()*(servers.length-1))])
-   else if (rnd==2) log.log('avg. wait time ' + Math.random().toFixed(2))
-   screen.render()
-}, 500)
-
 
 //set spark dummy data
 var spark1 = [1,2,5,2,1,5,1,2,5,2,1,5,4,4,5,4,1,5,1,2,5,2,1,5,1,2,5,2,1,5,1,2,5,2,1,5]
@@ -338,7 +371,7 @@ screen.on('resize', function() {
   sparkline.emit('attach');
   bar.emit('attach');
   table.emit('attach');
-  errorsLine.emit('attach');
+  // errorsLine.emit('attach');
   titleBox.emit('attach');
   invocationsLineGraph.emit('attach');
   map.emit('attach');

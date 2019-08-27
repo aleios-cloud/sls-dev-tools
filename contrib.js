@@ -172,10 +172,11 @@ const invocationsLineGraph = grid.set(2, 0, 6, 6, contrib.line,
     label: 'Function Metrics',
     showLegend: true,
     xPadding: 10,
+    wholeNumbersOnly: true,
     legend: { width: 50 },
   });
 
-const map = grid.set(4, 9, 4, 3, contrib.map, { label: 'Servers Location' });
+const map = grid.set(4, 9, 4, 3, contrib.map, { label: `Servers Location (${process.argv[3]})` });
 
 const log = grid.set(8, 0, 4, 8, blessed.log,
   {
@@ -275,7 +276,7 @@ const logo = `
 const titleBox = grid.set(0, 0, 2, 6, blessed.box, {
   tags: true,
   content: `${logo
-    }\n Chrome Dev Tools for the Serverless World.`
+  }\n Chrome Dev Tools for the Serverless World.`
     + '\n    - Select a function from the list on the right',
   style: {
     fg: 'green',
@@ -307,18 +308,44 @@ refreshSpark();
 setInterval(refreshSpark, 1000);
 
 
+const awsRegionLocations = {
+  'us-east-1': { lat: 38.13, lon: -78.45 },
+  'us-east-2': { lat: 39.96, lon: -83 },
+  'us-west-1': { lat: 37.35, lon: -121.96 },
+  'us-west-2': { lat: 46.15, lon: -123.88 },
+  'eu-west-1': { lat: 53, lon: -8 },
+  'eu-west-2': { lat: 51, lon: -0.1 },
+  'eu-west-3': { lat: 48.86, lon: 2.35 },
+  'eu-central-1': { lat: 50, lon: 8 },
+  'sa-east-1': { lat: -23.34, lon: -46.38 },
+  'ap-southeast-1': { lat: 1.37, lon: 103.8 },
+  'ap-southeast-2': { lat: -33.86, lon: 151.2 },
+  'ap-northeast-1': { lat: 35.41, lon: 139.42 },
+  'ap-northeast-2': { lat: 37.56, lon: 126.98 },
+  'ap-south-1': { lat: 19.08, lon: 72.88 },
+  'ca-central-1': { lat: 45.5, lon: -73.6 },
+};
+
 // set map dummy markers
-let marker = true;
+let marker = false;
 setInterval(() => {
   if (marker) {
     map.addMarker({
-      lon: '-79.0000', lat: '37.5000', color: 'yellow', char: 'X',
+      ...awsRegionLocations[process.argv[3]],
+      color: 'red',
+      char: 'X',
     });
-    map.addMarker({ lon: '-122.6819', lat: '45.5200' });
-    map.addMarker({ lon: '-6.2597', lat: '53.3478' });
-    map.addMarker({ lon: '103.8000', lat: '1.3000' });
   } else {
     map.clearMarkers();
+    Object.keys(awsRegionLocations).forEach((key) => {
+      if (key !== process.argv[3]) {
+        map.addMarker({
+          ...awsRegionLocations[key],
+          color: 'yellow',
+          char: 'X',
+        });
+      }
+    });
   }
   marker = !marker;
   screen.render();

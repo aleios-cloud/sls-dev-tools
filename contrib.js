@@ -34,7 +34,7 @@ const getLambdaMetrics = (functionName, cb) => {
             Namespace: 'AWS/Lambda',
           },
           Period: '300', /* required */
-          Stat: 'Sum', /* required */
+          Stat: 'Maximum', /* required */
         },
         ReturnData: true,
       },
@@ -86,6 +86,7 @@ const getLambdaMetrics = (functionName, cb) => {
       },
     ],
     StartTime: '2019-08-18T17:10:00.000Z',
+    ScanBy: 'TimestampDescending',
   };
   cloudwatch.getMetricData(params, (err, data) => {
     if (err) console.log(err, err.stack); // an error occurred
@@ -124,8 +125,8 @@ const sparkline = grid.set(10, 10, 2, 2, contrib.sparkline,
 
 const bar = grid.set(4, 6, 4, 3, contrib.bar,
   {
-    label: 'Server Utilization (%)',
-    barWidth: 4,
+    label: 'Lambda Duration (most recent)',
+    barWidth: 5,
     barSpacing: 6,
     xOffset: 2,
     maxHeight: 9,
@@ -187,28 +188,12 @@ const log = grid.set(8, 0, 4, 8, blessed.log,
   });
 
 
-// dummy data
-const servers = ['US1', 'US2', 'EU1', 'AU1', 'AS1', 'JP1'];
-
-
 let gaugePercentTwo = 0;
 setInterval(() => {
   gaugeTwo.setData(gaugePercentTwo);
   gaugePercentTwo++;
   if (gaugePercentTwo >= 100) gaugePercentTwo = 0;
 }, 200);
-
-
-// set dummy data on bar chart
-function fillBar() {
-  const arr = [];
-  for (let i = 0; i < servers.length; i++) {
-    arr.push(Math.round(Math.random() * 10));
-  }
-  bar.setData({ titles: servers, data: arr });
-}
-fillBar();
-setInterval(fillBar, 2000);
 
 const getLogEvents = (logGroupName, logStreamNames) => {
   if (logStreamNames.length === 0) {
@@ -219,7 +204,7 @@ const getLogEvents = (logGroupName, logStreamNames) => {
     logGroupName,
     interleaved: true,
     logStreamNames,
-    limit: 10,
+    limit: 100,
   };
   cloudwatchLogs.filterLogEvents(params, (err, data) => {
     if (err) {
@@ -253,14 +238,13 @@ function generateTable() {
     table.rows.on('select', (item) => {
       const funcName = item.content.split('   ')[0];
       getLambdaMetrics(funcName, (metrics) => {
-        log.log(JSON.stringify(metrics.MetricDataResults));
-        // const functionDuration = {
-        //   title: 'duration',
-        //   style: { line: 'blue' },
-        //   x: metrics.MetricDataResults[0].Timestamps,
-        //   y: metrics.MetricDataResults[0].Values,
-        // different graph
-        // };
+        const durations = metrics.MetricDataResults[0];
+        durations.Timestamps = durations.Timestamps.splice(0, 6);
+        durations.Values = durations.Values.splice(0, 6);
+        bar.setData({
+          titles: durations.Timestamps.map((t, i) => i.toString()),
+          data: durations.Values.map((t) => Math.round(t)),
+        });
         const functionError = {
           title: 'errors',
           style: { line: 'red' },
@@ -291,7 +275,7 @@ const logo = `
 const titleBox = grid.set(0, 0, 2, 6, blessed.box, {
   tags: true,
   content: `${logo
-  }\n Chrome Dev Tools for the Serverless World.`
+    }\n Chrome Dev Tools for the Serverless World.`
     + '\n    - Select a function from the list on the right',
   style: {
     fg: 'green',

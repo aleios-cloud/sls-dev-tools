@@ -16,7 +16,7 @@ const getLambdaMetrics = (functionName, cb) => {
     EndTime: new Date() || 'Wed Dec 31 1969 16:00:00 GMT-0800 (PST)' || 123456789, /* required */
     MetricDataQueries: [ /* required */
       {
-        Id: 'testing', /* required */
+        Id: 'duration', /* required */
         MetricStat: {
           Metric: { /* required */
             Dimensions: [
@@ -34,11 +34,56 @@ const getLambdaMetrics = (functionName, cb) => {
             Namespace: 'AWS/Lambda',
           },
           Period: '300', /* required */
-          Stat: 'Average', /* required */
+          Stat: 'Sum', /* required */
         },
-        ReturnData: true || false,
+        ReturnData: true,
       },
-      /* more items */
+      {
+        Id: 'errors', /* required */
+        MetricStat: {
+          Metric: { /* required */
+            Dimensions: [
+              {
+                Name: 'FunctionName',
+                Value: functionName,
+              },
+              {
+                Name: 'Resource',
+                Value: functionName,
+              },
+              /* more items */
+            ],
+            MetricName: 'Errors',
+            Namespace: 'AWS/Lambda',
+          },
+          Period: '300', /* required */
+          Stat: 'Sum', /* required */
+        },
+        ReturnData: true,
+      },
+      {
+        Id: 'invocations', /* required */
+        MetricStat: {
+          Metric: { /* required */
+            Dimensions: [
+              {
+                Name: 'FunctionName',
+                Value: functionName,
+              },
+              {
+                Name: 'Resource',
+                Value: functionName,
+              },
+              /* more items */
+            ],
+            MetricName: 'Invocations',
+            Namespace: 'AWS/Lambda',
+          },
+          Period: '300', /* required */
+          Stat: 'Sum', /* required */
+        },
+        ReturnData: true,
+      },
     ],
     StartTime: '2019-08-18T17:10:00.000Z',
   };
@@ -122,8 +167,8 @@ const getLambdasForStackName = (stackName, setData) => cloudformation.listStackR
 
 const invocationsLineGraph = grid.set(2, 0, 6, 6, contrib.line,
   {
-    maxY: 5000,
-    label: 'Average Invocation Duration',
+    maxY: 0,
+    label: 'Function Metrics',
     showLegend: true,
     xPadding: 10,
     legend: { width: 50 },
@@ -164,11 +209,6 @@ function fillBar() {
 }
 fillBar();
 setInterval(fillBar, 2000);
-
-
-function randomColor() {
-  return [Math.random() * 255, Math.random() * 255, Math.random() * 255];
-}
 
 const getLogEvents = (logGroupName, logStreamNames) => {
   if (logStreamNames.length === 0) {
@@ -213,13 +253,28 @@ function generateTable() {
     table.rows.on('select', (item) => {
       const funcName = item.content.split('   ')[0];
       getLambdaMetrics(funcName, (metrics) => {
-        const functionDurationData = {
-          title: funcName,
-          style: { line: randomColor() },
-          x: metrics.MetricDataResults[0].Timestamps,
-          y: metrics.MetricDataResults[0].Values,
+        log.log(JSON.stringify(metrics.MetricDataResults));
+        // const functionDuration = {
+        //   title: 'duration',
+        //   style: { line: 'blue' },
+        //   x: metrics.MetricDataResults[0].Timestamps,
+        //   y: metrics.MetricDataResults[0].Values,
+        // different graph
+        // };
+        const functionError = {
+          title: 'errors',
+          style: { line: 'red' },
+          x: metrics.MetricDataResults[1].Timestamps,
+          y: metrics.MetricDataResults[1].Values,
         };
-        invocationsLineGraph.setData([functionDurationData]);
+        const functionInvocations = {
+          title: 'invocations',
+          style: { line: 'green' },
+          x: metrics.MetricDataResults[2].Timestamps,
+          y: metrics.MetricDataResults[2].Values,
+        };
+        invocationsLineGraph.options.maxY = Math.max([functionInvocations.y, functionError.y]);
+        invocationsLineGraph.setData([functionError, functionInvocations]);
       });
       getLogStreams(`/aws/lambda/${funcName}`);
     });

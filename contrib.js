@@ -12,8 +12,18 @@ const cloudwatch = new AWS.CloudWatch({ region: process.argv[3] });
 const cloudwatchLogs = new AWS.CloudWatchLogs({ region: process.argv[3] });
 
 const getLambdaMetrics = (functionName, cb) => {
+  let startTime;
+  if (process.argv[4]) {
+    // eslint-disable-next-line prefer-destructuring
+    startTime = new Date(process.argv[4]);
+  } else {
+    startTime = new Date();
+    const dateOffset = (24 * 60 * 60 * 1000); // 1 day
+    startTime.setTime(startTime.getTime() - dateOffset);
+  }
+
   const params = {
-    EndTime: new Date() || 'Wed Dec 31 1969 16:00:00 GMT-0800 (PST)' || 123456789, /* required */
+    EndTime: new Date(),
     MetricDataQueries: [ /* required */
       {
         Id: 'duration', /* required */
@@ -85,7 +95,7 @@ const getLambdaMetrics = (functionName, cb) => {
         ReturnData: true,
       },
     ],
-    StartTime: '2019-08-18T17:10:00.000Z',
+    StartTime: startTime,
     ScanBy: 'TimestampDescending',
   };
   cloudwatch.getMetricData(params, (err, data) => {
@@ -131,16 +141,6 @@ const getLambdasForStackName = (stackName, setData) => cloudformation.listStackR
     }
   },
 );
-
-
-// var errorsLine = grid.set(4, 9, 4, 3, contrib.line,
-//   { style:
-//     { line: "red"
-//     , text: "white"
-//     , baseline: "black"}
-//   , label: 'Errors Rate'
-//   , maxY: 60
-//   , showLegend: true })
 
 const invocationsLineGraph = grid.set(2, 0, 6, 6, contrib.line,
   {

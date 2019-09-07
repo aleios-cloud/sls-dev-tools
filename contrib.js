@@ -99,30 +99,6 @@ const getLambdaMetrics = (functionName, cb) => {
 
 const grid = new contrib.grid({ rows: 12, cols: 12, screen });
 
-/**
- * Donut Options
-  self.options.radius = options.radius || 14; // how wide is it? over 5 is best
-  self.options.arcWidth = options.arcWidth || 4; //width of the donut
-  self.options.yPadding = options.yPadding || 2; //padding from the top
- */
-const donut = grid.set(8, 8, 4, 2, contrib.donut,
-  {
-    label: 'Percent Donut',
-    radius: 16,
-    arcWidth: 4,
-    yPadding: 2,
-    data: [{ label: 'Storage', percent: 87 }],
-  });
-
-const gaugeTwo = grid.set(8, 10, 2, 2, contrib.gauge, { label: 'Deployment Progress', percent: 80 });
-
-const sparkline = grid.set(10, 10, 2, 2, contrib.sparkline,
-  {
-    label: 'Throughput (bits/sec)',
-    tags: true,
-    style: { fg: 'blue', titleFg: 'white' },
-  });
-
 const bar = grid.set(4, 6, 4, 3, contrib.bar,
   {
     label: 'Lambda Duration (most recent)',
@@ -178,7 +154,7 @@ const invocationsLineGraph = grid.set(2, 0, 6, 6, contrib.line,
 
 const map = grid.set(4, 9, 4, 3, contrib.map, { label: `Servers Location (${process.argv[3]})` });
 
-const log = grid.set(8, 0, 4, 8, blessed.log,
+const log = grid.set(8, 0, 4, 12, blessed.log,
   {
     fg: 'green',
     selectedFg: 'green',
@@ -188,13 +164,6 @@ const log = grid.set(8, 0, 4, 8, blessed.log,
     mouse: true,
   });
 
-
-let gaugePercentTwo = 0;
-setInterval(() => {
-  gaugeTwo.setData(gaugePercentTwo);
-  gaugePercentTwo++;
-  if (gaugePercentTwo >= 100) gaugePercentTwo = 0;
-}, 200);
 
 const getLogEvents = (logGroupName, logStreamNames) => {
   if (logStreamNames.length === 0) {
@@ -290,24 +259,6 @@ const titleBox = grid.set(0, 0, 2, 6, blessed.box, {
 generateTable();
 table.focus();
 
-// set spark dummy data
-// eslint-disable-next-line max-len
-const spark1 = [1, 2, 5, 2, 1, 5, 1, 2, 5, 2, 1, 5, 4, 4, 5, 4, 1, 5, 1, 2, 5, 2, 1, 5, 1, 2, 5, 2, 1, 5, 1, 2, 5, 2, 1, 5];
-// eslint-disable-next-line max-len
-const spark2 = [4, 4, 5, 4, 1, 5, 1, 2, 5, 2, 1, 5, 4, 4, 5, 4, 1, 5, 1, 2, 5, 2, 1, 5, 1, 2, 5, 2, 1, 5, 1, 2, 5, 2, 1, 5];
-
-function refreshSpark() {
-  spark1.shift();
-  spark1.push(Math.random() * 5 + 1);
-  spark2.shift();
-  spark2.push(Math.random() * 5 + 1);
-  sparkline.setData(['Server1', 'Server2'], [spark1, spark2]);
-}
-
-refreshSpark();
-setInterval(refreshSpark, 1000);
-
-
 const awsRegionLocations = {
   'us-east-1': { lat: 38.13, lon: -78.45 },
   'us-east-2': { lat: 39.96, lon: -83 },
@@ -351,35 +302,10 @@ setInterval(() => {
   screen.render();
 }, 1000);
 
-// set line charts dummy data
-
-let pct = 0.00;
-
-function updateDonut() {
-  if (pct > 0.99) pct = 0.00;
-  let color = 'green';
-  if (pct >= 0.25) color = 'cyan';
-  if (pct >= 0.5) color = 'yellow';
-  if (pct >= 0.75) color = 'red';
-  donut.setData([
-    { percent: parseFloat((pct + 0.00) % 1).toFixed(2), label: 'storage', color },
-  ]);
-  pct += 0.01;
-}
-
-setInterval(() => {
-  updateDonut();
-  screen.render();
-}, 500);
-
-
 screen.key(['escape', 'q', 'C-c'], () => process.exit(0));
 
 // fixes https://github.com/yaronn/blessed-contrib/issues/10
 screen.on('resize', () => {
-  donut.emit('attach');
-  gaugeTwo.emit('attach');
-  sparkline.emit('attach');
   bar.emit('attach');
   table.emit('attach');
   // errorsLine.emit('attach');

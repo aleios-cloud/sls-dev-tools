@@ -1,6 +1,8 @@
 # sls-dev-tools
 The Chrome Dev Tools for the Serverless World
 
+⚠ Still in early POC stages, stable Alpha release expected in next weeks. ⚠
+
 ![demo](./demo.png)
 
 # To Run

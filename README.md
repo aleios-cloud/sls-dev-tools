@@ -33,7 +33,7 @@ The current list of calls made by the tool:
 
 
 
-
+Heavily based off the amazing [blessed](https://github.com/chjj/blessed) and [blessed-contrib](https://github.com/yaronn/blessed-contrib) projects.
 
 ## Core Team
 

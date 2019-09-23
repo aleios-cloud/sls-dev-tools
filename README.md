@@ -13,10 +13,6 @@ The Chrome Dev Tools for the Serverless World
 - `yarn build`
 
 
-# Deploy Lambdas
-
-- `sls deploy`
-
 # A note on AWS API calls and pricing
 
 This tool does make use of the AWS API to get metrics. Authentication is handled implicitly via the AWS NodeJS SDK. Pricing around Cloudwatch is designed for scale, but be warned that this tool is making calls to AWS. There is no hot reload yet, but that will be put in soon, increasing the number of calls made.

@@ -7,13 +7,14 @@ The Chrome Dev Tools for the Serverless World
 
 # To Run
 
-- Run `yarn watch`
+- Run `yarn dev`
 - Then `yarn start {YOUR_STACK} {YOUR_REGION}`
+- If this doesn't work, have a look on AWS and see what your stack is called as it may be a different name than you expect, e.g. with `-dev` on the end
+- Try to choose a function with the arrow keys and enter to see the metrics. You may get an `AccessDenied` error in which case you must add the `GetMetricData` permission from CloudWatch in the IAM console on AWS.
 
 # Build
 
 - `yarn build`
-
 
 # A note on AWS API calls and pricing
 

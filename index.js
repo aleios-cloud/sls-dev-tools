@@ -12,20 +12,38 @@ const cloudformation = new AWS.CloudFormation({ region: process.argv[3] });
 const cloudwatch = new AWS.CloudWatch({ region: process.argv[3] });
 const cloudwatchLogs = new AWS.CloudWatchLogs({ region: process.argv[3] });
 
-const getLambdaMetrics = (functionName, cb) => {
+const sortMetricDataResultsByTimestamp = (data) => {
+  const newData = data.map((datum) => {
+    const returnData = datum;
+    const timestamps = datum.Timestamps.splice(0, 6);
+    const values = datum.Values.splice(0, 6);
+    const sorted = timestamps.map((timestamp, index) => ({ timestamp, value: values[index] }))
+      .sort((first, second) => (moment(first.timestamp) > moment(second.timestamp) ? 1 : -1));
+    returnData.Timestamps = sorted.map((it) => it.timestamp);
+    returnData.Values = sorted.map((it) => it.value);
+    return returnData;
+  });
+  return newData;
+};
+
+const getLambdaMetrics = (functionName, last, cb) => {
+  const period = process.argv[4] ? '86400' : '300'; // Precision of times that come back from query.
+
   let startTime;
   if (process.argv[4]) {
     // eslint-disable-next-line prefer-destructuring
     startTime = new Date(process.argv[4]);
   } else {
-    startTime = new Date();
+    startTime = new Date(Math.round(new Date().getTime() / period) * period);
+    // Round to closest period to make query faster.
+
     const dateOffset = (24 * 60 * 60 * 1000 * 2); // 2 day
     startTime.setTime(startTime.getTime() - dateOffset);
   }
 
-  const period = process.argv[4] ? '86400' : '300';
-
   const params = {
+    StartTime: startTime,
+    ScanBy: 'TimestampDescending',
     EndTime: new Date(),
     MetricDataQueries: [ /* required */
       {
@@ -37,11 +55,6 @@ const getLambdaMetrics = (functionName, cb) => {
                 Name: 'FunctionName',
                 Value: functionName,
               },
-              {
-                Name: 'Resource',
-                Value: functionName,
-              },
-              /* more items */
             ],
             MetricName: 'Duration',
             Namespace: 'AWS/Lambda',
@@ -60,11 +73,6 @@ const getLambdaMetrics = (functionName, cb) => {
                 Name: 'FunctionName',
                 Value: functionName,
               },
-              {
-                Name: 'Resource',
-                Value: functionName,
-              },
-              /* more items */
             ],
             MetricName: 'Errors',
             Namespace: 'AWS/Lambda',
@@ -83,11 +91,6 @@ const getLambdaMetrics = (functionName, cb) => {
                 Name: 'FunctionName',
                 Value: functionName,
               },
-              {
-                Name: 'Resource',
-                Value: functionName,
-              },
-              /* more items */
             ],
             MetricName: 'Invocations',
             Namespace: 'AWS/Lambda',
@@ -98,12 +101,14 @@ const getLambdaMetrics = (functionName, cb) => {
         ReturnData: true,
       },
     ],
-    StartTime: startTime,
-    ScanBy: 'TimestampDescending',
   };
   cloudwatch.getMetricData(params, (err, data) => {
     if (err) console.log(err, err.stack); // an error occurred
-    else cb(data); // successful response
+    else {
+      const sortedData = data;
+      sortedData.MetricDataResults = sortMetricDataResultsByTimestamp(data.MetricDataResults);
+      cb(sortedData);// successful response
+    }
   });
 };
 
@@ -115,7 +120,7 @@ const grid = new contrib.grid({ rows: 12, cols: 12, screen });
 const bar = grid.set(4, 6, 4, 3, contrib.bar,
   {
     label: 'Lambda Duration (most recent)',
-    barWidth: 5,
+    barWidth: 6,
     barSpacing: 6,
     xOffset: 2,
     maxHeight: 9,
@@ -210,12 +215,10 @@ function generateTable() {
     table.setData({ headers: ['logical', 'updated'], data: lambdaFunctions });
     table.rows.on('select', (item) => {
       const funcName = item.content.split('   ')[0];
-      setInterval(() => getLambdaMetrics(funcName, (metrics) => {
+      setInterval(() => getLambdaMetrics(funcName, 6, (metrics) => {
         const durations = metrics.MetricDataResults[0];
-        durations.Timestamps = durations.Timestamps.splice(0, 6);
-        durations.Values = durations.Values.splice(0, 6);
         bar.setData({
-          titles: durations.Timestamps.map((t, i) => i.toString()),
+          titles: durations.Timestamps.map((t) => moment(t).format('HH:mm')),
           data: durations.Values.map((t) => Math.round(t)),
         });
 
@@ -240,16 +243,16 @@ function generateTable() {
         invocationsLineGraph.options.maxY = Math.max([...functionInvocations.y, ...functionError.y]);
         invocationsLineGraph.setData([functionError, functionInvocations]);
         getLogStreams(`/aws/lambda/${funcName}`);
-      }), (3000));
+      }), (1000));
     });
   }));
 }
 
 const logo = `
- ___  __    ___      ____  ____  _  _     ____  _____  _____  __    ___
-/ __)(  )  / __) ___(  _ \\( ___)( \\/ )___(_  _)(  _  )(  _  )(  )  / __)
-\\__ \\ )(__ \\__ \\(___))(_) ))__)  \\  /(___) )(   )(_)(  )(_)(  )(__ \\__ \\
-(___/(____)(___/    (____/(____)  \\/      (__) (_____)(_____)(____)(___/
+ ____  __    ____      ____  ____  _  _      ____  __    __   __    ____
+/ ___)(  )  / ___) ___(    \\(  __)/ )( \\ ___(_  _)/  \\  /  \\ (  )  / ___)
+\\___ \\/ (_/\\\\___ \\(___)) D ( ) _) \\ \\/ /(___) )( (  O )(  O )/ (_/\\\\___ \\
+(____/\\____/(____/    (____/(____) \\__/      (__) \\__/  \\__/ \\____/(____/
 `;
 
 const titleBox = grid.set(0, 0, 2, 6, blessed.box, {

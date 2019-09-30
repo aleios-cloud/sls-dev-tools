@@ -5,6 +5,7 @@ import AWS from 'aws-sdk';
 
 const blessed = require('blessed');
 const contrib = require('blessed-contrib');
+const moment = require('moment');
 
 const screen = blessed.screen({ smartCSR: true });
 const cloudformation = new AWS.CloudFormation({ region: process.argv[3] });
@@ -18,9 +19,11 @@ const getLambdaMetrics = (functionName, cb) => {
     startTime = new Date(process.argv[4]);
   } else {
     startTime = new Date();
-    const dateOffset = (24 * 60 * 60 * 1000); // 1 day
+    const dateOffset = (24 * 60 * 60 * 1000 * 2); // 2 day
     startTime.setTime(startTime.getTime() - dateOffset);
   }
+
+  const period = process.argv[4] ? '86400' : '300';
 
   const params = {
     EndTime: new Date(),
@@ -43,7 +46,7 @@ const getLambdaMetrics = (functionName, cb) => {
             MetricName: 'Duration',
             Namespace: 'AWS/Lambda',
           },
-          Period: '300', /* required */
+          Period: period, /* required */
           Stat: 'Maximum', /* required */
         },
         ReturnData: true,
@@ -66,7 +69,7 @@ const getLambdaMetrics = (functionName, cb) => {
             MetricName: 'Errors',
             Namespace: 'AWS/Lambda',
           },
-          Period: '300', /* required */
+          Period: period, /* required */
           Stat: 'Sum', /* required */
         },
         ReturnData: true,
@@ -89,7 +92,7 @@ const getLambdaMetrics = (functionName, cb) => {
             MetricName: 'Invocations',
             Namespace: 'AWS/Lambda',
           },
-          Period: '300', /* required */
+          Period: period, // 1 day interval, otherwise 5 min
           Stat: 'Sum', /* required */
         },
         ReturnData: true,
@@ -207,7 +210,7 @@ function generateTable() {
     table.setData({ headers: ['logical', 'updated'], data: lambdaFunctions });
     table.rows.on('select', (item) => {
       const funcName = item.content.split('   ')[0];
-      getLambdaMetrics(funcName, (metrics) => {
+      setInterval(() => getLambdaMetrics(funcName, (metrics) => {
         const durations = metrics.MetricDataResults[0];
         durations.Timestamps = durations.Timestamps.splice(0, 6);
         durations.Values = durations.Values.splice(0, 6);
@@ -215,22 +218,29 @@ function generateTable() {
           titles: durations.Timestamps.map((t, i) => i.toString()),
           data: durations.Values.map((t) => Math.round(t)),
         });
+
+        let dateFormat = 'DDMM';
+        if (moment(metrics.MetricDataResults[1]).isAfter(moment().subtract(3, 'days'))) {
+          // oldest event within 3days of now.
+          dateFormat = 'HH:mm DD';
+        }
+
         const functionError = {
           title: 'errors',
           style: { line: 'red' },
-          x: metrics.MetricDataResults[1].Timestamps,
+          x: metrics.MetricDataResults[1].Timestamps.map((d) => moment(d).format(dateFormat)),
           y: metrics.MetricDataResults[1].Values,
         };
         const functionInvocations = {
           title: 'invocations',
           style: { line: 'green' },
-          x: metrics.MetricDataResults[2].Timestamps,
+          x: metrics.MetricDataResults[2].Timestamps.map((d) => moment(d).format(dateFormat)),
           y: metrics.MetricDataResults[2].Values,
         };
-        invocationsLineGraph.options.maxY = Math.max([functionInvocations.y, functionError.y]);
+        invocationsLineGraph.options.maxY = Math.max([...functionInvocations.y, ...functionError.y]);
         invocationsLineGraph.setData([functionError, functionInvocations]);
-      });
-      getLogStreams(`/aws/lambda/${funcName}`);
+        getLogStreams(`/aws/lambda/${funcName}`);
+      }), (3000));
     });
   }));
 }

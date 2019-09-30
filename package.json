@@ -5,6 +5,7 @@
     "aws-sdk": "^2.514.0",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.16",
+    "moment": "^2.24.0",
     "prop-types": "^15.7.2",
     "react": "^16.9.0",
     "serverless": "^1.50.0"
@@ -20,9 +21,9 @@
     "eslint-plugin-import": "^2.18.2"
   },
   "scripts": {
-    "build": "babel contrib.js --out-dir lib",
-    "dev": "babel contrib.js --out-dir lib --watch",
-    "start": "node ./lib/contrib.js"
+    "build": "babel index.js --out-dir lib",
+    "dev": "babel index.js --out-dir lib --watch",
+    "start": "node ./lib/index.js"
   },
   "babel": {
     "presets": [

@@ -5,6 +5,7 @@
     "aws-sdk": "^2.514.0",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.16",
+    "commander": "^3.0.2",
     "moment": "^2.24.0",
     "prop-types": "^15.7.2",
     "react": "^16.9.0",

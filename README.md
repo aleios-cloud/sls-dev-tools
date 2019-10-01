@@ -8,7 +8,7 @@ The Chrome Dev Tools for the Serverless World
 # To Run
 
 - Run `yarn dev`
-- Then `yarn start {YOUR_STACK} {YOUR_REGION}`
+- Then `yarn start -n {YOUR_STACK_NAME} -r {YOUR_REGION} [-t {START_TIME}]`
 - If this doesn't work, have a look on AWS and see what your stack is called as it may be a different name than you expect, e.g. with `-dev` on the end
 - Try to choose a function with the arrow keys and enter to see the metrics. You may get an `AccessDenied` error in which case you must add the `GetMetricData` permission from CloudWatch in the IAM console on AWS.
 
@@ -23,7 +23,7 @@ This tool does make use of the AWS API to get metrics. Authentication is handled
 Full details on AWS API pricing can be found here:
 - https://aws.amazon.com/cloudwatch/pricing/
 
-For instance, the cost of GetMeticData as of 25/08/19 was $0.01 per 1,000 metrics requested.
+For instance, the cost of GetMetricData as of 25/08/19 was $0.01 per 1,000 metrics requested.
 - This tool take no liability in pricing data provided and please use AWS's docs to ensure pricing is appropriate for you.
 
 The current list of calls made by the tool:

@@ -37,18 +37,102 @@ const awsRegionLocations = {
   'ca-central-1': { lat: 45.5, lon: -73.6 },
 };
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function getLambdasForStackName(stackName) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      cloudformation.listStackResources({ StackName: stackName }, (err, data) => {
-        if (err) {
-          reject(err);
-          console.log(err, err.stack);
-        }
-        resolve(data);
-      });
-    }, 2000);
-  });
+  return cloudformation.listStackResources({ StackName: stackName }).promise();
+}
+
+function getLambdaMetrics(functionName) {
+  const period = process.argv[4] ? '86400' : '300'; // Precision of times that come back from query.
+  // const period = 1;
+  let startTime;
+  if (process.argv[4]) {
+    // eslint-disable-next-line prefer-destructuring
+    startTime = new Date(process.argv[4]);
+  } else {
+    startTime = new Date(Math.round(new Date().getTime() / period) * period);
+    // Round to closest period to make query faster.
+    const dateOffset = (24 * 60 * 60 * 1000 * 2); // 2 day
+    startTime.setTime(startTime.getTime() - dateOffset);
+  }
+  const endTime = new Date();
+  const params = {
+    StartTime: startTime,
+    EndTime: endTime,
+    MetricDataQueries: [
+      {
+        Id: 'duration',
+        MetricStat: {
+          Metric: {
+            Dimensions: [
+              {
+                Name: 'FunctionName',
+                Value: functionName,
+              },
+              {
+                Name: 'Resource',
+                Value: functionName,
+              },
+            ],
+            MetricName: 'Duration',
+            Namespace: 'AWS/Lambda',
+          },
+          Period: period,
+          Stat: 'Maximum',
+        },
+        ReturnData: true,
+      },
+      {
+        Id: 'errors',
+        MetricStat: {
+          Metric: {
+            Dimensions: [
+              {
+                Name: 'FunctionName',
+                Value: functionName,
+              },
+              {
+                Name: 'Resource',
+                Value: functionName,
+              },
+            ],
+            MetricName: 'Errors',
+            Namespace: 'AWS/Lambda',
+          },
+          Period: period,
+          Stat: 'Sum',
+        },
+        ReturnData: true,
+      },
+      {
+        Id: 'invocations',
+        MetricStat: {
+          Metric: {
+            Dimensions: [
+              {
+                Name: 'FunctionName',
+                Value: functionName,
+              },
+              {
+                Name: 'Resource',
+                Value: functionName,
+              },
+            ],
+            MetricName: 'Invocations',
+            Namespace: 'AWS/Lambda',
+          },
+          Period: period,
+          Stat: 'Sum',
+        },
+        ReturnData: true,
+      },
+    ],
+  };
+
+  return cloudwatch.getMetricData(params).promise();
 }
 
 class Main {
@@ -102,11 +186,10 @@ class Main {
       },
     });
     this.marker = false;
-    this.currentInterval = null;
+    this.funcName = null;
   }
 
-  render() {
-    console.log("rendering");
+  async render() {
     screen.key(['escape', 'q', 'C-c'], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.on('resize', () => {
@@ -120,19 +203,21 @@ class Main {
     });
     screen.title = 'sls-dev-tools';
 
-    console.log("generating...");
+    await this.table.rows.on('select', (item) => {
+      this.funcName = item.content.split('   ')[0];
+      this.refetch();
+    });
 
-    this.generateTable();
+    while (true) {
+      this.generateTable();
+      this.table.focus();
 
-    console.log("generated");
-
-
-    this.table.focus();
-
-    // set map dummy markers
-    setInterval(this.updateMarker(), 1000);
-
-    screen.render();
+      for (let index = 0; index < 2; index++) {
+        this.updateMarker();
+        screen.render();
+        await sleep(1000);
+      }
+    }
   }
 
   updateMarker() {
@@ -168,189 +253,99 @@ class Main {
 
     this.table.setData({ headers: ['logical', 'updated'], data: lambdaFunctions });
 
-    this.table.rows.on('select', (item) => {
-      const funcName = item.content.split('   ')[0];
-      if (this.currentInterval) {
-        clearInterval(this.currentInterval);
-      }
-      this.currentInterval = setInterval(() => {
-        console.log('setting');
-        this.getLambdaMetrics(funcName, 6);
-        const durations = this.data.MetricDataResults[0];
-        this.bar.setData({
-          titles: durations.Timestamps.map((t) => moment(t).format('HH:mm')),
-          data: durations.Values.map((t) => Math.round(t)),
-        });
+    if (this.funcName) {
+      this.refetch();
+    }
 
-        let dateFormat = 'DDMM';
-        if (moment(this.data.MetricDataResults[1]).isAfter(moment().subtract(3, 'days'))) {
-          // oldest event within 3days of now.
-          dateFormat = 'HH:mm DD';
-        }
-
-        const functionError = {
-          title: 'errors',
-          style: { line: 'red' },
-          x: this.data.MetricDataResults[1].Timestamps.map((d) => moment(d).format(dateFormat)),
-          y: this.data.MetricDataResults[1].Values,
-        };
-        const functionInvocations = {
-          title: 'invocations',
-          style: { line: 'green' },
-          x: this.data.MetricDataResults[2].Timestamps.map((d) => moment(d).format(dateFormat)),
-          y: this.data.MetricDataResults[2].Values,
-        };
-        this.invocationsLineGraph.options.maxY = Math.max([...functionInvocations.y, ...functionError.y]);
-        this.invocationsLineGraph.setData([functionError, functionInvocations]);
-        this.getLogStreams(`/aws/lambda/${funcName}`);
-      }, (3000));
-    });
     screen.render();
   }
 
+  async refetch() {
+    const data = await getLambdaMetrics(this.funcName);
+    this.data = data;
 
-  getLogStreams() {
-    return (logGroupName) => {
-      const params = {
-        logGroupName,
-        descending: true,
-        limit: 5,
-        orderBy: 'LastEventTime',
-      };
-      cloudwatchLogs.describeLogStreams(params, (err, data) => {
-        if (err) {
-          console.log(err, err.stack); // an error occurred
-        } else {
-          this.getLogEvents(logGroupName, data.logStreams.map((stream) => stream.logStreamName));
-        }
-      });
-    };
-  }
+    this.data.MetricDataResults = this.sortMetricDataResultsByTimestamp(
+      this.data.MetricDataResults,
+    );
 
-  getLogEvents() {
-    return (logGroupName, logStreamNames) => {
-      if (logStreamNames.length === 0) {
-        this.log.setContent('ERROR: No log streams found for this function.');
-        return;
-      }
-      const params = {
-        logGroupName,
-        interleaved: true,
-        logStreamNames,
-        limit: 100,
-      };
-      cloudwatchLogs.filterLogEvents(params, (err, data) => {
-        if (err) {
-          console.log(err, err.stack);
-        } else {
-          const { events } = data;
-          this.log.setContent('');
-          events.forEach((event) => { this.log.log(event.message); });
-        }
-      });
-    };
-  }
+    const durations = this.data.MetricDataResults[0];
+    this.bar.setData({
+      titles: durations.Timestamps.map((t) => moment(t).format('HH:mm')),
+      data: durations.Values.map((t) => Math.round(t)),
+    });
 
-  getLambdaMetrics(functionName, count) {
-    const period = process.argv[4] ? '86400' : '300'; // Precision of times that come back from query.
-    // const period = 1;
-    let startTime;
-    if (process.argv[4]) {
-      // eslint-disable-next-line prefer-destructuring
-      startTime = new Date(process.argv[4]);
-    } else {
-      startTime = new Date(Math.round(new Date().getTime() / period) * period);
-      // Round to closest period to make query faster.
-      const dateOffset = (24 * 60 * 60 * 1000 * 2); // 2 day
-      startTime.setTime(startTime.getTime() - dateOffset);
+    let dateFormat = 'DDMM';
+    if (moment(this.data.MetricDataResults[1]).isAfter(moment().subtract(3, 'days'))) {
+      // oldest event within 3days of now.
+      dateFormat = 'HH:mm DD';
     }
-    const endTime = new Date();
-    const params = {
-      StartTime: startTime,
-      EndTime: endTime,
-      MetricDataQueries: [
-        {
-          Id: 'duration',
-          MetricStat: {
-            Metric: {
-              Dimensions: [
-                {
-                  Name: 'FunctionName',
-                  Value: functionName,
-                },
-                {
-                  Name: 'Resource',
-                  Value: functionName,
-                },
-              ],
-              MetricName: 'Duration',
-              Namespace: 'AWS/Lambda',
-            },
-            Period: 1,
-            Stat: 'Maximum',
-          },
-          ReturnData: true,
-        },
-        {
-          Id: 'errors',
-          MetricStat: {
-            Metric: {
-              Dimensions: [
-                {
-                  Name: 'FunctionName',
-                  Value: functionName,
-                },
-                {
-                  Name: 'Resource',
-                  Value: functionName,
-                },
-              ],
-              MetricName: 'Errors',
-              Namespace: 'AWS/Lambda',
-            },
-            Period: period,
-            Stat: 'Sum',
-          },
-          ReturnData: true,
-        },
-        {
-          Id: 'invocations',
-          MetricStat: {
-            Metric: {
-              Dimensions: [
-                {
-                  Name: 'FunctionName',
-                  Value: functionName,
-                },
-                {
-                  Name: 'Resource',
-                  Value: functionName,
-                },
-              ],
-              MetricName: 'Invocations',
-              Namespace: 'AWS/Lambda',
-            },
-            Period: period,
-            Stat: 'Sum',
-          },
-          ReturnData: true,
-        },
-      ],
+
+    const functionError = {
+      title: 'errors',
+      style: { line: 'red' },
+      x: this.data.MetricDataResults[1].Timestamps.map((d) => moment(d).format(dateFormat)),
+      y: this.data.MetricDataResults[1].Values,
     };
-    cloudwatch.getMetricData(params, (err, data) => {
-      if (err) {
-        console.log(err, err.stack); // an error occured
-      } else {
-        this.data.MetricDataResults = this.sortMetricDataResultsByTimestamp(data.MetricDataResults, count);
-      }
+
+    const functionInvocations = {
+      title: 'invocations',
+      style: { line: 'green' },
+      x: this.data.MetricDataResults[2].Timestamps.map((d) => moment(d).format(dateFormat)),
+      y: this.data.MetricDataResults[2].Values,
+    };
+
+    this.invocationsLineGraph.options.maxY = Math.max(
+      [...functionInvocations.y, ...functionError.y],
+    );
+    this.invocationsLineGraph.setData([functionError, functionInvocations]);
+
+    this.getLogStreams(`/aws/lambda/${this.funcName}`).then(() => {
+      screen.render();
     });
   }
 
-  sortMetricDataResultsByTimestamp(count) {
-    this.data = this.data.map((datum) => {
-      const latest = datum.Timestamps.map((timestamp, index) => ({ timestamp, value: datum.Values[index] }))
+  getLogStreams(logGroupName) {
+    const params = {
+      logGroupName,
+      descending: true,
+      limit: 5,
+      orderBy: 'LastEventTime',
+    };
+    return cloudwatchLogs.describeLogStreams(params, (err, data) => {
+      if (err) {
+        console.log(err, err.stack); // an error occurred
+      } else {
+        this.getLogEvents(logGroupName, data.logStreams.map((stream) => stream.logStreamName));
+      }
+    }).promise();
+  }
+
+  getLogEvents(logGroupName, logStreamNames) {
+    if (logStreamNames.length === 0) {
+      this.log.setContent('ERROR: No log streams found for this function.');
+      return;
+    }
+    const params = {
+      logGroupName,
+      interleaved: true,
+      logStreamNames,
+      limit: 100,
+    };
+    cloudwatchLogs.filterLogEvents(params).promise().then((data) => {
+      const { events } = data;
+      this.log.setContent('');
+      events.forEach((event) => { this.log.log(event.message); });
+    }, (err) => {
+      console.log(err, err.stack);
+    });
+  }
+
+  sortMetricDataResultsByTimestamp() {
+    return this.data.MetricDataResults.map((datum) => {
+      const latest = datum.Timestamps.map((timestamp, index) => (
+        { timestamp, value: datum.Values[index] }))
         .sort((first, second) => (moment(first.timestamp) < moment(second.timestamp) ? 1 : -1))
-        .splice(0, count);
+        .splice(0, 6);
       const sorted = latest.reverse();
       const returnData = datum;
       returnData.Timestamps = sorted.map((it) => it.timestamp);

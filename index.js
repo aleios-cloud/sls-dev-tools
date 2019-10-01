@@ -12,13 +12,16 @@ const cloudformation = new AWS.CloudFormation({ region: process.argv[3] });
 const cloudwatch = new AWS.CloudWatch({ region: process.argv[3] });
 const cloudwatchLogs = new AWS.CloudWatchLogs({ region: process.argv[3] });
 
-const sortMetricDataResultsByTimestamp = (data) => {
+const sortMetricDataResultsByTimestamp = (data, count) => {
   const newData = data.map((datum) => {
+    const latest = datum.Timestamps.map((timestamp, index) => (
+      { timestamp, value: datum.Values[index] }))
+      .sort((first, second) => (moment(first.timestamp) < moment(second.timestamp) ? 1 : -1))
+      .splice(0, count);
+
+    const sorted = latest.reverse();
+
     const returnData = datum;
-    const timestamps = datum.Timestamps.splice(0, 6);
-    const values = datum.Values.splice(0, 6);
-    const sorted = timestamps.map((timestamp, index) => ({ timestamp, value: values[index] }))
-      .sort((first, second) => (moment(first.timestamp) > moment(second.timestamp) ? 1 : -1));
     returnData.Timestamps = sorted.map((it) => it.timestamp);
     returnData.Values = sorted.map((it) => it.value);
     return returnData;
@@ -26,9 +29,10 @@ const sortMetricDataResultsByTimestamp = (data) => {
   return newData;
 };
 
-const getLambdaMetrics = (functionName, last, cb) => {
-  const period = process.argv[4] ? '86400' : '300'; // Precision of times that come back from query.
+const getLambdaMetrics = (functionName, count, cb) => {
 
+  const period = process.argv[4] ? '86400' : '300'; // Precision of times that come back from query.
+  // const period = 1;
   let startTime;
   if (process.argv[4]) {
     // eslint-disable-next-line prefer-destructuring
@@ -41,10 +45,11 @@ const getLambdaMetrics = (functionName, last, cb) => {
     startTime.setTime(startTime.getTime() - dateOffset);
   }
 
+  const endTime = new Date();
+
   const params = {
     StartTime: startTime,
-    ScanBy: 'TimestampDescending',
-    EndTime: new Date(),
+    EndTime: endTime,
     MetricDataQueries: [ /* required */
       {
         Id: 'duration', /* required */
@@ -55,11 +60,15 @@ const getLambdaMetrics = (functionName, last, cb) => {
                 Name: 'FunctionName',
                 Value: functionName,
               },
+              {
+                Name: 'Resource',
+                Value: functionName,
+              },
             ],
             MetricName: 'Duration',
             Namespace: 'AWS/Lambda',
           },
-          Period: period, /* required */
+          Period: 1, /* required */
           Stat: 'Maximum', /* required */
         },
         ReturnData: true,
@@ -71,6 +80,10 @@ const getLambdaMetrics = (functionName, last, cb) => {
             Dimensions: [
               {
                 Name: 'FunctionName',
+                Value: functionName,
+              },
+              {
+                Name: 'Resource',
                 Value: functionName,
               },
             ],
@@ -91,6 +104,10 @@ const getLambdaMetrics = (functionName, last, cb) => {
                 Name: 'FunctionName',
                 Value: functionName,
               },
+              {
+                Name: 'Resource',
+                Value: functionName,
+              },
             ],
             MetricName: 'Invocations',
             Namespace: 'AWS/Lambda',
@@ -106,7 +123,7 @@ const getLambdaMetrics = (functionName, last, cb) => {
     if (err) console.log(err, err.stack); // an error occurred
     else {
       const sortedData = data;
-      sortedData.MetricDataResults = sortMetricDataResultsByTimestamp(data.MetricDataResults);
+      sortedData.MetricDataResults = sortMetricDataResultsByTimestamp(data.MetricDataResults, count);
       cb(sortedData);// successful response
     }
   });
@@ -243,7 +260,7 @@ function generateTable() {
         invocationsLineGraph.options.maxY = Math.max([...functionInvocations.y, ...functionError.y]);
         invocationsLineGraph.setData([functionError, functionInvocations]);
         getLogStreams(`/aws/lambda/${funcName}`);
-      }), (1000));
+      }), (3000));
     });
   }));
 }
@@ -312,7 +329,7 @@ setInterval(() => {
     });
   }
   marker = !marker;
-  screen.render();
+  // screen.render();
 }, 1000);
 
 screen.key(['escape', 'q', 'C-c'], () => process.exit(0));
@@ -330,4 +347,4 @@ screen.on('resize', () => {
 
 screen.title = 'sls-dev-tools';
 
-screen.render();
+// screen.render();

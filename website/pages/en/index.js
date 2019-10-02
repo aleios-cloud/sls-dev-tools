@@ -60,7 +60,7 @@ class HomeSplash extends React.Component {
         <div className="inner">
           <ProjectTitle siteConfig={siteConfig} />
           <PromoSection>
-            <Button href="#try">Try It Out</Button>
+            <Button href="https://github.com/Theodo-UK/sls-dev-tools">Try It Out</Button>
             <Button href={docUrl('doc1.html')}>Example Link</Button>
             <Button href={docUrl('doc2.html')}>Example Link 2</Button>
           </PromoSection>
@@ -92,8 +92,10 @@ class Index extends React.Component {
       <div
         className="productShowcaseSection paddingBottom"
         style={{textAlign: 'center'}}>
-        <h2>Feature Callout</h2>
-        <MarkdownBlock>These are features of this project</MarkdownBlock>
+        <h2>All your serverless statistics, right in your terminal</h2>
+        <MarkdownBlock>
+          See how many times your functions have been called, how many errors, how long they took, and more.
+        </MarkdownBlock>
       </div>
     );
 
@@ -146,13 +148,18 @@ class Index extends React.Component {
         {[
           {
             image: `${baseUrl}img/undraw_programmer_imem.svg`,
-            imageAlign: 'top',
+            imageAlign: 'bottom',
             title: 'Better developer experience',
           },
           {
             image: `${baseUrl}img/undraw_predictive_analytics.svg`,
-            imageAlign: 'top',
+            imageAlign: 'bottom',
             title: 'Easier monitoring',
+          },
+          {
+            image: `${baseUrl}img/undraw_dashboard.svg`,
+            imageAlign: 'bottom',
+            title: 'Clean dashboard',
           },
         ]}
       </Block>

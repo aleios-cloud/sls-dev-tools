@@ -7,15 +7,13 @@ const blessed = require('blessed');
 const contrib = require('blessed-contrib');
 const moment = require('moment');
 const program = require('commander');
-const fs = require('fs');
-
 
 program.version('0.0.1');
 program
   .option('-n, --stack-name <stackName>', 'AWS stack name')
   .option('-r, --region <region>', 'AWS region')
   .option('-t, --start-time <startTime>', 'when to start from')
-  .option('-p, --period <startTime>', 'precision of graphs, in minutes')
+  .option('-p, --period <period>', 'precision of graphs, in seconds')
   .parse(process.argv);
 
 const screen = blessed.screen({ smartCSR: true });
@@ -24,7 +22,7 @@ const cloudwatch = new AWS.CloudWatch({ region: program.region });
 const cloudwatchLogs = new AWS.CloudWatchLogs({ region: program.region });
 
 const logo = `
-____  __    ____      ____  ____  _  _      ____  __    __   __    ____
+ ____  __    ____      ____  ____  _  _      ____  __    __   __    ____
 / ___)(  )  / ___) ___(    \\(  __)/ )( \\ ___(_  _)/  \\  /  \\ (  )  / ___)
 \\___ \\/ (_/\\\\___ \\(___)) D ( ) _) \\ \\/ /(___) )( (  O )(  O )/ (_/\\\\___ \\
 (____/\\____/(____/    (____/(____) \\__/      (__) \\__/  \\__/ \\____/(____/
@@ -197,60 +195,30 @@ class Main {
   }
 
   padInvocationsAndErrors() {
-    let errorsTimestamps = this.data.MetricDataResults[1].Timestamps;
-    let errorsValues = this.data.MetricDataResults[1].Values;
-    let invocationsTimestamps = this.data.MetricDataResults[2].Timestamps;
-    let invocationsValues = this.data.MetricDataResults[2].Values;
-
-    // console.log(invocationsTimestamps);
-    // console.log(invocationsValues);
-
-    if (!Array.isArray(errorsTimestamps)) {
-      errorsTimestamps = [];
-    }
-    if (!Array.isArray(invocationsTimestamps)) {
-      invocationsTimestamps = [];
-    }
-
-    for (let timestamp = moment(this.startTime).valueOf(); timestamp < moment(this.endTime).valueOf(); timestamp = moment(timestamp).add(this.period, 'seconds').valueOf()) {
-      if (invocationsTimestamps.every((it) => moment(it) !== moment(timestamp))) {
-        invocationsTimestamps.push(timestamp);
-        invocationsValues.push(0);
+    for (
+      let timestamp = moment(this.startTime).valueOf();
+      timestamp < moment(this.endTime).valueOf();
+      timestamp = moment(timestamp).add(this.period, 'seconds').valueOf()
+    ) {
+      if (this.data.MetricDataResults[2].Timestamps.every(
+        (it) => it.valueOf() !== timestamp,
+      )) {
+        this.data.MetricDataResults[2].Timestamps.push(new Date(timestamp));
+        this.data.MetricDataResults[2].Values.push(0);
       }
-      // console.log(timestamp);
     }
 
-    // invocationsTimestamps.forEach((timestamp) => {
-    //   const next = moment(timestamp).add(this.period, 'seconds');
-    //   if (invocationsTimestamps.every((it) => moment(it) !== next)) {
-    //     invocationsTimestamps.push(next.valueOf());
-    //     invocationsValues.push(0);
-    //   }
-    // });
-
-    for (let timestamp = moment(this.startTime).valueOf(); timestamp < moment(this.endTime).valueOf(); timestamp = moment(timestamp).add(this.period, 'seconds').valueOf()) {
-      if (errorsTimestamps.every((it) => moment(it) !== moment(timestamp))) {
-        errorsTimestamps.push(timestamp);
-        errorsValues.push(0);
+    for (let timestamp = moment(this.startTime).valueOf();
+      timestamp < moment(this.endTime).valueOf();
+      timestamp = moment(timestamp).add(this.period, 'seconds').valueOf()
+    ) {
+      if (this.data.MetricDataResults[1].Timestamps.every(
+        (it) => moment(it) !== moment(timestamp),
+      )) {
+        this.data.MetricDataResults[1].Timestamps.push(new Date(timestamp));
+        this.data.MetricDataResults[1].Values.push(0);
       }
-      // console.log(timestamp);
     }
-
-    // errorsTimestamps.forEach((timestamp) => {
-    //   const next = moment(timestamp).add(this.period, 'seconds');
-    //   if (errorsTimestamps.every((it) => moment(it) !== next)) {
-    //     errorsTimestamps.push(next.valueOf());
-    //     errorsValues.push(0);
-    //   }
-    // });
-
-    // console.log(invocationsTimestamps);
-    // console.log(invocationsValues);
-
-    this.data.MetricDataResults[1].Timestamps = errorsTimestamps;
-    this.data.MetricDataResults[1].Values = errorsValues;
-    this.data.MetricDataResults[2].Timestamps = invocationsTimestamps;
-    this.data.MetricDataResults[2].Values = invocationsValues;
   }
 
   async refetch() {
@@ -258,15 +226,14 @@ class Main {
     this.data = data;
 
     this.padInvocationsAndErrors();
-
-    this.data.MetricDataResults = this.sortMetricDataResultsByTimestamp(
+    this.sortMetricDataResultsByTimestamp(
       this.data.MetricDataResults,
     );
 
     const durations = this.data.MetricDataResults[0];
     this.bar.setData({
-      titles: durations.Timestamps.map((t) => moment(t).format('HH:mm')),
-      data: durations.Values.map((t) => Math.round(t)),
+      titles: durations.Timestamps.map((t) => moment(t).format('HH:mm')).slice(-6),
+      data: durations.Values.map((t) => Math.round(t)).slice(-6),
     });
 
     let dateFormat = 'DDMM';
@@ -279,9 +246,9 @@ class Main {
       title: 'errors',
       style: { line: 'red' },
       x: this.data.MetricDataResults[2].Timestamps.map((d) => {
-        const start = moment(d).format(dateFormat);
-        const end = moment(d).add(this.period, 'seconds').format(dateFormat);
-        return `${start}-${end}`;
+        return moment(d).format(dateFormat);
+        // const end = moment(d).add(this.period, 'seconds').format(dateFormat);
+        // return `${start}-${end}`;
       }),
       y: this.data.MetricDataResults[1].Values,
     };
@@ -344,15 +311,13 @@ class Main {
   }
 
   sortMetricDataResultsByTimestamp() {
-    return this.data.MetricDataResults.map((datum) => {
+    this.data.MetricDataResults = this.data.MetricDataResults.map((datum) => {
       const latest = datum.Timestamps.map((timestamp, index) => (
         { timestamp: moment(timestamp), value: datum.Values[index] }))
-        .sort((first, second) => (moment(first.timestamp) < moment(second.timestamp) ? 1 : -1))
-        .splice(0, 6);
-      const sorted = latest.reverse();
+        .sort((first, second) => (moment(first.timestamp) > moment(second.timestamp) ? 1 : -1));
       const returnData = datum;
-      returnData.Timestamps = sorted.map((it) => it.timestamp);
-      returnData.Values = sorted.map((it) => it.value);
+      returnData.Timestamps = latest.map((it) => it.timestamp);
+      returnData.Values = latest.map((it) => it.value);
       return returnData;
     });
   }

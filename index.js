@@ -7,6 +7,7 @@ const blessed = require('blessed');
 const contrib = require('blessed-contrib');
 const moment = require('moment');
 const program = require('commander');
+const fs = require('fs');
 
 
 program.version('0.0.1');
@@ -14,6 +15,7 @@ program
   .option('-n, --stack-name <stackName>', 'AWS stack name')
   .option('-r, --region <region>', 'AWS region')
   .option('-t, --start-time <startTime>', 'when to start from')
+  .option('-p, --period <startTime>', 'precision of graphs, in minutes')
   .parse(process.argv);
 
 const screen = blessed.screen({ smartCSR: true });
@@ -54,98 +56,9 @@ function getLambdasForStackName(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
 }
 
-function getLambdaMetrics(functionName) {
-  const period = program.startTime ? '86400' : '300'; // Precision of times that come back from query.
-  // const period = 1;
-  let startTime;
-  if (program.startTime) {
-    // eslint-disable-next-line prefer-destructuring
-    startTime = new Date(program.startTime);
-  } else {
-    startTime = new Date(Math.round(new Date().getTime() / period) * period);
-    // Round to closest period to make query faster.
-    const dateOffset = (24 * 60 * 60 * 1000 * 2); // 2 day
-    startTime.setTime(startTime.getTime() - dateOffset);
-  }
-  const endTime = new Date();
-  const params = {
-    StartTime: startTime,
-    EndTime: endTime,
-    MetricDataQueries: [
-      {
-        Id: 'duration',
-        MetricStat: {
-          Metric: {
-            Dimensions: [
-              {
-                Name: 'FunctionName',
-                Value: functionName,
-              },
-              {
-                Name: 'Resource',
-                Value: functionName,
-              },
-            ],
-            MetricName: 'Duration',
-            Namespace: 'AWS/Lambda',
-          },
-          Period: period,
-          Stat: 'Maximum',
-        },
-        ReturnData: true,
-      },
-      {
-        Id: 'errors',
-        MetricStat: {
-          Metric: {
-            Dimensions: [
-              {
-                Name: 'FunctionName',
-                Value: functionName,
-              },
-              {
-                Name: 'Resource',
-                Value: functionName,
-              },
-            ],
-            MetricName: 'Errors',
-            Namespace: 'AWS/Lambda',
-          },
-          Period: period,
-          Stat: 'Sum',
-        },
-        ReturnData: true,
-      },
-      {
-        Id: 'invocations',
-        MetricStat: {
-          Metric: {
-            Dimensions: [
-              {
-                Name: 'FunctionName',
-                Value: functionName,
-              },
-              {
-                Name: 'Resource',
-                Value: functionName,
-              },
-            ],
-            MetricName: 'Invocations',
-            Namespace: 'AWS/Lambda',
-          },
-          Period: period,
-          Stat: 'Sum',
-        },
-        ReturnData: true,
-      },
-    ],
-  };
-
-  return cloudwatch.getMetricData(params).promise();
-}
-
 class Main {
   constructor() {
+    this.period = program.period || 1;
     this.grid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.bar = this.grid.set(4, 6, 4, 3, contrib.bar,
       {
@@ -169,6 +82,7 @@ class Main {
         label: 'Function Metrics',
         showLegend: true,
         xPadding: 10,
+        xLabelPadding: 10,
         wholeNumbersOnly: true,
         legend: { width: 50 },
       });
@@ -196,6 +110,19 @@ class Main {
     });
     this.marker = false;
     this.funcName = null;
+    this.endTime = new Date();
+    if (program.startTime) {
+      // eslint-disable-next-line prefer-destructuring
+      this.startTime = new Date(program.startTime);
+    } else {
+      const dateOffset = (24 * 60 * 60 * 1000 * 1); // 1 day
+      // const dateOffset = (60 * 60 * 1000 * 1); // 1 hour
+
+      // Round to closest period to make query faster.
+      this.startTime = new Date(
+        (Math.round(new Date().getTime() / this.period) * this.period) - dateOffset,
+      );
+    }
   }
 
   async render() {
@@ -269,9 +196,68 @@ class Main {
     screen.render();
   }
 
+  padInvocationsAndErrors() {
+    let errorsTimestamps = this.data.MetricDataResults[1].Timestamps;
+    let errorsValues = this.data.MetricDataResults[1].Values;
+    let invocationsTimestamps = this.data.MetricDataResults[2].Timestamps;
+    let invocationsValues = this.data.MetricDataResults[2].Values;
+
+    // console.log(invocationsTimestamps);
+    // console.log(invocationsValues);
+
+    if (!Array.isArray(errorsTimestamps)) {
+      errorsTimestamps = [];
+    }
+    if (!Array.isArray(invocationsTimestamps)) {
+      invocationsTimestamps = [];
+    }
+
+    for (let timestamp = moment(this.startTime).valueOf(); timestamp < moment(this.endTime).valueOf(); timestamp = moment(timestamp).add(this.period, 'seconds').valueOf()) {
+      if (invocationsTimestamps.every((it) => moment(it) !== moment(timestamp))) {
+        invocationsTimestamps.push(timestamp);
+        invocationsValues.push(0);
+      }
+      // console.log(timestamp);
+    }
+
+    // invocationsTimestamps.forEach((timestamp) => {
+    //   const next = moment(timestamp).add(this.period, 'seconds');
+    //   if (invocationsTimestamps.every((it) => moment(it) !== next)) {
+    //     invocationsTimestamps.push(next.valueOf());
+    //     invocationsValues.push(0);
+    //   }
+    // });
+
+    for (let timestamp = moment(this.startTime).valueOf(); timestamp < moment(this.endTime).valueOf(); timestamp = moment(timestamp).add(this.period, 'seconds').valueOf()) {
+      if (errorsTimestamps.every((it) => moment(it) !== moment(timestamp))) {
+        errorsTimestamps.push(timestamp);
+        errorsValues.push(0);
+      }
+      // console.log(timestamp);
+    }
+
+    // errorsTimestamps.forEach((timestamp) => {
+    //   const next = moment(timestamp).add(this.period, 'seconds');
+    //   if (errorsTimestamps.every((it) => moment(it) !== next)) {
+    //     errorsTimestamps.push(next.valueOf());
+    //     errorsValues.push(0);
+    //   }
+    // });
+
+    // console.log(invocationsTimestamps);
+    // console.log(invocationsValues);
+
+    this.data.MetricDataResults[1].Timestamps = errorsTimestamps;
+    this.data.MetricDataResults[1].Values = errorsValues;
+    this.data.MetricDataResults[2].Timestamps = invocationsTimestamps;
+    this.data.MetricDataResults[2].Values = invocationsValues;
+  }
+
   async refetch() {
-    const data = await getLambdaMetrics(this.funcName);
+    const data = await this.getLambdaMetrics(this.funcName);
     this.data = data;
+
+    this.padInvocationsAndErrors();
 
     this.data.MetricDataResults = this.sortMetricDataResultsByTimestamp(
       this.data.MetricDataResults,
@@ -286,20 +272,28 @@ class Main {
     let dateFormat = 'DDMM';
     if (moment(this.data.MetricDataResults[1]).isAfter(moment().subtract(3, 'days'))) {
       // oldest event within 3days of now.
-      dateFormat = 'HH:mm DD';
+      dateFormat = 'HH:mm';
     }
 
     const functionError = {
       title: 'errors',
       style: { line: 'red' },
-      x: this.data.MetricDataResults[1].Timestamps.map((d) => moment(d).format(dateFormat)),
+      x: this.data.MetricDataResults[2].Timestamps.map((d) => {
+        const start = moment(d).format(dateFormat);
+        const end = moment(d).add(this.period, 'seconds').format(dateFormat);
+        return `${start}-${end}`;
+      }),
       y: this.data.MetricDataResults[1].Values,
     };
 
     const functionInvocations = {
       title: 'invocations',
       style: { line: 'green' },
-      x: this.data.MetricDataResults[2].Timestamps.map((d) => moment(d).format(dateFormat)),
+      x: this.data.MetricDataResults[2].Timestamps.map((d) => {
+        const start = moment(d).format(dateFormat);
+        const end = moment(d).add(this.period, 'seconds').format(dateFormat);
+        return `${start}-${end}`;
+      }),
       y: this.data.MetricDataResults[2].Values,
     };
 
@@ -352,7 +346,7 @@ class Main {
   sortMetricDataResultsByTimestamp() {
     return this.data.MetricDataResults.map((datum) => {
       const latest = datum.Timestamps.map((timestamp, index) => (
-        { timestamp, value: datum.Values[index] }))
+        { timestamp: moment(timestamp), value: datum.Values[index] }))
         .sort((first, second) => (moment(first.timestamp) < moment(second.timestamp) ? 1 : -1))
         .splice(0, 6);
       const sorted = latest.reverse();
@@ -362,8 +356,85 @@ class Main {
       return returnData;
     });
   }
-}
 
+  getLambdaMetrics(functionName) {
+    this.endTime = new Date();
+    const params = {
+      StartTime: this.startTime,
+      EndTime: this.endTime,
+      MetricDataQueries: [
+        {
+          Id: 'duration',
+          MetricStat: {
+            Metric: {
+              Dimensions: [
+                {
+                  Name: 'FunctionName',
+                  Value: functionName,
+                },
+                {
+                  Name: 'Resource',
+                  Value: functionName,
+                },
+              ],
+              MetricName: 'Duration',
+              Namespace: 'AWS/Lambda',
+            },
+            Period: this.period,
+            Stat: 'Maximum',
+          },
+          ReturnData: true,
+        },
+        {
+          Id: 'errors',
+          MetricStat: {
+            Metric: {
+              Dimensions: [
+                {
+                  Name: 'FunctionName',
+                  Value: functionName,
+                },
+                {
+                  Name: 'Resource',
+                  Value: functionName,
+                },
+              ],
+              MetricName: 'Errors',
+              Namespace: 'AWS/Lambda',
+            },
+            Period: this.period,
+            Stat: 'Sum',
+          },
+          ReturnData: true,
+        },
+        {
+          Id: 'invocations',
+          MetricStat: {
+            Metric: {
+              Dimensions: [
+                {
+                  Name: 'FunctionName',
+                  Value: functionName,
+                },
+                {
+                  Name: 'Resource',
+                  Value: functionName,
+                },
+              ],
+              MetricName: 'Invocations',
+              Namespace: 'AWS/Lambda',
+            },
+            Period: this.period,
+            Stat: 'Sum',
+          },
+          ReturnData: true,
+        },
+      ],
+    };
+
+    return cloudwatch.getMetricData(params).promise();
+  }
+}
 
 const main = new Main();
 

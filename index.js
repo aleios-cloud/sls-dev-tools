@@ -114,7 +114,6 @@ class Main {
       this.startTime = new Date(program.startTime);
     } else {
       const dateOffset = (24 * 60 * 60 * 1000 * 1); // 1 day
-      // const dateOffset = (60 * 60 * 1000 * 1); // 1 hour
 
       // Round to closest period to make query faster.
       this.startTime = new Date(
@@ -245,11 +244,7 @@ class Main {
     const functionError = {
       title: 'errors',
       style: { line: 'red' },
-      x: this.data.MetricDataResults[2].Timestamps.map((d) => {
-        return moment(d).format(dateFormat);
-        // const end = moment(d).add(this.period, 'seconds').format(dateFormat);
-        // return `${start}-${end}`;
-      }),
+      x: this.data.MetricDataResults[2].Timestamps.map((d) => moment(d).format(dateFormat)),
       y: this.data.MetricDataResults[1].Values,
     };
 

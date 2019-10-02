@@ -6,11 +6,20 @@ import AWS from 'aws-sdk';
 const blessed = require('blessed');
 const contrib = require('blessed-contrib');
 const moment = require('moment');
+const program = require('commander');
+
+
+program.version('0.0.1');
+program
+  .option('-n, --stack-name <stackName>', 'AWS stack name')
+  .option('-r, --region <region>', 'AWS region')
+  .option('-t, --start-time <startTime>', 'when to start from')
+  .parse(process.argv);
 
 const screen = blessed.screen({ smartCSR: true });
-const cloudformation = new AWS.CloudFormation({ region: process.argv[3] });
-const cloudwatch = new AWS.CloudWatch({ region: process.argv[3] });
-const cloudwatchLogs = new AWS.CloudWatchLogs({ region: process.argv[3] });
+const cloudformation = new AWS.CloudFormation({ region: program.region });
+const cloudwatch = new AWS.CloudWatch({ region: program.region });
+const cloudwatchLogs = new AWS.CloudWatchLogs({ region: program.region });
 
 const logo = `
 ____  __    ____      ____  ____  _  _      ____  __    __   __    ____
@@ -46,12 +55,12 @@ function getLambdasForStackName(stackName) {
 }
 
 function getLambdaMetrics(functionName) {
-  const period = process.argv[4] ? '86400' : '300'; // Precision of times that come back from query.
+  const period = program.startTime ? '86400' : '300'; // Precision of times that come back from query.
   // const period = 1;
   let startTime;
-  if (process.argv[4]) {
+  if (program.startTime) {
     // eslint-disable-next-line prefer-destructuring
-    startTime = new Date(process.argv[4]);
+    startTime = new Date(program.startTime);
   } else {
     startTime = new Date(Math.round(new Date().getTime() / period) * period);
     // Round to closest period to make query faster.
@@ -163,7 +172,7 @@ class Main {
         wholeNumbersOnly: true,
         legend: { width: 50 },
       });
-    this.map = this.grid.set(4, 9, 4, 3, contrib.map, { label: `Servers Location (${process.argv[3]})` });
+    this.map = this.grid.set(4, 9, 4, 3, contrib.map, { label: `Servers Location (${program.region})` });
     this.log = this.grid.set(8, 0, 4, 12, blessed.log,
       {
         fg: 'green',
@@ -223,14 +232,14 @@ class Main {
   updateMarker() {
     if (this.marker) {
       this.map.addMarker({
-        ...awsRegionLocations[process.argv[3]],
+        ...awsRegionLocations[program.region],
         color: 'red',
         char: 'X',
       });
     } else {
       this.map.clearMarkers();
       Object.keys(awsRegionLocations).forEach((key) => {
-        if (key !== process.argv[3]) {
+        if (key !== program.region) {
           this.map.addMarker({
             ...awsRegionLocations[key],
             color: 'yellow',
@@ -244,7 +253,7 @@ class Main {
   }
 
   async generateTable() {
-    const newData = await getLambdasForStackName(process.argv[2], this.setData);
+    const newData = await getLambdasForStackName(program.stackName, this.setData);
     this.data = newData;
 
     const lambdaFunctions = this.data.StackResourceSummaries.filter(

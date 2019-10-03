@@ -1,6 +1,8 @@
 {
   "name": "sls-dev-tools",
-  "bin": "./build/cli.js",
+  "bin": {
+    "sls-dev-tools": "./build/cli.js"
+  },
   "dependencies": {
     "aws-sdk": "^2.514.0",
     "blessed": "^0.1.81",
@@ -38,5 +40,27 @@
         }
       ]
     ]
-  }
+  },
+  "description": "The Chrome Dev Tools for the Serverless World",
+  "version": "0.0.1",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Theodo-UK/sls-dev-tools.git"
+  },
+  "keywords": [
+    "serverless",
+    "sls",
+    "dev",
+    "tools"
+  ],
+  "author": "Ben Ellerby",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Theodo-UK/sls-dev-tools/issues"
+  },
+  "homepage": "https://github.com/Theodo-UK/sls-dev-tools#readme"
 }

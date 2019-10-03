@@ -370,3 +370,4 @@ class Main {
 }
 
 new Main().render();
+exports.slsDevTools = () => new Main().render();

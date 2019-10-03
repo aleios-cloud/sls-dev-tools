@@ -2,6 +2,7 @@
 /* eslint-disable no-console */
 /* eslint-disable new-cap */
 import AWS from 'aws-sdk';
+import { awsRegionLocations, logo, dateFormats } from './constants';
 
 const blessed = require('blessed');
 const contrib = require('blessed-contrib');
@@ -21,31 +22,6 @@ const cloudformation = new AWS.CloudFormation({ region: program.region });
 const cloudwatch = new AWS.CloudWatch({ region: program.region });
 const cloudwatchLogs = new AWS.CloudWatchLogs({ region: program.region });
 
-const logo = `
- ____  __    ____      ____  ____  _  _      ____  __    __   __    ____
-/ ___)(  )  / ___) ___(    \\(  __)/ )( \\ ___(_  _)/  \\  /  \\ (  )  / ___)
-\\___ \\/ (_/\\\\___ \\(___)) D ( ) _) \\ \\/ /(___) )( (  O )(  O )/ (_/\\\\___ \\
-(____/\\____/(____/    (____/(____) \\__/      (__) \\__/  \\__/ \\____/(____/
-`;
-
-const awsRegionLocations = {
-  'us-east-1': { lat: 38.13, lon: -78.45 },
-  'us-east-2': { lat: 39.96, lon: -83 },
-  'us-west-1': { lat: 37.35, lon: -121.96 },
-  'us-west-2': { lat: 46.15, lon: -123.88 },
-  'eu-west-1': { lat: 53, lon: -8 },
-  'eu-west-2': { lat: 51, lon: -0.1 },
-  'eu-west-3': { lat: 48.86, lon: 2.35 },
-  'eu-central-1': { lat: 50, lon: 8 },
-  'sa-east-1': { lat: -23.34, lon: -46.38 },
-  'ap-southeast-1': { lat: 1.37, lon: 103.8 },
-  'ap-southeast-2': { lat: -33.86, lon: 151.2 },
-  'ap-northeast-1': { lat: 35.41, lon: 139.42 },
-  'ap-northeast-2': { lat: 37.56, lon: 126.98 },
-  'ap-south-1': { lat: 19.08, lon: 72.88 },
-  'ca-central-1': { lat: 45.5, lon: -73.6 },
-};
-
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -56,7 +32,6 @@ function getLambdasForStackName(stackName) {
 
 class Main {
   constructor() {
-    this.period = program.period || 1;
     this.grid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.bar = this.grid.set(4, 6, 4, 3, contrib.bar,
       {
@@ -106,23 +81,6 @@ class Main {
         },
       },
     });
-    this.marker = false;
-    this.funcName = null;
-    this.endTime = new Date();
-    if (program.startTime) {
-      // eslint-disable-next-line prefer-destructuring
-      this.startTime = new Date(program.startTime);
-    } else {
-      const dateOffset = (24 * 60 * 60 * 1000 * 1); // 1 day
-
-      // Round to closest period to make query faster.
-      this.startTime = new Date(
-        (Math.round(new Date().getTime() / this.period) * this.period) - dateOffset,
-      );
-    }
-  }
-
-  async render() {
     screen.key(['escape', 'q', 'C-c'], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.on('resize', () => {
@@ -135,25 +93,43 @@ class Main {
       this.log.emit('attach');
     });
     screen.title = 'sls-dev-tools';
+    this.marker = false;
 
-    await this.table.rows.on('select', (item) => {
-      this.funcName = item.content.split('   ')[0];
-      this.refetch();
-    });
+    this.funcName = null;
 
-    while (true) {
-      this.generateTable();
-      this.table.focus();
+    this.period = program.period || 3600; // 1 hour
+    this.endTime = new Date();
+    if (program.startTime) {
+      // eslint-disable-next-line prefer-destructuring
+      this.startTime = new Date(program.startTime);
+    } else {
+      const dateOffset = (24 * 60 * 60 * 1000); // 1 day
 
-      for (let index = 0; index < 2; index++) {
-        this.updateMarker();
-        screen.render();
-        await sleep(1000);
-      }
+      // Round to closest period to make query faster.
+      this.startTime = new Date(
+        (Math.round(new Date().getTime() / this.period) * this.period) - dateOffset,
+      );
     }
   }
 
-  updateMarker() {
+  async render() {
+    await this.table.rows.on('select', (item) => {
+      [this.funcName] = item.content.split('   ');
+      this.updateGraphs();
+    });
+
+    setInterval(() => {
+      this.updateMap();
+      screen.render();
+    }, 1000);
+
+    setInterval(() => {
+      this.generateTable();
+      this.table.focus();
+    }, 3000);
+  }
+
+  updateMap() {
     if (this.marker) {
       this.map.addMarker({
         ...awsRegionLocations[program.region],
@@ -187,59 +163,44 @@ class Main {
     this.table.setData({ headers: ['logical', 'updated'], data: lambdaFunctions });
 
     if (this.funcName) {
-      this.refetch();
+      this.updateGraphs();
     }
 
     screen.render();
   }
 
-  padInvocationsAndErrors() {
-    for (
-      let timestamp = moment(this.startTime).valueOf();
-      timestamp < moment(this.endTime).valueOf();
-      timestamp = moment(timestamp).add(this.period, 'seconds').valueOf()
-    ) {
-      if (this.data.MetricDataResults[2].Timestamps.every(
-        (it) => it.valueOf() !== timestamp,
-      )) {
-        this.data.MetricDataResults[2].Timestamps.push(new Date(timestamp));
-        this.data.MetricDataResults[2].Values.push(0);
-      }
-    }
-
-    for (let timestamp = moment(this.startTime).valueOf();
-      timestamp < moment(this.endTime).valueOf();
-      timestamp = moment(timestamp).add(this.period, 'seconds').valueOf()
-    ) {
-      if (this.data.MetricDataResults[1].Timestamps.every(
-        (it) => moment(it) !== moment(timestamp),
-      )) {
-        this.data.MetricDataResults[1].Timestamps.push(new Date(timestamp));
-        this.data.MetricDataResults[1].Values.push(0);
+  padInvocationsAndErrorsWithZeros() {
+    /* For the invocations and errors data in this.data.MetricDataResults, we will add '0' for each
+     * timestamp that doesn't have an entry. This is to make the graph more readable.
+     */
+    for (let index = 1; index <= 2; index++) {
+      for (
+        let timestamp = moment(this.startTime).valueOf();
+        timestamp < moment(this.endTime).valueOf();
+        timestamp = moment(timestamp).add(this.period, 'seconds').valueOf()
+      ) {
+        if (this.data.MetricDataResults[index].Timestamps.every(
+          (it) => it.valueOf() !== timestamp,
+        )) {
+          this.data.MetricDataResults[index].Timestamps.push(new Date(timestamp));
+          this.data.MetricDataResults[index].Values.push(0);
+        }
       }
     }
   }
 
-  async refetch() {
-    const data = await this.getLambdaMetrics(this.funcName);
-    this.data = data;
-
-    this.padInvocationsAndErrors();
-    this.sortMetricDataResultsByTimestamp(
-      this.data.MetricDataResults,
-    );
-
+  setBarChartData() {
     const durations = this.data.MetricDataResults[0];
     this.bar.setData({
-      titles: durations.Timestamps.map((t) => moment(t).format('HH:mm')).slice(-6),
+      titles: durations.Timestamps.map((t) => moment(t).format(dateFormats.graphDisplayTime)).slice(-6),
       data: durations.Values.map((t) => Math.round(t)).slice(-6),
     });
+  }
 
-    let dateFormat = 'DDMM';
-    if (moment(this.data.MetricDataResults[1]).isAfter(moment().subtract(3, 'days'))) {
-      // oldest event within 3days of now.
-      dateFormat = 'HH:mm';
-    }
+  setLineGraphData() {
+    const dateFormat = moment(this.data.MetricDataResults[1]).isAfter(moment().subtract(3, 'days'))
+      ? dateFormats.graphDisplayTime
+      : dateFormats.graphDisplayDate;
 
     const functionError = {
       title: 'errors',
@@ -263,6 +224,18 @@ class Main {
       [...functionInvocations.y, ...functionError.y],
     );
     this.invocationsLineGraph.setData([functionError, functionInvocations]);
+  }
+
+
+  async updateGraphs() {
+    const data = await this.getLambdaMetrics(this.funcName);
+    this.data = data;
+
+    this.padInvocationsAndErrorsWithZeros();
+    this.sortMetricDataResultsByTimestamp();
+
+    this.setBarChartData();
+    this.setLineGraphData();
 
     this.getLogStreams(`/aws/lambda/${this.funcName}`).then(() => {
       screen.render();
@@ -396,6 +369,4 @@ class Main {
   }
 }
 
-const main = new Main();
-
-main.render();
+new Main().render();

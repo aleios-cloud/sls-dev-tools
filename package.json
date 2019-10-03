@@ -1,7 +1,7 @@
 {
   "name": "sls-dev-tools",
   "bin": {
-    "sls-dev-tools": "./build/cli.js"
+    "sls-dev-tools": "./lib/index.js"
   },
   "dependencies": {
     "aws-sdk": "^2.514.0",

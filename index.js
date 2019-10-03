@@ -23,10 +23,6 @@ program
   .option('-p, --period <period>', 'precision of graphs, in seconds')
   .parse(process.argv);
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function getLambdasForStackName(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
 }
@@ -116,20 +112,18 @@ class Main {
   async render() {
     await this.table.rows.on('select', (item) => {
       [this.funcName] = item.content.split('   ');
+      this.updateGraphs();
     });
 
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
+    setInterval(() => {
+      this.updateMap();
+      screen.render();
+    }, 1000);
+
+    setInterval(() => {
       this.generateTable();
       this.table.focus();
-
-      for (let index = 0; index < 2; index++) {
-        this.updateMap();
-        screen.render();
-        // eslint-disable-next-line no-await-in-loop
-        await sleep(1000);
-      }
-    }
+    }, 3000);
   }
 
   async generateTable() {
@@ -188,8 +182,9 @@ class Main {
   }
 
   padInvocationsAndErrorsWithZeros() {
-    // For the invocations and errors data in this.data.MetricDataResults, we will add '0' for each timestamp that doesn't
-    // have an entry. This is to make the graph more readable.
+    /* For the invocations and errors data in this.data.MetricDataResults, we will add '0' for each
+     * timestamp that doesn't have an entry. This is to make the graph more readable.
+     */
     for (let index = 1; index <= 2; index++) {
       for (
         let timestamp = moment(this.startTime).valueOf();

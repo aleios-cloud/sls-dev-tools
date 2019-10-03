@@ -20,7 +20,10 @@ body {
 }
 
 .fixedHeaderContainer {
-    background-color: #17211a;
+    background-color: #368c72;
+}
+.darkBackground {
+    background-color: #368c72;
 }
 
 p {

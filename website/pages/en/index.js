@@ -9,7 +9,7 @@ const React = require('react');
 
 const CompLibrary = require('../../core/CompLibrary.js');
 
-const MarkdownBlock = CompLibrary.MarkdownBlock; /* Used to read markdown */
+// const MarkdownBlock = CompLibrary.MarkdownBlock; /* Used to read markdown */
 const Container = CompLibrary.Container;
 const GridBlock = CompLibrary.GridBlock;
 
@@ -80,7 +80,7 @@ class Index extends React.Component {
         id={props.id}
         background={props.background}>
         <GridBlock
-          align="center"
+          align={props.align ? props.align : "center"}
           contents={props.children}
           layout={props.layout}
         />
@@ -91,52 +91,53 @@ class Index extends React.Component {
       <div
         className="productShowcaseSection paddingBottom"
         style={{textAlign: 'center'}}>
-        <h2>All your serverless statistics, right in your terminal</h2>
-        <MarkdownBlock>
-          See how many times your functions have been called, how many errors, how long they took, and more.
-        </MarkdownBlock>
+        <h2>All your serverless statistics, right in your terminal!</h2>
       </div>
     );
 
     const TryOut = () => (
-      <Block id="try">
+      <Block align="left" id="try">
         {[
           {
-            // content:
-            //   'To make your landing page more attractive, use illustrations! Check out ' +
-            //   '[**unDraw**](https://undraw.co/) which provides you with customizable illustrations which are free to use. ' +
-            //   'The illustrations you see on this page are from unDraw.',
-            image: `${baseUrl}img/undraw_code_review.svg`,
+            content:
+              `<ul>
+                <li>Invocations</li>
+                <li>Errors</li>
+                <li>Recent durations</li>
+                <li>Logs</li>
+              </ul>`,
+            image: `${baseUrl}img/undraw_predictive_analytics.svg`,
             imageAlign: 'left',
-            // title: 'Wonderful SVG Illustrations',
+            title: 'Visibility on',
           },
         ]}
       </Block>
     );
 
     const Description = () => (
-      <Block background="dark">
+      <Block align="left" background="dark">
         {[
           {
-            // content:
-            //   'This is another description of how this project is useful',
-            image: `${baseUrl}img/undraw_note_list.svg`,
-            imageAlign: 'right',
-            // title: 'Description',
+            content:
+              'Serverless-Dev-Tools is an open source tool. We need help improving it. Issues, PRs, Ideas and Feedback are all welcome!',
+            image: `${baseUrl}img/undraw_pair_programming_njlp.svg`,
+            imageAlign: 'left',
+            title: 'We need you!',
           },
         ]}
       </Block>
     );
 
     const LearnHow = () => (
-      <Block background="light">
+      <Block align="left" background="dark">
         {[
           {
             content:
-              'Each new Docusaurus project has **randomly-generated** theme colors.',
-            image: `${baseUrl}img/undraw_youtube_tutorial.svg`,
+              `Serverless-Dev-Tools provides a quick overview of your stack as you code, providing feedback and visibility without the need to log into the AWS Console and load the right metrics.
+              This is not a logging platform, alerting system or online dashboard. It\'s a developer tool in the terminal to keep you connected to key metrics as you code.`,
+            image: `${baseUrl}img/undraw_programmer_imem.svg`,
             imageAlign: 'right',
-            title: 'Randomly Generated Theme Colors',
+            title: 'Backend development should need a browser in the dev feedback loop',
           },
         ]}
       </Block>
@@ -148,17 +149,17 @@ class Index extends React.Component {
           {
             image: `${baseUrl}img/undraw_programmer_imem.svg`,
             imageAlign: 'bottom',
-            title: 'Better developer experience',
+            title: 'In-Terminal Feedback',
           },
           {
             image: `${baseUrl}img/undraw_predictive_analytics.svg`,
             imageAlign: 'bottom',
-            title: 'Easier monitoring',
+            title: 'Simple visibility',
           },
           {
             image: `${baseUrl}img/undraw_dashboard.svg`,
             imageAlign: 'bottom',
-            title: 'Clean dashboard',
+            title: 'Targeted Metrics',
           },
         ]}
       </Block>

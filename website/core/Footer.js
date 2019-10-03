@@ -55,7 +55,7 @@ class Footer extends React.Component {
           </div>
           <div>
             <h5>More</h5>
-            <a href={`${this.props.config.baseUrl}blog`}>Blog</a>
+            <a href="https://medium.com/serverless-transformation">Blog</a>
             <a href="https://github.com/Theodo-UK/sls-dev-tools">GitHub</a>
             <a
               className="github-button"
@@ -93,7 +93,6 @@ class Footer extends React.Component {
             )}
           </div>
         </section>
-        <section className="copyright">{this.props.config.copyright}</section>
       </footer>
     );
   }

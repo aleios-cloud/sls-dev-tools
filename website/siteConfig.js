@@ -36,9 +36,9 @@ const siteConfig = {
   users,
 
   /* path to images for header/footer */
-  headerIcon: 'img/favicon.ico',
-  footerIcon: 'img/favicon.ico',
-  favicon: 'img/favicon.ico',
+  headerIcon: 'img/serverless_logo.png',
+  footerIcon: 'img/serverless_logo.png',
+  favicon: 'img/serverless_logo.png',
 
   /* Colors for website */
   colors: {

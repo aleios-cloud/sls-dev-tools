@@ -12,6 +12,16 @@ The Chrome Dev Tools for the Serverless World
 - If this doesn't work, have a look on AWS and see what your stack is called as it may be a different name than you expect, e.g. with `-dev` on the end
 - Try to choose a function with the arrow keys and enter to see the metrics. You may get an `AccessDenied` error in which case you must add the `GetMetricData` permission from CloudWatch in the IAM console on AWS.
 
+```
+Options:
+  -V, --version                 output the version number
+  -n, --stack-name <stackName>  AWS stack name
+  -r, --region <region>         AWS region
+  -t, --start-time <startTime>  when to start from
+  -p, --period <period>         precision of graphs, in seconds
+  -h, --help                    output usage information
+```
+
 # Build
 
 - `yarn build`

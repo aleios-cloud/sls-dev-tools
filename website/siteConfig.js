@@ -37,8 +37,8 @@ const siteConfig = {
 
   /* path to images for header/footer */
   headerIcon: 'img/serverless_logo.png',
-  footerIcon: 'img/serverless_logo.png',
-  favicon: 'img/serverless_logo.png',
+  footerIcon: 'img/serverless_logo_square.png',
+  favicon: 'img/serverless_logo_square.png',
 
   /* Colors for website */
   colors: {

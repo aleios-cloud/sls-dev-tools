@@ -3,14 +3,10 @@
   "localized-strings": {
     "next": "Next",
     "previous": "Previous",
-    "tagline": "A website for testing",
+    "tagline": "Chrome dev tools for the serverless world",
     "docs": {
-      "doc1": {
-        "title": "Latin-ish",
-        "sidebar_label": "Example Page"
-      },
       "doc2": {
-        "title": "document number 2"
+        "title": "Pricing"
       },
       "doc3": {
         "title": "This is document number 3"
@@ -20,18 +16,18 @@
       },
       "doc5": {
         "title": "Fifth Document"
+      },
+      "README": {
+        "title": "Installation and use",
+        "sidebar_label": "Installation and use"
       }
     },
     "links": {
-      "Docs": "Docs",
-      "API": "API",
-      "Help": "Help",
-      "Blog": "Blog"
+      "Docs": "Docs"
     },
     "categories": {
-      "Docusaurus": "Docusaurus",
-      "First Category": "First Category",
-      "Second Category": "Second Category"
+      "Installation and Use": "Installation and Use",
+      "Pricing": "Pricing"
     }
   },
   "pages-strings": {

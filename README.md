@@ -1,8 +1,7 @@
 # sls-dev-tools
 The Dev Tools for the Serverless World
-[Site](https://theodo-uk.github.io/sls-dev-tools)
 
-⚠ Still in early POC stages, stable Alpha release expected in next weeks. ⚠
+[Site](https://theodo-uk.github.io/sls-dev-tools)
 
 ![demo](./demo.png)
 
@@ -11,7 +10,7 @@ The Dev Tools for the Serverless World
 
 # To Run
 
-- `npm install -g sls-dev-tools'
+- `npm install -g sls-dev-tools`
 - Run `sls-dev-tools -n {YOUR_STACK_NAME} -r {YOUR_REGION} [-t {START_TIME}] [-p {PERIOD}]`
   - The start time defines when you want your graphs to start from, and the date format for the start time is `YYYY-MM-DD/HH:mm`
   - The period defines the size of the buckets in seconds. This means if you give a period of 3600, the line graph will group the invocations and errors into 1h chunks, and the bar chart will show the average response time over the hour for the last 6 hours during which invocations were made.

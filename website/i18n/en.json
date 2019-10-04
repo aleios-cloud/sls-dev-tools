@@ -3,19 +3,10 @@
   "localized-strings": {
     "next": "Next",
     "previous": "Previous",
-    "tagline": "Chrome dev tools for the serverless world",
+    "tagline": "Dev tools for the serverless world",
     "docs": {
       "doc2": {
         "title": "Cloudwatch Pricing"
-      },
-      "doc3": {
-        "title": "This is document number 3"
-      },
-      "doc4": {
-        "title": "Other Document"
-      },
-      "doc5": {
-        "title": "Fifth Document"
       },
       "README": {
         "title": "Installation and use",

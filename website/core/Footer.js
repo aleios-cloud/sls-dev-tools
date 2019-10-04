@@ -30,11 +30,22 @@ class Footer extends React.Component {
               <img
                 src={this.props.config.baseUrl + this.props.config.footerIcon}
                 alt={this.props.config.title}
-                width="66"
-                height="58"
+                width="52"
+                height="52"
               />
             )}
           </a>
+          {this.props.config.theodoLogo && (
+            <a href="https://www.theodo.co.uk">
+              <img
+                src={this.props.config.baseUrl + this.props.config.theodoLogo}
+                alt={"Theodo"}
+                width="52"
+                height="52"
+                style={{paddingRight: '30px'}}
+              />
+            </a>
+          )}
           <div>
             <h5>Docs</h5>
             <a href={this.docUrl('README.html', this.props.language)}>

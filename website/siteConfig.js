@@ -13,7 +13,7 @@ const users = [];
 
 const siteConfig = {
   title: 'Serverless-Dev-Tools', // Title for your website.
-  tagline: 'Chrome dev tools for the serverless world',
+  tagline: 'Dev tools for the serverless world',
   url: 'https://your-docusaurus-test-site.com', // Your website URL
   baseUrl: '/', // Base URL for your project */
   // For github.io type URLs, you would set the url and baseUrl like:
@@ -37,8 +37,9 @@ const siteConfig = {
 
   /* path to images for header/footer */
   headerIcon: 'img/serverless_logo.png',
-  footerIcon: 'img/serverless_logo.png',
-  favicon: 'img/serverless_logo.png',
+  footerIcon: 'img/serverless_logo_square.png',
+  theodoLogo: 'img/theodo_logo.svg',
+  favicon: 'img/serverless_logo_square.png',
 
   /* Colors for website */
   colors: {

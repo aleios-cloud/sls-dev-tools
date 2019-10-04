@@ -5,7 +5,8 @@ The Dev Tools for the Serverless World
 
 ![demo](./demo.png)
 
-[More docs here.](./docs)
+[Full docs here.](https://theodo-uk.github.io/sls-dev-tools/docs/README)
+[Learn more...](https://theodo-uk.github.io/sls-dev-tools)
 
 # To Run
 

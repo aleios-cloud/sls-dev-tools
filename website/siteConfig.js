@@ -14,15 +14,15 @@ const users = [];
 const siteConfig = {
   title: 'Serverless-Dev-Tools', // Title for your website.
   tagline: 'Dev tools for the serverless world',
-  url: 'https://your-docusaurus-test-site.com', // Your website URL
-  baseUrl: '/', // Base URL for your project */
+  url: 'https://theodo-uk.github.io', // Your website URL
+  baseUrl: '/sls-dev-tools/', // Base URL for your project */
   // For github.io type URLs, you would set the url and baseUrl like:
   //   url: 'https://facebook.github.io',
   //   baseUrl: '/test-site/',
 
   // Used for publishing and more
-  projectName: 'serverless-dev-tools',
-  organizationName: 'Theodo',
+  projectName: 'sls-dev-tools',
+  organizationName: 'Theodo-UK',
   // For top-level user or org sites, the organization is still the same.
   // e.g., for the https://JoelMarcey.github.io site, it would be set like...
   //   organizationName: 'JoelMarcey'

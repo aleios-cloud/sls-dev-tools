@@ -22,10 +22,6 @@ const cloudformation = new AWS.CloudFormation({ region: program.region });
 const cloudwatch = new AWS.CloudWatch({ region: program.region });
 const cloudwatchLogs = new AWS.CloudWatchLogs({ region: program.region });
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function getLambdasForStackName(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
 }
@@ -272,7 +268,17 @@ class Main {
     cloudwatchLogs.filterLogEvents(params).promise().then((data) => {
       const { events } = data;
       this.log.setContent('');
-      events.forEach((event) => { this.log.log(event.message); });
+      events.forEach((event) => {
+        // eslint-disable-next-line no-control-regex, no-tabs
+        const split = event.message.split(/[ |	]/);
+        if (split.includes('RequestId:')) {
+          const requestId = split[split.findIndex((it) => it === 'RequestId:') + 1];
+          if (!this.log.content.includes(requestId)) { //this doesn't work, loads of new requests for some reason :-( when there's actually nothing new... I don't know why
+            console.log("NEW LOG");
+          }
+        }
+        this.log.log(event.message);
+      });
     }, (err) => {
       console.log(err, err.stack);
     });

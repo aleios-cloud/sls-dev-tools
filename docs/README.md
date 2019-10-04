@@ -6,7 +6,7 @@ sidebar_label: Installation and use
 # sls-dev-tools
 The Dev Tools for the Serverless World
 
-[Site](https://theodo-uk.github.io/sls-dev-tools)
+[Docs Site](https://theodo-uk.github.io/sls-dev-tools)
 
 
 ![demo](assets/demo.png)

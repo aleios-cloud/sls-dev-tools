@@ -1,12 +1,11 @@
 # sls-dev-tools
 The Dev Tools for the Serverless World
 
-[Site](https://theodo-uk.github.io/sls-dev-tools)
+[Docs Site](https://theodo-uk.github.io/sls-dev-tools)
 
 ![demo](./demo.png)
 
-[Full docs here.](https://theodo-uk.github.io/sls-dev-tools/docs/README)
-[Learn more...](https://theodo-uk.github.io/sls-dev-tools)
+[Documentation](https://theodo-uk.github.io/sls-dev-tools)
 
 # To Run
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /* eslint-disable no-plusplus */
 /* eslint-disable no-console */
 /* eslint-disable new-cap */

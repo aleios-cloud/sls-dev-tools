@@ -1,7 +1,7 @@
 {
   "name": "sls-dev-tools",
   "bin": {
-    "sls-dev-tools": "./build/cli.js"
+    "sls-dev-tools": "./lib/index.js"
   },
   "dependencies": {
     "aws-sdk": "^2.514.0",
@@ -10,8 +10,7 @@
     "commander": "^3.0.2",
     "moment": "^2.24.0",
     "prop-types": "^15.7.2",
-    "react": "^16.9.0",
-    "serverless": "^1.50.0"
+    "react": "^16.9.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.5",

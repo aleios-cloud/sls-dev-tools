@@ -72,7 +72,7 @@ class Main {
     this.titleBox = this.grid.set(0, 0, 2, 6, blessed.box, {
       tags: true,
       content: `${logo
-      }\n Chrome Dev Tools for the Serverless World.`
+      }\n Dev Tools for the Serverless World.`
       + '\n    - Select a function from the list on the right',
       style: {
         fg: 'green',

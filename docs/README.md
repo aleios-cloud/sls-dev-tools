@@ -4,7 +4,7 @@ title: Installation and use
 sidebar_label: Installation and use
 ---
 # sls-dev-tools
-The Chrome Dev Tools for the Serverless World
+The Dev Tools for the Serverless World
 
 ⚠ Still in early POC stages, stable Alpha release expected in next weeks. ⚠
 

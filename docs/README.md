@@ -5,16 +5,15 @@ sidebar_label: Installation and use
 ---
 # sls-dev-tools
 The Dev Tools for the Serverless World
+[Site](https://theodo-uk.github.io/sls-dev-tools)
 
-⚠ Still in early POC stages, stable Alpha release expected in next weeks. ⚠
 
 ![demo](assets/demo.png)
 
 # To Run
 
-- Run `https://github.com/Theodo-UK/sls-dev-tools.git && cd sls-dev-tools` to clone the repository
-- Run `yarn` to update the dependencies
-- Run `yarn start -n {YOUR_STACK_NAME} -r {YOUR_REGION} [-t {START_TIME}] [-p {PERIOD}]`
+- `npm install -g sls-dev-tools'
+- Run `sls-dev-tools -n {YOUR_STACK_NAME} -r {YOUR_REGION} [-t {START_TIME}] [-p {PERIOD}]`
   - The start time defines when you want your graphs to start from, and the date format for the start time is `YYYY-MM-DD/HH:mm`
   - The period defines the size of the buckets in seconds. This means if you give a period of 3600, the line graph will group the invocations and errors into 1h chunks, and the bar chart will show the average response time over the hour for the last 6 hours during which invocations were made.
   - To get the stack name, log on to AWS cloudformation and it is shown in the overview section of stack info. It may not be what you expected e.g. it might have `-dev` on the end, so worth checking if the dev tools are not working.
@@ -24,10 +23,6 @@ The Dev Tools for the Serverless World
   - If you're not seeing any data in the graphs, try changing your start date to make sure you have had invocations since then.
 - The line graph shows the number of invocations and errors that occurred within the time period.
 - The bar chart shows the average response time of the invocations within the last 6 time periods that had some invocations.
-
-# Build
-
-- `yarn build`
 
 # Libs
 

@@ -1,5 +1,6 @@
 # sls-dev-tools
 The Dev Tools for the Serverless World
+[Site](https://theodo-uk.github.io/sls-dev-tools)
 
 ⚠ Still in early POC stages, stable Alpha release expected in next weeks. ⚠
 
@@ -10,9 +11,8 @@ The Dev Tools for the Serverless World
 
 # To Run
 
-- Run `https://github.com/Theodo-UK/sls-dev-tools.git && cd sls-dev-tools` to clone the repository
-- Run `yarn` to update the dependencies
-- Run `yarn start -n {YOUR_STACK_NAME} -r {YOUR_REGION} [-t {START_TIME}] [-p {PERIOD}]`
+- `npm install -g sls-dev-tools'
+- Run `sls-dev-tools -n {YOUR_STACK_NAME} -r {YOUR_REGION} [-t {START_TIME}] [-p {PERIOD}]`
   - The start time defines when you want your graphs to start from, and the date format for the start time is `YYYY-MM-DD/HH:mm`
   - The period defines the size of the buckets in seconds. This means if you give a period of 3600, the line graph will group the invocations and errors into 1h chunks, and the bar chart will show the average response time over the hour for the last 6 hours during which invocations were made.
   - To get the stack name, log on to AWS cloudformation and it is shown in the overview section of stack info. It may not be what you expected e.g. it might have `-dev` on the end, so worth checking if the dev tools are not working.
@@ -32,10 +32,6 @@ Options:
   -p, --period <period>         precision of graphs, in seconds
   -h, --help                    output usage information
 ```
-
-# Build
-
-- `yarn build`
 
 # A note on AWS API calls and pricing
 

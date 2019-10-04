@@ -5,6 +5,8 @@ The Chrome Dev Tools for the Serverless World
 
 ![demo](./demo.png)
 
+[More docs here.](./docs)
+
 # To Run
 
 - Run `yarn dev`

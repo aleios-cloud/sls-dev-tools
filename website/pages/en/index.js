@@ -92,6 +92,7 @@ class Index extends React.Component {
         className="productShowcaseSection paddingBottom"
         style={{textAlign: 'center'}}>
         <h2>All your serverless statistics, right in your terminal!</h2>
+        <p>Log your lambdas without logging onto AWS.</p>
       </div>
     );
 

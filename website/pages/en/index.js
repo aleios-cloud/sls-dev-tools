@@ -122,7 +122,7 @@ class Index extends React.Component {
             content:
               'Serverless-Dev-Tools is an open source tool. We need help improving it. Issues, PRs, Ideas and Feedback are all welcome!',
             image: `${baseUrl}img/undraw_pair_programming_njlp.svg`,
-            imageAlign: 'left',
+            imageAlign: 'right',
             title: 'We need you!',
           },
         ]}

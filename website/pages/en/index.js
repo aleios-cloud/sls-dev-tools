@@ -93,6 +93,7 @@ class Index extends React.Component {
         style={{textAlign: 'center'}}>
         <h2>All your serverless statistics, right in your terminal!</h2>
         <p>Log your lambdas without logging onto AWS.</p>
+        <img width="50%" src={`${baseUrl}img/demo.png`} />
       </div>
     );
 
@@ -138,7 +139,7 @@ class Index extends React.Component {
               This is not a logging platform, alerting system or online dashboard. It\'s a developer tool in the terminal to keep you connected to key metrics as you code.`,
             image: `${baseUrl}img/undraw_programmer_imem.svg`,
             imageAlign: 'right',
-            title: 'Backend development should need a browser in the dev feedback loop',
+            title: 'Backend development shouldn\'t need a browser in the dev feedback loop',
           },
         ]}
       </Block>
@@ -155,7 +156,7 @@ class Index extends React.Component {
           {
             image: `${baseUrl}img/undraw_predictive_analytics.svg`,
             imageAlign: 'bottom',
-            title: 'Simple visibility',
+            title: 'Simple Visibility',
           },
           {
             image: `${baseUrl}img/undraw_dashboard.svg`,

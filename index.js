@@ -2,6 +2,7 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable no-console */
 /* eslint-disable new-cap */
+
 import AWS from 'aws-sdk';
 import { awsRegionLocations, logo, dateFormats } from './constants';
 
@@ -15,13 +16,16 @@ program
   .option('-n, --stack-name <stackName>', 'AWS stack name')
   .option('-r, --region <region>', 'AWS region')
   .option('-t, --start-time <startTime>', 'when to start from')
-  .option('-p, --period <period>', 'precision of graphs, in seconds')
+  .option('-i, --interval <interval>', 'interval of graphs, in seconds')
+  .option('-p, --profile <profile>', 'aws profile name to use')
   .parse(process.argv);
 
 const screen = blessed.screen({ smartCSR: true });
-const cloudformation = new AWS.CloudFormation({ region: program.region });
-const cloudwatch = new AWS.CloudWatch({ region: program.region });
-const cloudwatchLogs = new AWS.CloudWatchLogs({ region: program.region });
+const profile = program.profile || 'default'
+const credentials = new AWS.SharedIniFileCredentials({ profile: profile });
+const cloudformation = new AWS.CloudFormation({ region: program.region, credentials: credentials });
+const cloudwatch = new AWS.CloudWatch({ region: program.region, credentials: credentials });
+const cloudwatchLogs = new AWS.CloudWatchLogs({ region: program.region, credentials: credentials });
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -73,8 +77,8 @@ class Main {
     this.titleBox = this.grid.set(0, 0, 2, 6, blessed.box, {
       tags: true,
       content: `${logo
-      }\n Dev Tools for the Serverless World.`
-      + '\n    - Select a function from the list on the right',
+        }\n Dev Tools for the Serverless World.`
+        + '\n    - Select a function from the list on the right',
       style: {
         fg: 'green',
         border: {
@@ -98,7 +102,7 @@ class Main {
 
     this.funcName = null;
 
-    this.period = program.period || 3600; // 1 hour
+    this.interval = program.interval || 3600; // 1 hour
     this.endTime = new Date();
     if (program.startTime) {
       // eslint-disable-next-line prefer-destructuring
@@ -106,9 +110,9 @@ class Main {
     } else {
       const dateOffset = (24 * 60 * 60 * 1000); // 1 day
 
-      // Round to closest period to make query faster.
+      // Round to closest interval to make query faster.
       this.startTime = new Date(
-        (Math.round(new Date().getTime() / this.period) * this.period) - dateOffset,
+        (Math.round(new Date().getTime() / this.interval) * this.interval) - dateOffset,
       );
     }
   }
@@ -178,7 +182,7 @@ class Main {
       for (
         let timestamp = moment(this.startTime).valueOf();
         timestamp < moment(this.endTime).valueOf();
-        timestamp = moment(timestamp).add(this.period, 'seconds').valueOf()
+        timestamp = moment(timestamp).add(this.interval, 'seconds').valueOf()
       ) {
         if (this.data.MetricDataResults[index].Timestamps.every(
           (it) => it.valueOf() !== timestamp,
@@ -215,7 +219,7 @@ class Main {
       style: { line: 'green' },
       x: this.data.MetricDataResults[2].Timestamps.map((d) => {
         const start = moment(d).format(dateFormat);
-        const end = moment(d).add(this.period, 'seconds').format(dateFormat);
+        const end = moment(d).add(this.interval, 'seconds').format(dateFormat);
         return `${start}-${end}`;
       }),
       y: this.data.MetricDataResults[2].Values,
@@ -314,7 +318,7 @@ class Main {
               MetricName: 'Duration',
               Namespace: 'AWS/Lambda',
             },
-            Period: this.period,
+            Period: this.interval,
             Stat: 'Maximum',
           },
           ReturnData: true,
@@ -336,7 +340,7 @@ class Main {
               MetricName: 'Errors',
               Namespace: 'AWS/Lambda',
             },
-            Period: this.period,
+            Period: this.interval,
             Stat: 'Sum',
           },
           ReturnData: true,
@@ -358,7 +362,7 @@ class Main {
               MetricName: 'Invocations',
               Namespace: 'AWS/Lambda',
             },
-            Period: this.period,
+            Period: this.interval,
             Stat: 'Sum',
           },
           ReturnData: true,

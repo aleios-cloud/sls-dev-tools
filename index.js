@@ -10,18 +10,31 @@ const contrib = require('blessed-contrib');
 const moment = require('moment');
 const program = require('commander');
 
-program.version('0.0.1');
+program.version('0.1.0');
 program
   .option('-n, --stack-name <stackName>', 'AWS stack name')
   .option('-r, --region <region>', 'AWS region')
   .option('-t, --start-time <startTime>', 'when to start from')
-  .option('-p, --period <period>', 'precision of graphs, in seconds')
+  .option('-i, --interval <interval>', 'interval of graphs, in seconds')
+  .option('-p, --profile <profile>', 'aws profile name to use')
   .parse(process.argv);
 
 const screen = blessed.screen({ smartCSR: true });
-const cloudformation = new AWS.CloudFormation({ region: program.region });
-const cloudwatch = new AWS.CloudWatch({ region: program.region });
-const cloudwatchLogs = new AWS.CloudWatchLogs({ region: program.region });
+const profile = program.profile || 'default';
+console.log(program.profile);
+const credentials = new AWS.SharedIniFileCredentials({ profile });
+const cloudformation = new AWS.CloudFormation({
+  region: program.region,
+  credentials,
+});
+const cloudwatch = new AWS.CloudWatch({
+  region: program.region,
+  credentials,
+});
+const cloudwatchLogs = new AWS.CloudWatchLogs({
+  region: program.region,
+  credentials,
+});
 
 function getLambdasForStackName(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
@@ -92,7 +105,7 @@ class Main {
 
     this.funcName = null;
 
-    this.period = program.period || 3600; // 1 hour
+    this.interval = program.interval || 3600; // 1 hour
     this.endTime = new Date();
     if (program.startTime) {
       // eslint-disable-next-line prefer-destructuring
@@ -100,9 +113,9 @@ class Main {
     } else {
       const dateOffset = 24 * 60 * 60 * 1000; // 1 day
 
-      // Round to closest period to make query faster.
+      // Round to closest interval to make query faster.
       this.startTime = new Date(
-        Math.round(new Date().getTime() / this.period) * this.period
+        Math.round(new Date().getTime() / this.interval) * this.interval
           - dateOffset,
       );
     }
@@ -180,7 +193,7 @@ class Main {
         let timestamp = moment(this.startTime).valueOf();
         timestamp < moment(this.endTime).valueOf();
         timestamp = moment(timestamp)
-          .add(this.period, 'seconds')
+          .add(this.interval, 'seconds')
           .valueOf()
       ) {
         if (
@@ -225,7 +238,7 @@ class Main {
       x: this.data.MetricDataResults[2].Timestamps.map((d) => {
         const start = moment(d).format(dateFormat);
         const end = moment(d)
-          .add(this.period, 'seconds')
+          .add(this.interval, 'seconds')
           .format(dateFormat);
         return `${start}-${end}`;
       }),
@@ -339,7 +352,7 @@ class Main {
               MetricName: 'Duration',
               Namespace: 'AWS/Lambda',
             },
-            Period: this.period,
+            Period: this.interval,
             Stat: 'Maximum',
           },
           ReturnData: true,
@@ -361,7 +374,7 @@ class Main {
               MetricName: 'Errors',
               Namespace: 'AWS/Lambda',
             },
-            Period: this.period,
+            Period: this.interval,
             Stat: 'Sum',
           },
           ReturnData: true,
@@ -383,7 +396,7 @@ class Main {
               MetricName: 'Invocations',
               Namespace: 'AWS/Lambda',
             },
-            Period: this.period,
+            Period: this.interval,
             Stat: 'Sum',
           },
           ReturnData: true,

@@ -23,10 +23,6 @@ const cloudformation = new AWS.CloudFormation({ region: program.region });
 const cloudwatch = new AWS.CloudWatch({ region: program.region });
 const cloudwatchLogs = new AWS.CloudWatchLogs({ region: program.region });
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function getLambdasForStackName(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
 }
@@ -34,47 +30,45 @@ function getLambdasForStackName(stackName) {
 class Main {
   constructor() {
     this.grid = new contrib.grid({ rows: 12, cols: 12, screen });
-    this.bar = this.grid.set(4, 6, 4, 3, contrib.bar,
-      {
-        label: 'Lambda Duration (most recent)',
-        barWidth: 6,
-        barSpacing: 6,
-        xOffset: 2,
-        maxHeight: 9,
-      });
-    this.table = this.grid.set(0, 6, 4, 6, contrib.table,
-      {
-        keys: true,
-        fg: 'green',
-        label: 'Lambda Functions',
-        columnSpacing: 1,
-        columnWidth: [44, 60],
-      });
-    this.invocationsLineGraph = this.grid.set(2, 0, 6, 6, contrib.line,
-      {
-        maxY: 0,
-        label: 'Function Metrics',
-        showLegend: true,
-        xPadding: 10,
-        xLabelPadding: 10,
-        wholeNumbersOnly: true,
-        legend: { width: 50 },
-      });
-    this.map = this.grid.set(4, 9, 4, 3, contrib.map, { label: `Servers Location (${program.region})` });
-    this.log = this.grid.set(8, 0, 4, 12, blessed.log,
-      {
-        fg: 'green',
-        selectedFg: 'green',
-        label: 'Server Log',
-        interactive: true,
-        scrollbar: { bg: 'blue' },
-        mouse: true,
-      });
+    this.bar = this.grid.set(4, 6, 4, 3, contrib.bar, {
+      label: 'Lambda Duration (most recent)',
+      barWidth: 6,
+      barSpacing: 6,
+      xOffset: 2,
+      maxHeight: 9,
+    });
+    this.table = this.grid.set(0, 6, 4, 6, contrib.table, {
+      keys: true,
+      fg: 'green',
+      label: 'Lambda Functions',
+      columnSpacing: 1,
+      columnWidth: [44, 60],
+    });
+    this.invocationsLineGraph = this.grid.set(2, 0, 6, 6, contrib.line, {
+      maxY: 0,
+      label: 'Function Metrics',
+      showLegend: true,
+      xPadding: 10,
+      xLabelPadding: 10,
+      wholeNumbersOnly: true,
+      legend: { width: 50 },
+    });
+    this.map = this.grid.set(4, 9, 4, 3, contrib.map, {
+      label: `Servers Location (${program.region})`,
+    });
+    this.log = this.grid.set(8, 0, 4, 12, blessed.log, {
+      fg: 'green',
+      selectedFg: 'green',
+      label: 'Server Log',
+      interactive: true,
+      scrollbar: { bg: 'blue' },
+      mouse: true,
+    });
     this.titleBox = this.grid.set(0, 0, 2, 6, blessed.box, {
       tags: true,
-      content: `${logo
-      }\n Dev Tools for the Serverless World.`
-      + '\n    - Select a function from the list on the right',
+      content:
+        `${logo}\n Dev Tools for the Serverless World.`
+        + '\n    - Select a function from the list on the right',
       style: {
         fg: 'green',
         border: {
@@ -104,11 +98,12 @@ class Main {
       // eslint-disable-next-line prefer-destructuring
       this.startTime = new Date(program.startTime);
     } else {
-      const dateOffset = (24 * 60 * 60 * 1000); // 1 day
+      const dateOffset = 24 * 60 * 60 * 1000; // 1 day
 
       // Round to closest period to make query faster.
       this.startTime = new Date(
-        (Math.round(new Date().getTime() / this.period) * this.period) - dateOffset,
+        Math.round(new Date().getTime() / this.period) * this.period
+          - dateOffset,
       );
     }
   }
@@ -154,14 +149,20 @@ class Main {
   }
 
   async generateTable() {
-    const newData = await getLambdasForStackName(program.stackName, this.setData);
+    const newData = await getLambdasForStackName(
+      program.stackName,
+      this.setData,
+    );
     this.data = newData;
 
     const lambdaFunctions = this.data.StackResourceSummaries.filter(
       (res) => res.ResourceType === 'AWS::Lambda::Function',
     ).map((lam) => [lam.PhysicalResourceId, lam.LastUpdatedTimestamp]);
 
-    this.table.setData({ headers: ['logical', 'updated'], data: lambdaFunctions });
+    this.table.setData({
+      headers: ['logical', 'updated'],
+      data: lambdaFunctions,
+    });
 
     if (this.funcName) {
       this.updateGraphs();
@@ -178,12 +179,18 @@ class Main {
       for (
         let timestamp = moment(this.startTime).valueOf();
         timestamp < moment(this.endTime).valueOf();
-        timestamp = moment(timestamp).add(this.period, 'seconds').valueOf()
+        timestamp = moment(timestamp)
+          .add(this.period, 'seconds')
+          .valueOf()
       ) {
-        if (this.data.MetricDataResults[index].Timestamps.every(
-          (it) => it.valueOf() !== timestamp,
-        )) {
-          this.data.MetricDataResults[index].Timestamps.push(new Date(timestamp));
+        if (
+          this.data.MetricDataResults[index].Timestamps.every(
+            (it) => it.valueOf() !== timestamp,
+          )
+        ) {
+          this.data.MetricDataResults[index].Timestamps.push(
+            new Date(timestamp),
+          );
           this.data.MetricDataResults[index].Values.push(0);
         }
       }
@@ -199,7 +206,9 @@ class Main {
   }
 
   setLineGraphData() {
-    const dateFormat = moment(this.data.MetricDataResults[1]).isAfter(moment().subtract(3, 'days'))
+    const dateFormat = moment(this.data.MetricDataResults[1]).isAfter(
+      moment().subtract(3, 'days'),
+    )
       ? dateFormats.graphDisplayTime
       : dateFormats.graphDisplayDate;
 
@@ -215,18 +224,20 @@ class Main {
       style: { line: 'green' },
       x: this.data.MetricDataResults[2].Timestamps.map((d) => {
         const start = moment(d).format(dateFormat);
-        const end = moment(d).add(this.period, 'seconds').format(dateFormat);
+        const end = moment(d)
+          .add(this.period, 'seconds')
+          .format(dateFormat);
         return `${start}-${end}`;
       }),
       y: this.data.MetricDataResults[2].Values,
     };
 
-    this.invocationsLineGraph.options.maxY = Math.max(
-      [...functionInvocations.y, ...functionError.y],
-    );
+    this.invocationsLineGraph.options.maxY = Math.max([
+      ...functionInvocations.y,
+      ...functionError.y,
+    ]);
     this.invocationsLineGraph.setData([functionError, functionInvocations]);
   }
-
 
   async updateGraphs() {
     const data = await this.getLambdaMetrics(this.funcName);
@@ -250,13 +261,18 @@ class Main {
       limit: 5,
       orderBy: 'LastEventTime',
     };
-    return cloudwatchLogs.describeLogStreams(params, (err, data) => {
-      if (err) {
-        console.log(err, err.stack); // an error occurred
-      } else {
-        this.getLogEvents(logGroupName, data.logStreams.map((stream) => stream.logStreamName));
-      }
-    }).promise();
+    return cloudwatchLogs
+      .describeLogStreams(params, (err, data) => {
+        if (err) {
+          console.log(err, err.stack); // an error occurred
+        } else {
+          this.getLogEvents(
+            logGroupName,
+            data.logStreams.map((stream) => stream.logStreamName),
+          );
+        }
+      })
+      .promise();
   }
 
   getLogEvents(logGroupName, logStreamNames) {
@@ -270,20 +286,29 @@ class Main {
       logStreamNames,
       limit: 100,
     };
-    cloudwatchLogs.filterLogEvents(params).promise().then((data) => {
-      const { events } = data;
-      this.log.setContent('');
-      events.forEach((event) => { this.log.log(event.message); });
-    }, (err) => {
-      console.log(err, err.stack);
-    });
+    cloudwatchLogs
+      .filterLogEvents(params)
+      .promise()
+      .then(
+        (data) => {
+          const { events } = data;
+          this.log.setContent('');
+          events.forEach((event) => {
+            this.log.log(event.message);
+          });
+        },
+        (err) => {
+          console.log(err, err.stack);
+        },
+      );
   }
 
   sortMetricDataResultsByTimestamp() {
     this.data.MetricDataResults = this.data.MetricDataResults.map((datum) => {
-      const latest = datum.Timestamps.map((timestamp, index) => (
-        { timestamp: moment(timestamp), value: datum.Values[index] }))
-        .sort((first, second) => (moment(first.timestamp) > moment(second.timestamp) ? 1 : -1));
+      const latest = datum.Timestamps.map((timestamp, index) => ({
+        timestamp: moment(timestamp),
+        value: datum.Values[index],
+      })).sort((first, second) => (moment(first.timestamp) > moment(second.timestamp) ? 1 : -1));
       const returnData = datum;
       returnData.Timestamps = latest.map((it) => it.timestamp);
       returnData.Values = latest.map((it) => it.value);

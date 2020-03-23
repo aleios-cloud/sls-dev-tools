@@ -28,7 +28,6 @@ const cloudformation = new AWS.CloudFormation({
 });
 const cloudwatch = new AWS.CloudWatch({
   region: program.region,
-  credentials,
 });
 const cloudwatchLogs = new AWS.CloudWatchLogs({
   region: program.region,

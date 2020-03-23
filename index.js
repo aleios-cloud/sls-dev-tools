@@ -22,6 +22,7 @@ program
 const screen = blessed.screen({ smartCSR: true });
 const profile = program.profile || 'default';
 const credentials = new AWS.SharedIniFileCredentials({ profile });
+AWS.config.credentials = credentials;
 const cloudformation = new AWS.CloudFormation({
   region: program.region,
   credentials,

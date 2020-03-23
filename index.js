@@ -25,7 +25,6 @@ const credentials = new AWS.SharedIniFileCredentials({ profile });
 AWS.config.credentials = credentials;
 const cloudformation = new AWS.CloudFormation({
   region: program.region,
-  credentials,
 });
 const cloudwatch = new AWS.CloudWatch({
   region: program.region,

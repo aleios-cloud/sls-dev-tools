@@ -31,7 +31,6 @@ const cloudwatch = new AWS.CloudWatch({
 });
 const cloudwatchLogs = new AWS.CloudWatchLogs({
   region: program.region,
-  credentials,
 });
 
 function getLambdasForStackName(stackName) {

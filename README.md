@@ -11,10 +11,11 @@ The Dev Tools for the Serverless World
 # To Run
 
 - `npm install -g sls-dev-tools`
-- Run `sls-dev-tools -n {YOUR_STACK_NAME} -r {YOUR_REGION} [-t {START_TIME}] [-i {INTERVAL}] [-p {PROFILE}]`
+- Run `sls-dev-tools -n {YOUR_STACK_NAME} -r {YOUR_REGION} [-t {START_TIME}] [-i {INTERVAL}] [-p {PROFILE}] [-l {YOUR_PROJECT_LOCATION}]`
   - The start time defines when you want your graphs to start from, and the date format for the start time is `YYYY-MM-DD/HH:mm`
   - The interval defines the size of the buckets in seconds. This means if you give a interval of 3600, the line graph will group the invocations and errors into 1h chunks, and the bar chart will show the average response time over the hour for the last 6 hours during which invocations were made.
   - The profile option allows you to pass in an alternative aws profile to connect with if none is provided the default aws profile is used
+  - Run sls-dev-tools within your serverless project or specify its location in the command to enable the deployment features.
   - To get the stack name, log on to AWS cloudformation and it is shown in the overview section of stack info. It may not be what you expected e.g. it might have `-dev` on the end, so worth checking if the dev tools are not working.
   - The region is the AWS region, for example, us-east-1.
 - Choose a function with the arrow keys, and press enter to see the metrics for that function.
@@ -32,6 +33,7 @@ Options:
   -i, --interval <interval>     interval of graphs, in seconds
   -p, --profile <profile>       aws profile name to use
   -h, --help                    output usage information
+  -l, --location                location of your serverless project (default is current directory)
 ```
 
 # A note on AWS API calls and pricing

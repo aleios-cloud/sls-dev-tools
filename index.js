@@ -9,12 +9,13 @@ const blessed = require('blessed');
 const contrib = require('blessed-contrib');
 const moment = require('moment');
 const program = require('commander');
-var open = require('open');
+const open = require('open');
+const { exec } = require('child_process');
 
 program.version('0.1.0');
 program
-  .option('-n, --stack-name <stackName>', 'AWS stack name')
-  .option('-r, --region <region>', 'AWS region')
+  .requiredOption('-n, --stack-name <stackName>', 'AWS stack name')
+  .requiredOption('-r, --region <region>', 'AWS region')
   .option('-t, --start-time <startTime>', 'when to start from')
   .option('-i, --interval <interval>', 'interval of graphs, in seconds')
   .option('-p, --profile <profile>', 'aws profile name to use')
@@ -106,8 +107,29 @@ class Main {
     screen.key(['escape', 'q', 'C-c'], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.key(['o', 'O'], () => {
-      const selectedLambdaFunctionName = this.table.rows.items[this.table.rows.selected].data[0];
-      return open(`https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${selectedLambdaFunctionName}?tab=configuration`);
+      const selectedLambdaFunctionName = this.table.rows.items[
+        this.table.rows.selected
+      ].data[0];
+      return open(
+        `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`,
+      );
+    });
+    screen.key(['d', 'D'], () => {
+      const selectedLambdaFunctionName = this.table.rows.items[
+        this.table.rows.selected
+      ].data[0];
+      if (provider === 'serverless') {
+        exec(
+          `serverless deploy -f ${selectedLambdaFunctionName} -r ${program.region} --aws-profile ${profile}`,
+          { cwd: location },
+          (error, stdout, stderr) => {
+            if (error) {
+              console.error(`stderr: ${stderr}`);
+              console.error(`exec error: ${error}`);
+            }
+          },
+        );
+      }
     });
     screen.on('resize', () => {
       this.bar.emit('attach');
@@ -142,6 +164,7 @@ class Main {
   async render() {
     await this.table.rows.on('select', (item) => {
       [this.funcName] = item.data;
+      this.fullFuncName = `${program.stackName}-${this.funcName}`;
       this.updateGraphs();
     });
 
@@ -188,7 +211,10 @@ class Main {
 
     const lambdaFunctions = this.data.StackResourceSummaries.filter(
       (res) => res.ResourceType === 'AWS::Lambda::Function',
-    ).map((lam) => [lam.PhysicalResourceId, lam.LastUpdatedTimestamp]);
+    ).map((lam) => [
+      lam.PhysicalResourceId.replace(`${program.stackName}-`, ''),
+      lam.LastUpdatedTimestamp,
+    ]);
 
     this.table.setData({
       headers: ['logical', 'updated'],
@@ -284,7 +310,7 @@ class Main {
   }
 
   async updateGraphs() {
-    const data = await this.getLambdaMetrics(this.funcName);
+    const data = await this.getLambdaMetrics(this.fullFuncName);
     this.data = data;
 
     this.padInvocationsAndErrorsWithZeros();
@@ -293,7 +319,7 @@ class Main {
     this.setBarChartData();
     this.setLineGraphData();
 
-    this.getLogStreams(`/aws/lambda/${this.funcName}`).then(() => {
+    this.getLogStreams(`/aws/lambda/${this.fullFuncName}`).then(() => {
       screen.render();
     });
   }

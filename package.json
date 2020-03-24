@@ -41,7 +41,7 @@
     ]
   },
   "description": "The Dev Tools for the Serverless World",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "main": "index.js",
   "directories": {
     "lib": "lib"

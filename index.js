@@ -120,7 +120,7 @@ class Main {
 
   async render() {
     await this.table.rows.on('select', (item) => {
-      [this.funcName] = item.content.split('   ');
+      this.funcName = item.data[0];
       this.updateGraphs();
     });
 
@@ -173,6 +173,10 @@ class Main {
       headers: ['logical', 'updated'],
       data: lambdaFunctions,
     });
+
+    for (let i=0; i<lambdaFunctions.length; i++) {
+      this.table.rows.items[i].data = lambdaFunctions[i];
+    }
 
     if (this.funcName) {
       this.updateGraphs();

@@ -18,6 +18,7 @@ The Dev Tools for the Serverless World
   - Run sls-dev-tools within your serverless project or specify its location in the command to enable the deployment features.
   - To get the stack name, log on to AWS cloudformation and it is shown in the overview section of stack info. It may not be what you expected e.g. it might have `-dev` on the end, so worth checking if the dev tools are not working.
   - The region is the AWS region, for example, us-east-1.
+  - Use --sls to specify the use of the serverless framework to execute commands
 - Choose a function with the arrow keys, and press enter to see the metrics for that function.
   - If you get an `AccessDenied` error in which case you must add the `GetMetricData` permission from CloudWatch in the IAM console on AWS.
   - If you're not seeing any data in the graphs, try changing your start date to make sure you have had invocations since then.
@@ -34,6 +35,7 @@ Options:
   -p, --profile <profile>       aws profile name to use
   -h, --help                    output usage information
   -l, --location                location of your serverless project (default is current directory)
+  --sls                         use the serverless framework to execute commands
 ```
 
 # A note on AWS API calls and pricing

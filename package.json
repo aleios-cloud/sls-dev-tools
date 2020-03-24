@@ -9,6 +9,7 @@
     "blessed-contrib": "^4.8.17",
     "commander": "^3.0.2",
     "moment": "^2.24.0",
+    "open": "^7.0.3",
     "prop-types": "^15.7.2",
     "react": "^16.9.0"
   },

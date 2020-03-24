@@ -17,10 +17,12 @@ program
   .option('-t, --start-time <startTime>', 'when to start from')
   .option('-i, --interval <interval>', 'interval of graphs, in seconds')
   .option('-p, --profile <profile>', 'aws profile name to use')
+  .option('-l, --location <location>', 'location of your serverless project')
   .parse(process.argv);
 
 const screen = blessed.screen({ smartCSR: true });
 const profile = program.profile || 'default';
+const location = program.location || process.cwd();
 const credentials = new AWS.SharedIniFileCredentials({ profile });
 AWS.config.credentials = credentials;
 const cloudformation = new AWS.CloudFormation({

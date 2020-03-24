@@ -19,11 +19,19 @@ program
   .option('-i, --interval <interval>', 'interval of graphs, in seconds')
   .option('-p, --profile <profile>', 'aws profile name to use')
   .option('-l, --location <location>', 'location of your serverless project')
+  .option('--sls', 'use the serverless framework to execute commands')
   .parse(process.argv);
 
 const screen = blessed.screen({ smartCSR: true });
 const profile = program.profile || 'default';
 const location = program.location || process.cwd();
+let provider = '';
+switch (program) {
+  case program.sls:
+  default:
+    provider = 'serverless';
+    break;
+}
 const credentials = new AWS.SharedIniFileCredentials({ profile });
 AWS.config.credentials = credentials;
 AWS.config.region = program.region;
@@ -133,7 +141,7 @@ class Main {
 
   async render() {
     await this.table.rows.on('select', (item) => {
-      this.funcName = item.data[0];
+      [this.funcName] = item.data;
       this.updateGraphs();
     });
 
@@ -187,7 +195,7 @@ class Main {
       data: lambdaFunctions,
     });
 
-    for (let i=0; i<lambdaFunctions.length; i++) {
+    for (let i = 0; i < lambdaFunctions.length; i++) {
       this.table.rows.items[i].data = lambdaFunctions[i];
     }
 

@@ -34,6 +34,11 @@ Options:
   -h, --help                    output usage information
 ```
 
+```
+Shortcuts
+- Pressing "o" while selecting a function from the function list will open the relevant page of the AWS console (saving some clicks!)
+```
+
 # A note on AWS API calls and pricing
 
 This tool does make use of the AWS API to get metrics. Authentication is handled implicitly via the AWS NodeJS SDK. Pricing around Cloudwatch is designed for scale, but be warned that this tool is making calls to AWS.

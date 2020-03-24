@@ -9,6 +9,7 @@ const blessed = require('blessed');
 const contrib = require('blessed-contrib');
 const moment = require('moment');
 const program = require('commander');
+var open = require('open');
 
 program.version('0.1.0');
 program
@@ -88,6 +89,10 @@ class Main {
     });
     screen.key(['escape', 'q', 'C-c'], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
+    screen.key(['o', 'O'], () => {
+      const selectedLambdaFunctionName = this.table.rows.items[this.table.rows.selected].data[0];
+      return open(`https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${selectedLambdaFunctionName}?tab=configuration`);
+    });
     screen.on('resize', () => {
       this.bar.emit('attach');
       this.table.emit('attach');

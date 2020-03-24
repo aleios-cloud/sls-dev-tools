@@ -1,4 +1,7 @@
 # sls-dev-tools
+![npm](https://img.shields.io/npm/v/sls-dev-tools)
+![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
 The Dev Tools for the Serverless World
 

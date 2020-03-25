@@ -21,7 +21,8 @@
     "@babel/preset-react": "^7.0.0",
     "eslint": "^6.2.2",
     "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.18.2"
+    "eslint-plugin-import": "^2.18.2",
+    "jest": "^25.1.0"
   },
   "scripts": {
     "build": "babel index.js constants.js --out-dir lib",

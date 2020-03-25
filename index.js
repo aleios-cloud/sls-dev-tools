@@ -30,7 +30,7 @@ let provider = '';
 switch (program) {
   case program.sls:
   default:
-    provider = 'serverless';
+    provider = 'serverlessFramework';
     break;
 }
 const credentials = new AWS.SharedIniFileCredentials({ profile });
@@ -45,7 +45,7 @@ function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
 }
 
-class Main {
+export default class Main {
   constructor() {
     this.grid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.bar = this.grid.set(4, 6, 4, 3, contrib.bar, {
@@ -80,7 +80,7 @@ class Main {
         fg: 'green',
       },
       template: {
-        lines: true
+        lines: true,
       },
     });
     this.eventBridgeTree.rows.interactive = false;
@@ -114,23 +114,7 @@ class Main {
         `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`,
       );
     });
-    screen.key(['d', 'D'], () => {
-      const selectedLambdaFunctionName = this.table.rows.items[
-        this.table.rows.selected
-      ].data[0];
-      if (provider === 'serverless') {
-        exec(
-          `serverless deploy -f ${selectedLambdaFunctionName} -r ${program.region} --aws-profile ${profile}`,
-          { cwd: location },
-          (error, stdout, stderr) => {
-            if (error) {
-              console.error(`stderr: ${stderr}`);
-              console.error(`exec error: ${error}`);
-            }
-          },
-        );
-      }
-    });
+    screen.key(['d', 'D'], this.deployLambda());
     screen.on('resize', () => {
       this.bar.emit('attach');
       this.table.emit('attach');
@@ -202,11 +186,26 @@ class Main {
     screen.render();
   }
 
+  async deployLambda() {
+    const selectedLambdaFunctionName = this.table.rows.items[
+      this.table.rows.selected
+    ].data[0];
+    if (provider === 'serverlessFramework') {
+      exec(
+        `serverless deploy -f ${selectedLambdaFunctionName} -r ${program.region} --aws-profile ${profile}`,
+        { cwd: location },
+        (error, stdout, stderr) => {
+          if (error) {
+            console.error(`stderr: ${stderr}`);
+            console.error(`exec error: ${error}`);
+          }
+        },
+      );
+    }
+  }
+
   async updateResourcesInformation() {
-    const newData = await getStackResources(
-      program.stackName,
-      this.setData,
-    );
+    const newData = await getStackResources(program.stackName, this.setData);
     this.data = newData;
 
     const lambdaFunctions = this.data.StackResourceSummaries.filter(
@@ -232,7 +231,10 @@ class Main {
       return eventBridges;
     }, {});
 
-    this.eventBridgeTree.setData({ extended: true, children: eventBridgeResources });
+    this.eventBridgeTree.setData({
+      extended: true,
+      children: eventBridgeResources,
+    });
 
     if (this.funcName) {
       this.updateGraphs();

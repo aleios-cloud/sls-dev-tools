@@ -11,6 +11,7 @@ const moment = require('moment');
 const program = require('commander');
 const open = require('open');
 const { exec } = require('child_process');
+const emoji = require('node-emoji');
 
 program.version('0.1.0');
 program
@@ -49,8 +50,10 @@ function getLambdasForStackName(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
 }
 
+let deployingLambdas = [];
 class Main {
   constructor() {
+    this.deployingLambdas = [];
     this.grid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.bar = this.grid.set(4, 6, 4, 3, contrib.bar, {
       label: 'Lambda Duration (most recent)',
@@ -109,10 +112,14 @@ class Main {
       );
     });
     screen.key(['d', 'D'], () => {
-      const selectedLambdaFunctionName = this.table.rows.items[
-        this.table.rows.selected
-      ].data[0];
+      const selectedLambdaFunction = this.table.rows.items[this.table.rows.selected];
+      const selectedLambdaFunctionName = selectedLambdaFunction.data[0];
+      const listItemDefaultBg = selectedLambdaFunction.style.bg;
       if (provider === 'serverless') {
+        selectedLambdaFunction.content = `${emoji.get('coffee')} ${selectedLambdaFunctionName}`;
+        selectedLambdaFunction.style.fg = 'blue';
+        selectedLambdaFunction.style.bg = 'green';
+        this.deployingLambdas.push(selectedLambdaFunctionName);
         exec(
           `serverless deploy -f ${selectedLambdaFunctionName} -r ${program.region} --aws-profile ${profile}`,
           { cwd: location },
@@ -121,6 +128,11 @@ class Main {
               console.error(`stderr: ${stderr}`);
               console.error(`exec error: ${error}`);
             }
+            const indexOfLambdaInDeployingLambdasArray = this.deployingLambdas.indexOf(selectedLambdaFunctionName);
+            this.deployingLambdas.splice(indexOfLambdaInDeployingLambdasArray, 1);
+            selectedLambdaFunction.style.fg = 'green';
+            selectedLambdaFunction.style.bg = listItemDefaultBg;
+            selectedLambdaFunction.content = selectedLambdaFunctionName;
           },
         );
       }
@@ -217,6 +229,9 @@ class Main {
 
     for (let i = 0; i < lambdaFunctions.length; i++) {
       this.table.rows.items[i].data = lambdaFunctions[i];
+      if (this.deployingLambdas.includes(lambdaFunctions[i][0])){
+        this.table.rows.items[i].content = `${emoji.get('coffee')} ${this.table.rows.items[i].content}`;
+      };
     }
 
     if (this.funcName) {

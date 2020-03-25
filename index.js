@@ -30,12 +30,8 @@ const cloudwatch = new AWS.CloudWatch();
 const cloudwatchLogs = new AWS.CloudWatchLogs();
 const eventbridge = new AWS.EventBridge();
 
-function getLambdasForStackName(stackName) {
+function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
-}
-
-function getEventBridges() {
-  return eventbridge.listEventBuses({}).promise();
 }
 
 class Main {
@@ -145,12 +141,7 @@ class Main {
     }, 1000);
 
     setInterval(() => {
-      this.generateEventBridgeTree();
-      screen.render();
-    }, 3000);
-
-    setInterval(() => {
-      this.generateTable();
+      this.updateResourcesInformation();
       this.table.focus();
     }, 3000);
   }
@@ -178,8 +169,8 @@ class Main {
     screen.render();
   }
 
-  async generateTable() {
-    const newData = await getLambdasForStackName(
+  async updateResourcesInformation() {
+    const newData = await getStackResources(
       program.stackName,
       this.setData,
     );
@@ -198,24 +189,20 @@ class Main {
       this.table.rows.items[i].data = lambdaFunctions[i];
     }
 
+    const eventBridgeResources = this.data.StackResourceSummaries.filter(
+      (res) => res.ResourceType === 'Custom::EventBridge',
+    ).reduce((eventBridges, eventBridge) => {
+      eventBridges[eventBridge.PhysicalResourceId] = {};
+      return eventBridges;
+    }, {});
+
+    this.eventBridgeTree.setData({ extended: true, children: eventBridgeResources });
+
     if (this.funcName) {
       this.updateGraphs();
     }
 
     screen.render();
-  }
-
-  async generateEventBridgeTree() {
-    const newData = await getEventBridges();
-    this.eventBridgeTree.setData(
-      {
-        extended: true, children: newData.EventBuses.reduce(
-          (eventBuses, eventBus) => {
-            eventBuses[eventBus.Name] = {};
-            return eventBuses;
-          }, {})
-    });
-    screen.render;
   }
 
   padInvocationsAndErrorsWithZeros() {

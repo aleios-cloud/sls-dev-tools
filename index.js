@@ -24,18 +24,18 @@ const screen = blessed.screen({ smartCSR: true });
 const profile = program.profile || 'default';
 const credentials = new AWS.SharedIniFileCredentials({ profile });
 AWS.config.credentials = credentials;
-const cloudformation = new AWS.CloudFormation({
-  region: program.region,
-});
-const cloudwatch = new AWS.CloudWatch({
-  region: program.region,
-});
-const cloudwatchLogs = new AWS.CloudWatchLogs({
-  region: program.region,
-});
+AWS.config.region = program.region;
+const cloudformation = new AWS.CloudFormation();
+const cloudwatch = new AWS.CloudWatch();
+const cloudwatchLogs = new AWS.CloudWatchLogs();
+const eventbridge = new AWS.EventBridge();
 
 function getLambdasForStackName(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
+}
+
+function getEventBridges() {
+  return eventbridge.listEventBuses({}).promise();
 }
 
 class Main {
@@ -67,7 +67,17 @@ class Main {
     this.map = this.grid.set(4, 9, 4, 3, contrib.map, {
       label: `Servers Location (${program.region})`,
     });
-    this.log = this.grid.set(8, 0, 4, 12, blessed.log, {
+    this.eventBridgeTree = this.grid.set(8, 9, 4, 3, contrib.tree, {
+      label: 'Event Bridges',
+      style: {
+        fg: 'green',
+      },
+      template: {
+        lines: true
+      },
+    });
+    this.eventBridgeTree.rows.interactive = false;
+    this.log = this.grid.set(8, 0, 4, 9, blessed.log, {
       fg: 'green',
       selectedFg: 'green',
       label: 'Server Log',
@@ -135,6 +145,11 @@ class Main {
     }, 1000);
 
     setInterval(() => {
+      this.generateEventBridgeTree();
+      screen.render();
+    }, 3000);
+
+    setInterval(() => {
       this.generateTable();
       this.table.focus();
     }, 3000);
@@ -188,6 +203,19 @@ class Main {
     }
 
     screen.render();
+  }
+
+  async generateEventBridgeTree() {
+    const newData = await getEventBridges();
+    this.eventBridgeTree.setData(
+      {
+        extended: true, children: newData.EventBuses.reduce(
+          (eventBuses, eventBus) => {
+            eventBuses[eventBus.Name] = {};
+            return eventBuses;
+          }, {})
+    });
+    screen.render;
   }
 
   padInvocationsAndErrorsWithZeros() {

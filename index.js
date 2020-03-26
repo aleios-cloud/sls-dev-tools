@@ -45,7 +45,7 @@ function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
 }
 
-export default class Main {
+class Main {
   constructor() {
     this.grid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.bar = this.grid.set(4, 6, 4, 3, contrib.bar, {

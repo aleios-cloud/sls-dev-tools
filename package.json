@@ -27,7 +27,10 @@
   "scripts": {
     "build": "babel index.js constants.js --out-dir lib",
     "dev": "babel index.js constants.js --out-dir lib --watch",
-    "start": "node ./lib/index.js"
+    "start": "node ./lib/index.js",
+    "test:lint": "eslint --ext js,ts,tsx ./index.js",
+    "test:jest": "jest --config ./jest.config.js",
+    "test": "yarn test:jest --coverage"
   },
   "babel": {
     "presets": [

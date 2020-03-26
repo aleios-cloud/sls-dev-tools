@@ -114,7 +114,7 @@ export default class Main {
         `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`,
       );
     });
-    screen.key(['d', 'D'], this.deployLambda());
+    screen.key(['d', 'D'], () => this.deployLambda(this.table));
     screen.on('resize', () => {
       this.bar.emit('attach');
       this.table.emit('attach');
@@ -186,21 +186,21 @@ export default class Main {
     screen.render();
   }
 
-  async deployLambda() {
-    const selectedLambdaFunctionName = this.table.rows.items[
-      this.table.rows.selected
-    ].data[0];
-    if (provider === 'serverlessFramework') {
-      exec(
-        `serverless deploy -f ${selectedLambdaFunctionName} -r ${program.region} --aws-profile ${profile}`,
-        { cwd: location },
-        (error, stdout, stderr) => {
-          if (error) {
-            console.error(`stderr: ${stderr}`);
-            console.error(`exec error: ${error}`);
-          }
-        },
-      );
+  deployLambda(table) {
+    const tableRow = table.rows.items[this.table.rows.selected];
+    if (tableRow) {
+      const selectedLambdaFunctionName = tableRow.data[0];
+      if (provider === 'serverlessFramework') {
+        exec(
+          `serverless deploy -f ${selectedLambdaFunctionName} -r ${program.region} --aws-profile ${profile}`,
+          { cwd: location },
+          (error, stdout) => {
+            if (error) {
+              this.log.log(stdout);
+            }
+          },
+        );
+      }
     }
   }
 
@@ -349,7 +349,9 @@ export default class Main {
 
   getLogEvents(logGroupName, logStreamNames) {
     if (logStreamNames.length === 0) {
-      this.log.setContent('ERROR: No log streams found for this function.');
+      if (this.log.content === '') {
+        this.log.setContent('ERROR: No log streams found for this function.');
+      }
       return;
     }
     const params = {

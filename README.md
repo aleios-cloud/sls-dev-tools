@@ -44,6 +44,7 @@ Options:
 ```
 Shortcuts
 - Pressing "o" while selecting a function from the function list will open the relevant page of the AWS console (saving some clicks!)
+- Pressing "d" while selecting a function from the function list will deploy the selected lambda function
 ```
 
 # A note on AWS API calls and pricing

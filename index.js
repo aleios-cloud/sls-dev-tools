@@ -112,13 +112,11 @@ class Main {
       );
     });
     screen.key(['d', 'D'], () => {
-      const selectedLambdaFunction = this.table.rows.items[this.table.rows.selected];
-      const selectedLambdaFunctionName = selectedLambdaFunction.data[0];
-      const listItemDefaultBg = selectedLambdaFunction.style.bg;
+      const selectedRowIndex = this.table.rows.selected;
+      const selectedLambdaFunctionName = this.table.rows.items[selectedRowIndex].data[0];
       if (provider === 'serverless') {
-        selectedLambdaFunction.content = `${emoji.get('coffee')} ${selectedLambdaFunctionName}`;
-        selectedLambdaFunction.style.fg = 'blue';
-        selectedLambdaFunction.style.bg = 'green';
+        this.updateLambdaTableRows();
+        this.flashLambdaTableRow(selectedRowIndex);
         this.deployingLambdas.push(selectedLambdaFunctionName);
         exec(
           `serverless deploy -f ${selectedLambdaFunctionName} -r ${program.region} --aws-profile ${profile}`,
@@ -130,9 +128,8 @@ class Main {
             }
             const indexOfLambdaInDeployingLambdasArray = this.deployingLambdas.indexOf(selectedLambdaFunctionName);
             this.deployingLambdas.splice(indexOfLambdaInDeployingLambdasArray, 1);
-            selectedLambdaFunction.style.fg = 'green';
-            selectedLambdaFunction.style.bg = listItemDefaultBg;
-            selectedLambdaFunction.content = selectedLambdaFunctionName;
+            this.unflashLambdaTableRow(selectedRowIndex);
+            this.updateLambdaTableRows();
           },
         );
       }
@@ -213,32 +210,32 @@ class Main {
       program.stackName,
       this.setData,
     );
-    this.data = newData;
 
-    const lambdaFunctions = this.data.StackResourceSummaries.filter(
+    this.data = newData;
+    this.table.data = newData.StackResourceSummaries.filter(
       (res) => res.ResourceType === 'AWS::Lambda::Function',
     ).map((lam) => [
       lam.PhysicalResourceId.replace(`${program.stackName}-`, ''),
       lam.LastUpdatedTimestamp,
     ]);
 
-    this.table.setData({
-      headers: ['logical', 'updated'],
-      data: lambdaFunctions,
-    });
-
-    for (let i = 0; i < lambdaFunctions.length; i++) {
-      this.table.rows.items[i].data = lambdaFunctions[i];
-      if (this.deployingLambdas.includes(lambdaFunctions[i][0])){
-        this.table.rows.items[i].content = `${emoji.get('coffee')} ${this.table.rows.items[i].content}`;
-      };
-    }
+    this.updateLambdaTableRows();
 
     if (this.funcName) {
       this.updateGraphs();
     }
 
     screen.render();
+  }
+
+  flashLambdaTableRow(rowIndex) {
+    this.table.rows.items[rowIndex].style.fg = 'blue';
+    this.table.rows.items[rowIndex].style.bg = 'green';
+  }
+
+  unflashLambdaTableRow(rowIndex) {
+    this.table.rows.items[rowIndex].style.fg = () => (rowIndex === this.table.rows.selected) ? 'white' : 'green';
+    this.table.rows.items[rowIndex].style.bg = () => (rowIndex === this.table.rows.selected) ? 'blue' : 'default';
   }
 
   padInvocationsAndErrorsWithZeros() {
@@ -264,6 +261,23 @@ class Main {
           this.data.MetricDataResults[index].Values.push(0);
         }
       }
+    }
+  }
+
+  updateLambdaTableRows() {
+    const lambdaFunctionsWithDeploymentIndicator = JSON.parse(JSON.stringify(this.table.data));
+    for (let i = 0; i < this.table.data.length; i++) {
+      if (this.deployingLambdas.includes(this.table.data[i][0])){
+        lambdaFunctionsWithDeploymentIndicator[i][0] = `${emoji.get('coffee')} ${this.table.data[i][0]}`;
+      };
+    }
+    this.table.setData({
+      headers: ['logical', 'updated'],
+      data: lambdaFunctionsWithDeploymentIndicator,
+    });
+
+    for (let i = 0; i < this.table.data.length; i++) {
+      this.table.rows.items[i].data = this.table.data[i];
     }
   }
 

@@ -3,7 +3,7 @@
 /* eslint-disable no-console */
 /* eslint-disable new-cap */
 import AWS from 'aws-sdk';
-import { awsRegionLocations, logo, dateFormats } from './constants';
+import { awsRegionLocations, logo, dateFormats, DEPLOYMENT_STATUS } from './constants';
 
 const blessed = require('blessed');
 const contrib = require('blessed-contrib');
@@ -11,6 +11,7 @@ const moment = require('moment');
 const program = require('commander');
 const open = require('open');
 const { exec } = require('child_process');
+const emoji = require('node-emoji');
 
 program.version('0.1.0');
 program
@@ -47,6 +48,7 @@ function getStackResources(stackName) {
 
 class Main {
   constructor() {
+    this.lambdasDeploymentStatus = {};
     this.grid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.bar = this.grid.set(4, 6, 4, 3, contrib.bar, {
       label: 'Lambda Duration (most recent)',
@@ -186,43 +188,47 @@ class Main {
     screen.render();
   }
 
-  deployLambda(table) {
-    const tableRow = table.rows.items[this.table.rows.selected];
-    if (tableRow) {
-      const selectedLambdaFunctionName = tableRow.data[0];
+  deployLambda() {
+    const selectedRowIndex = this.table.rows.selected;
+    if (selectedRowIndex !== -1) {
+      const selectedLambdaFunctionName = this.table.rows.items[selectedRowIndex].data[0];
+      this.updateLambdaTableRows();
+      this.flashLambdaTableRow(selectedRowIndex);
+      this.lambdasDeploymentStatus[selectedLambdaFunctionName] = DEPLOYMENT_STATUS.PENDING;
       if (provider === 'serverlessFramework') {
         exec(
           `serverless deploy -f ${selectedLambdaFunctionName} -r ${program.region} --aws-profile ${profile}`,
           { cwd: location },
-          (error, stdout) => {
-            if (error) {
-              this.log.log(stdout);
-            }
-          },
-        );
+          (error, stdout, stderr) => this.handleDeployment(error, stdout, stderr, selectedLambdaFunctionName, selectedRowIndex),
+        )
       }
     }
+  }
+
+  handleDeployment(error, stdout, stderr, lambdaName, lambdaIndex) {
+    if (error) {
+      console.log(stderr);
+      this.lambdasDeploymentStatus[lambdaName] = DEPLOYMENT_STATUS.ERROR;
+    } else {
+      this.log.log(stdout);
+      this.lambdasDeploymentStatus[lambdaName] = DEPLOYMENT_STATUS.SUCCESS;
+    }
+    this.unflashLambdaTableRow(lambdaIndex);
+    this.updateLambdaTableRows();
   }
 
   async updateResourcesInformation() {
     const newData = await getStackResources(program.stackName, this.setData);
     this.data = newData;
 
-    const lambdaFunctions = this.data.StackResourceSummaries.filter(
+    this.table.data = newData.StackResourceSummaries.filter(
       (res) => res.ResourceType === 'AWS::Lambda::Function',
     ).map((lam) => [
       lam.PhysicalResourceId.replace(`${program.stackName}-`, ''),
       lam.LastUpdatedTimestamp,
     ]);
 
-    this.table.setData({
-      headers: ['logical', 'updated'],
-      data: lambdaFunctions,
-    });
-
-    for (let i = 0; i < lambdaFunctions.length; i++) {
-      this.table.rows.items[i].data = lambdaFunctions[i];
-    }
+    this.updateLambdaTableRows();
 
     const eventBridgeResources = this.data.StackResourceSummaries.filter(
       (res) => res.ResourceType === 'Custom::EventBridge',
@@ -241,6 +247,16 @@ class Main {
     }
 
     screen.render();
+  }
+
+  flashLambdaTableRow(rowIndex) {
+    this.table.rows.items[rowIndex].style.fg = 'blue';
+    this.table.rows.items[rowIndex].style.bg = 'green';
+  }
+
+  unflashLambdaTableRow(rowIndex) {
+    this.table.rows.items[rowIndex].style.fg = () => (rowIndex === this.table.rows.selected) ? 'white' : 'green';
+    this.table.rows.items[rowIndex].style.bg = () => (rowIndex === this.table.rows.selected) ? 'blue' : 'default';
   }
 
   padInvocationsAndErrorsWithZeros() {
@@ -266,6 +282,23 @@ class Main {
           this.data.MetricDataResults[index].Values.push(0);
         }
       }
+    }
+  }
+
+  updateLambdaTableRows() {
+    const lambdaFunctionsWithDeploymentIndicator = JSON.parse(JSON.stringify(this.table.data));
+    for (let i = 0; i < this.table.data.length; i++) {
+      if (this.lambdasDeploymentStatus[this.table.data[i][0]] === DEPLOYMENT_STATUS.PENDING) {
+        lambdaFunctionsWithDeploymentIndicator[i][0] = `${emoji.get('coffee')} ${this.table.data[i][0]}`;
+      };
+    }
+    this.table.setData({
+      headers: ['logical', 'updated'],
+      data: lambdaFunctionsWithDeploymentIndicator,
+    });
+
+    for (let i = 0; i < this.table.data.length; i++) {
+      this.table.rows.items[i].data = this.table.data[i];
     }
   }
 

@@ -28,7 +28,6 @@ AWS.config.region = program.region;
 const cloudformation = new AWS.CloudFormation();
 const cloudwatch = new AWS.CloudWatch();
 const cloudwatchLogs = new AWS.CloudWatchLogs();
-const eventbridge = new AWS.EventBridge();
 
 function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();

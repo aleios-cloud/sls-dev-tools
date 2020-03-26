@@ -9,7 +9,7 @@ const blessed = require('blessed');
 const contrib = require('blessed-contrib');
 const moment = require('moment');
 const program = require('commander');
-var open = require('open');
+const open = require('open');
 
 program.version('0.1.0');
 program
@@ -20,10 +20,27 @@ program
   .option('-p, --profile <profile>', 'aws profile name to use')
   .parse(process.argv);
 
+function getAWSCredentials() {
+  if (program.profile) {
+    return new AWS.SharedIniFileCredentials({ profile: program.profile });
+  }
+  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    return new AWS.Credentials({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      sessionToken: process.env.AWS_SESSION_TOKEN,
+    });
+  }
+  if (process.env.AWS_PROFILE) {
+    return new AWS.SharedIniFileCredentials({
+      profile: process.env.AWS_PROFILE,
+    });
+  }
+  return new AWS.SharedIniFileCredentials({ profile: 'default' });
+}
+
 const screen = blessed.screen({ smartCSR: true });
-const profile = program.profile || 'default';
-const credentials = new AWS.SharedIniFileCredentials({ profile });
-AWS.config.credentials = credentials;
+AWS.config.credentials = getAWSCredentials();
 AWS.config.region = program.region;
 const cloudformation = new AWS.CloudFormation();
 const cloudwatch = new AWS.CloudWatch();
@@ -68,7 +85,7 @@ class Main {
         fg: 'green',
       },
       template: {
-        lines: true
+        lines: true,
       },
     });
     this.eventBridgeTree.rows.interactive = false;
@@ -95,8 +112,12 @@ class Main {
     screen.key(['escape', 'q', 'C-c'], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.key(['o', 'O'], () => {
-      const selectedLambdaFunctionName = this.table.rows.items[this.table.rows.selected].data[0];
-      return open(`https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${selectedLambdaFunctionName}?tab=configuration`);
+      const selectedLambdaFunctionName = this.table.rows.items[
+        this.table.rows.selected
+      ].data[0];
+      return open(
+        `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${selectedLambdaFunctionName}?tab=configuration`,
+      );
     });
     screen.on('resize', () => {
       this.bar.emit('attach');
@@ -130,7 +151,7 @@ class Main {
 
   async render() {
     await this.table.rows.on('select', (item) => {
-      this.funcName = item.data[0];
+      [this.funcName] = item.data;
       this.updateGraphs();
     });
 
@@ -184,7 +205,7 @@ class Main {
       data: lambdaFunctions,
     });
 
-    for (let i=0; i<lambdaFunctions.length; i++) {
+    for (let i = 0; i < lambdaFunctions.length; i++) {
       this.table.rows.items[i].data = lambdaFunctions[i];
     }
 

@@ -199,15 +199,15 @@ class Main {
         exec(
           `serverless deploy -f ${selectedLambdaFunctionName} -r ${program.region} --aws-profile ${profile}`,
           { cwd: location },
-          (error, stdout, stderr) => this.handleDeployment(error, stdout, stderr, selectedLambdaFunctionName, selectedRowIndex),
+          (error, stdout) => this.handleDeployment(error, stdout, selectedLambdaFunctionName, selectedRowIndex),
         )
       }
     }
   }
 
-  handleDeployment(error, stdout, stderr, lambdaName, lambdaIndex) {
+  handleDeployment(error, stdout, lambdaName, lambdaIndex) {
     if (error) {
-      console.log(stderr);
+      this.log.log(error);
       this.lambdasDeploymentStatus[lambdaName] = DEPLOYMENT_STATUS.ERROR;
     } else {
       this.log.log(stdout);
@@ -229,6 +229,8 @@ class Main {
     ]);
 
     this.updateLambdaTableRows();
+
+    this.updateLambdaDeploymentStatus();
 
     const eventBridgeResources = this.data.StackResourceSummaries.filter(
       (res) => res.ResourceType === 'Custom::EventBridge',
@@ -285,13 +287,35 @@ class Main {
     }
   }
 
+  updateLambdaDeploymentStatus() {
+    for (let [key, value] of Object.entries(this.lambdasDeploymentStatus)) {
+      if (value === DEPLOYMENT_STATUS.SUCCESS || value == DEPLOYMENT_STATUS.ERROR) {
+        this.lambdasDeploymentStatus[key] = undefined;
+      }
+    }
+  }
+
   updateLambdaTableRows() {
     const lambdaFunctionsWithDeploymentIndicator = JSON.parse(JSON.stringify(this.table.data));
+    let deploymentIndicator;
     for (let i = 0; i < this.table.data.length; i++) {
-      if (this.lambdasDeploymentStatus[this.table.data[i][0]] === DEPLOYMENT_STATUS.PENDING) {
-        lambdaFunctionsWithDeploymentIndicator[i][0] = `${emoji.get('coffee')} ${this.table.data[i][0]}`;
-      };
+      deploymentIndicator = null;
+      switch (this.lambdasDeploymentStatus[this.table.data[i][0]]) {
+        case DEPLOYMENT_STATUS.PENDING:
+          deploymentIndicator = emoji.get('coffee');
+          break;
+        case DEPLOYMENT_STATUS.SUCCESS:
+          deploymentIndicator = emoji.get('sparkles');
+          break;
+        case DEPLOYMENT_STATUS.ERROR:
+          deploymentIndicator = emoji.get('x');
+          break;
+      }
+      if (deploymentIndicator) {
+        lambdaFunctionsWithDeploymentIndicator[i][0] = `${deploymentIndicator} ${this.table.data[i][0]}`;
+      }
     }
+
     this.table.setData({
       headers: ['logical', 'updated'],
       data: lambdaFunctionsWithDeploymentIndicator,

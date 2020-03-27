@@ -46,6 +46,7 @@ function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
 }
 
+let deployingLambdas = [];
 class Main {
   constructor() {
     this.lambdasDeploymentStatus = {};

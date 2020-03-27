@@ -3,18 +3,20 @@
 /* eslint-disable no-console */
 /* eslint-disable new-cap */
 import AWS from 'aws-sdk';
-import { awsRegionLocations, logo, dateFormats } from './constants';
+import { awsRegionLocations, logo, dateFormats, DEPLOYMENT_STATUS } from './constants';
 
 const blessed = require('blessed');
 const contrib = require('blessed-contrib');
 const moment = require('moment');
 const program = require('commander');
-var open = require('open');
+const open = require('open');
+const { exec } = require('child_process');
+const emoji = require('node-emoji');
 
 program.version('0.1.0');
 program
-  .option('-n, --stack-name <stackName>', 'AWS stack name')
-  .option('-r, --region <region>', 'AWS region')
+  .requiredOption('-n, --stack-name <stackName>', 'AWS stack name')
+  .requiredOption('-r, --region <region>', 'AWS region')
   .option('-t, --start-time <startTime>', 'when to start from')
   .option('-i, --interval <interval>', 'interval of graphs, in seconds')
   .option('-p, --profile <profile>', 'aws profile name to use')
@@ -29,27 +31,24 @@ let provider = '';
 switch (program) {
   case program.sls:
   default:
-    provider = 'serverless';
+    provider = 'serverlessFramework';
     break;
 }
 const credentials = new AWS.SharedIniFileCredentials({ profile });
 AWS.config.credentials = credentials;
-const cloudformation = new AWS.CloudFormation({
-  region: program.region,
-});
-const cloudwatch = new AWS.CloudWatch({
-  region: program.region,
-});
-const cloudwatchLogs = new AWS.CloudWatchLogs({
-  region: program.region,
-});
+AWS.config.region = program.region;
+const cloudformation = new AWS.CloudFormation();
+const cloudwatch = new AWS.CloudWatch();
+const cloudwatchLogs = new AWS.CloudWatchLogs();
+const eventbridge = new AWS.EventBridge();
 
-function getLambdasForStackName(stackName) {
+function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
 }
 
 class Main {
   constructor() {
+    this.lambdasDeploymentStatus = {};
     this.grid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.bar = this.grid.set(4, 6, 4, 3, contrib.bar, {
       label: 'Lambda Duration (most recent)',
@@ -77,7 +76,17 @@ class Main {
     this.map = this.grid.set(4, 9, 4, 3, contrib.map, {
       label: `Servers Location (${program.region})`,
     });
-    this.log = this.grid.set(8, 0, 4, 12, blessed.log, {
+    this.eventBridgeTree = this.grid.set(8, 9, 4, 3, contrib.tree, {
+      label: 'Event Bridges',
+      style: {
+        fg: 'green',
+      },
+      template: {
+        lines: true,
+      },
+    });
+    this.eventBridgeTree.rows.interactive = false;
+    this.log = this.grid.set(8, 0, 4, 9, blessed.log, {
       fg: 'green',
       selectedFg: 'green',
       label: 'Server Log',
@@ -100,9 +109,14 @@ class Main {
     screen.key(['escape', 'q', 'C-c'], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.key(['o', 'O'], () => {
-      const selectedLambdaFunctionName = this.table.rows.items[this.table.rows.selected].data[0];
-      return open(`https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${selectedLambdaFunctionName}?tab=configuration`);
+      const selectedLambdaFunctionName = this.table.rows.items[
+        this.table.rows.selected
+      ].data[0];
+      return open(
+        `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`,
+      );
     });
+    screen.key(['d', 'D'], () => this.deployLambda(this.table));
     screen.on('resize', () => {
       this.bar.emit('attach');
       this.table.emit('attach');
@@ -136,6 +150,7 @@ class Main {
   async render() {
     await this.table.rows.on('select', (item) => {
       [this.funcName] = item.data;
+      this.fullFuncName = `${program.stackName}-${this.funcName}`;
       this.updateGraphs();
     });
 
@@ -145,7 +160,7 @@ class Main {
     }, 1000);
 
     setInterval(() => {
-      this.generateTable();
+      this.updateResourcesInformation();
       this.table.focus();
     }, 3000);
   }
@@ -173,31 +188,75 @@ class Main {
     screen.render();
   }
 
-  async generateTable() {
-    const newData = await getLambdasForStackName(
-      program.stackName,
-      this.setData,
-    );
+  deployLambda() {
+    const selectedRowIndex = this.table.rows.selected;
+    if (selectedRowIndex !== -1) {
+      const selectedLambdaFunctionName = this.table.rows.items[selectedRowIndex].data[0];
+      this.updateLambdaTableRows();
+      this.flashLambdaTableRow(selectedRowIndex);
+      this.lambdasDeploymentStatus[selectedLambdaFunctionName] = DEPLOYMENT_STATUS.PENDING;
+      if (provider === 'serverlessFramework') {
+        exec(
+          `serverless deploy -f ${selectedLambdaFunctionName} -r ${program.region} --aws-profile ${profile}`,
+          { cwd: location },
+          (error, stdout, stderr) => this.handleDeployment(error, stdout, stderr, selectedLambdaFunctionName, selectedRowIndex),
+        )
+      }
+    }
+  }
+
+  handleDeployment(error, stdout, stderr, lambdaName, lambdaIndex) {
+    if (error) {
+      console.log(stderr);
+      this.lambdasDeploymentStatus[lambdaName] = DEPLOYMENT_STATUS.ERROR;
+    } else {
+      this.log.log(stdout);
+      this.lambdasDeploymentStatus[lambdaName] = DEPLOYMENT_STATUS.SUCCESS;
+    }
+    this.unflashLambdaTableRow(lambdaIndex);
+    this.updateLambdaTableRows();
+  }
+
+  async updateResourcesInformation() {
+    const newData = await getStackResources(program.stackName, this.setData);
     this.data = newData;
 
-    const lambdaFunctions = this.data.StackResourceSummaries.filter(
+    this.table.data = newData.StackResourceSummaries.filter(
       (res) => res.ResourceType === 'AWS::Lambda::Function',
-    ).map((lam) => [lam.PhysicalResourceId, lam.LastUpdatedTimestamp]);
+    ).map((lam) => [
+      lam.PhysicalResourceId.replace(`${program.stackName}-`, ''),
+      lam.LastUpdatedTimestamp,
+    ]);
 
-    this.table.setData({
-      headers: ['logical', 'updated'],
-      data: lambdaFunctions,
+    this.updateLambdaTableRows();
+
+    const eventBridgeResources = this.data.StackResourceSummaries.filter(
+      (res) => res.ResourceType === 'Custom::EventBridge',
+    ).reduce((eventBridges, eventBridge) => {
+      eventBridges[eventBridge.PhysicalResourceId] = {};
+      return eventBridges;
+    }, {});
+
+    this.eventBridgeTree.setData({
+      extended: true,
+      children: eventBridgeResources,
     });
-
-    for (let i = 0; i < lambdaFunctions.length; i++) {
-      this.table.rows.items[i].data = lambdaFunctions[i];
-    }
 
     if (this.funcName) {
       this.updateGraphs();
     }
 
     screen.render();
+  }
+
+  flashLambdaTableRow(rowIndex) {
+    this.table.rows.items[rowIndex].style.fg = 'blue';
+    this.table.rows.items[rowIndex].style.bg = 'green';
+  }
+
+  unflashLambdaTableRow(rowIndex) {
+    this.table.rows.items[rowIndex].style.fg = () => (rowIndex === this.table.rows.selected) ? 'white' : 'green';
+    this.table.rows.items[rowIndex].style.bg = () => (rowIndex === this.table.rows.selected) ? 'blue' : 'default';
   }
 
   padInvocationsAndErrorsWithZeros() {
@@ -223,6 +282,23 @@ class Main {
           this.data.MetricDataResults[index].Values.push(0);
         }
       }
+    }
+  }
+
+  updateLambdaTableRows() {
+    const lambdaFunctionsWithDeploymentIndicator = JSON.parse(JSON.stringify(this.table.data));
+    for (let i = 0; i < this.table.data.length; i++) {
+      if (this.lambdasDeploymentStatus[this.table.data[i][0]] === DEPLOYMENT_STATUS.PENDING) {
+        lambdaFunctionsWithDeploymentIndicator[i][0] = `${emoji.get('coffee')} ${this.table.data[i][0]}`;
+      };
+    }
+    this.table.setData({
+      headers: ['logical', 'updated'],
+      data: lambdaFunctionsWithDeploymentIndicator,
+    });
+
+    for (let i = 0; i < this.table.data.length; i++) {
+      this.table.rows.items[i].data = this.table.data[i];
     }
   }
 
@@ -269,7 +345,7 @@ class Main {
   }
 
   async updateGraphs() {
-    const data = await this.getLambdaMetrics(this.funcName);
+    const data = await this.getLambdaMetrics(this.fullFuncName);
     this.data = data;
 
     this.padInvocationsAndErrorsWithZeros();
@@ -278,7 +354,7 @@ class Main {
     this.setBarChartData();
     this.setLineGraphData();
 
-    this.getLogStreams(`/aws/lambda/${this.funcName}`).then(() => {
+    this.getLogStreams(`/aws/lambda/${this.fullFuncName}`).then(() => {
       screen.render();
     });
   }
@@ -306,7 +382,9 @@ class Main {
 
   getLogEvents(logGroupName, logStreamNames) {
     if (logStreamNames.length === 0) {
-      this.log.setContent('ERROR: No log streams found for this function.');
+      if (this.log.content === '') {
+        this.log.setContent('ERROR: No log streams found for this function.');
+      }
       return;
     }
     const params = {

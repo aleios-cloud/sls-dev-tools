@@ -1,4 +1,7 @@
 # sls-dev-tools
+[![npm](https://img.shields.io/npm/v/sls-dev-tools)](https://www.npmjs.com/package/sls-dev-tools)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Theodo-UK/sls-dev-tools/blob/master/LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Theodo-UK/sls-dev-tools)
 
 The Dev Tools for the Serverless World
 
@@ -36,6 +39,12 @@ Options:
   -h, --help                    output usage information
   -l, --location                location of your serverless project (default is current directory)
   --sls                         use the serverless framework to execute commands
+```
+
+```
+Shortcuts
+- Pressing "o" while selecting a function from the function list will open the relevant page of the AWS console (saving some clicks!)
+- Pressing "d" while selecting a function from the function list will deploy the selected lambda function
 ```
 
 # A note on AWS API calls and pricing

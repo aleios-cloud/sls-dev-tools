@@ -4,6 +4,7 @@
 /* eslint-disable new-cap */
 import AWS from 'aws-sdk';
 import { awsRegionLocations, logo, dateFormats } from './constants';
+import { helpModal } from './modals';
 
 const blessed = require('blessed');
 const contrib = require('blessed-contrib');
@@ -117,7 +118,7 @@ class Main {
         },
       },
     });
-    screen.key(['escape', 'q', 'C-c'], () => process.exit(0));
+    screen.key(['q', 'C-c'], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.key(['o', 'O'], () => {
       const selectedLambdaFunctionName = this.table.rows.items[
@@ -127,6 +128,7 @@ class Main {
         `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${selectedLambdaFunctionName}?tab=configuration`,
       );
     });
+    screen.key(['h', 'H'], () => helpModal(screen, blessed));
     screen.on('resize', () => {
       this.bar.emit('attach');
       this.table.emit('attach');

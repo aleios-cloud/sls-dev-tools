@@ -110,7 +110,7 @@ class Main {
       tags: true,
       content:
         `${logo}\n Dev Tools for the Serverless World.`
-        + '\n    - Select a function from the list on the right',
+        + '    Press `h` for help',
       style: {
         fg: 'green',
         border: {

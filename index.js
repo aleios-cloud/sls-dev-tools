@@ -89,12 +89,20 @@ class Main {
       },
     });
     this.eventBridgeTree.rows.interactive = false;
-    this.log = this.grid.set(8, 0, 4, 9, blessed.log, {
+    this.lambdaLog = this.grid.set(8, 0, 4, 6, blessed.log, {
       fg: 'green',
       selectedFg: 'green',
       label: 'Server Log',
       interactive: true,
       scrollbar: { bg: 'blue' },
+      mouse: true,
+    });
+    this.consoleLogs = this.grid.set(8, 6, 4, 3, blessed.log, {
+      fg: 'red',
+      selectedFg: 'dark-red',
+      label: 'Dashboard Logs',
+      interactive: true,
+      scrollbar: { bg: 'red' },
       mouse: true,
     });
     this.titleBox = this.grid.set(0, 0, 2, 6, blessed.box, {
@@ -126,7 +134,8 @@ class Main {
       this.titleBox.emit('attach');
       this.invocationsLineGraph.emit('attach');
       this.map.emit('attach');
-      this.log.emit('attach');
+      this.lambdaLog.emit('attach');
+      this.consoleLogs.emit('attach');
     });
     screen.title = 'sls-dev-tools';
     this.marker = false;
@@ -147,6 +156,11 @@ class Main {
           - dateOffset,
       );
     }
+
+    global.console = {
+      log: (m) => this.consoleLogs.log(m),
+      error: (m) => this.consoleLogs.log(m),
+    };
   }
 
   async render() {
@@ -331,7 +345,7 @@ class Main {
 
   getLogEvents(logGroupName, logStreamNames) {
     if (logStreamNames.length === 0) {
-      this.log.setContent('ERROR: No log streams found for this function.');
+      this.lambdaLog.setContent('ERROR: No log streams found for this function.');
       return;
     }
     const params = {
@@ -346,9 +360,9 @@ class Main {
       .then(
         (data) => {
           const { events } = data;
-          this.log.setContent('');
+          this.lambdaLog.setContent('');
           events.forEach((event) => {
-            this.log.log(event.message);
+            this.lambdaLog.log(event.message);
           });
         },
         (err) => {

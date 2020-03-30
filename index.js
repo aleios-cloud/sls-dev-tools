@@ -3,7 +3,9 @@
 /* eslint-disable no-console */
 /* eslint-disable new-cap */
 import AWS from 'aws-sdk';
-import { awsRegionLocations, logo, dateFormats, DEPLOYMENT_STATUS } from './constants';
+import {
+  awsRegionLocations, logo, dateFormats, DEPLOYMENT_STATUS,
+} from './constants';
 
 const blessed = require('blessed');
 const contrib = require('blessed-contrib');
@@ -46,7 +48,7 @@ function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
 }
 
-let deployingLambdas = [];
+const deployingLambdas = [];
 class Main {
   constructor() {
     this.lambdasDeploymentStatus = {};
@@ -201,7 +203,7 @@ class Main {
           `serverless deploy -f ${selectedLambdaFunctionName} -r ${program.region} --aws-profile ${profile}`,
           { cwd: location },
           (error, stdout) => this.handleDeployment(error, stdout, selectedLambdaFunctionName, selectedRowIndex),
-        )
+        );
       }
     }
   }
@@ -258,8 +260,8 @@ class Main {
   }
 
   unflashLambdaTableRow(rowIndex) {
-    this.table.rows.items[rowIndex].style.fg = () => (rowIndex === this.table.rows.selected) ? 'white' : 'green';
-    this.table.rows.items[rowIndex].style.bg = () => (rowIndex === this.table.rows.selected) ? 'blue' : 'default';
+    this.table.rows.items[rowIndex].style.fg = () => ((rowIndex === this.table.rows.selected) ? 'white' : 'green');
+    this.table.rows.items[rowIndex].style.bg = () => ((rowIndex === this.table.rows.selected) ? 'blue' : 'default');
   }
 
   padInvocationsAndErrorsWithZeros() {
@@ -289,7 +291,7 @@ class Main {
   }
 
   updateLambdaDeploymentStatus() {
-    for (let [key, value] of Object.entries(this.lambdasDeploymentStatus)) {
+    for (const [key, value] of Object.entries(this.lambdasDeploymentStatus)) {
       if (value === DEPLOYMENT_STATUS.SUCCESS || value == DEPLOYMENT_STATUS.ERROR) {
         this.lambdasDeploymentStatus[key] = undefined;
       }

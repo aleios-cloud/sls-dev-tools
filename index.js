@@ -12,7 +12,7 @@ const moment = require('moment');
 const program = require('commander');
 const open = require('open');
 
-program.version('0.1.3');
+program.version('0.1.4');
 program
   .option('-n, --stack-name <stackName>', 'AWS stack name')
   .option('-r, --region <region>', 'AWS region')

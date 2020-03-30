@@ -145,6 +145,7 @@ class Main {
     this.funcName = null;
 
     this.interval = program.interval || 3600; // 1 hour
+    this.durationInterval = 60; // 1 minute, minimum permitted value
     this.endTime = new Date();
     if (program.startTime) {
       // eslint-disable-next-line prefer-destructuring
@@ -270,8 +271,8 @@ class Main {
   setBarChartData() {
     const durations = this.data.MetricDataResults[0];
     this.bar.setData({
-      titles: durations.Timestamps.map((t) => moment(t).format(dateFormats.graphDisplayTime)).slice(-6),
-      data: durations.Values.map((t) => Math.round(t)).slice(-6),
+      titles: durations.Timestamps.map((t) => moment(t).format(dateFormats.graphDisplayTime)).slice(-5),
+      data: durations.Values.map((t) => Math.round(t)).slice(-5),
     });
   }
 
@@ -409,7 +410,7 @@ class Main {
               MetricName: 'Duration',
               Namespace: 'AWS/Lambda',
             },
-            Period: this.interval,
+            Period: this.durationInterval,
             Stat: 'Maximum',
           },
           ReturnData: true,

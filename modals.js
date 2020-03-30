@@ -4,7 +4,7 @@ const helpModal = (screen, blessed) => {
     ['-----------', '-----------'],
     ['Enter', 'Displays function data when focused on Functions table'],
     ['O or o', 'Opens the AWS console for a selected lambda function'],
-    ['q or Q', 'Close the application'],
+    ['Q or q', 'Close the application'],
     ['Arrows', 'Used to select from list, by default the function list'],
   ];
   const cliOptionsData = [

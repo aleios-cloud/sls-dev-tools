@@ -246,7 +246,7 @@ class Main {
     /* For the invocations and errors data in this.data.MetricDataResults, we will add '0' for each
      * timestamp that doesn't have an entry. This is to make the graph more readable.
      */
-    for (let index = 1; index <= 2; index++) {
+    for (let index = 0; index <= 1; index++) {
       for (
         let timestamp = moment(this.startTime).valueOf();
         timestamp < moment(this.endTime).valueOf();
@@ -287,7 +287,7 @@ class Main {
   }
 
   setLineGraphData() {
-    const dateFormat = moment(this.data.MetricDataResults[1]).isAfter(
+    const dateFormat = moment(this.data.MetricDataResults[0]).isAfter(
       moment().subtract(3, 'days'),
     )
       ? dateFormats.graphDisplayTime
@@ -296,21 +296,21 @@ class Main {
     const functionError = {
       title: 'errors',
       style: { line: 'red' },
-      x: this.data.MetricDataResults[2].Timestamps.map((d) => moment(d).format(dateFormat)),
-      y: this.data.MetricDataResults[1].Values,
+      x: this.data.MetricDataResults[1].Timestamps.map((d) => moment(d).format(dateFormat)),
+      y: this.data.MetricDataResults[0].Values,
     };
 
     const functionInvocations = {
       title: 'invocations',
       style: { line: 'green' },
-      x: this.data.MetricDataResults[2].Timestamps.map((d) => {
+      x: this.data.MetricDataResults[1].Timestamps.map((d) => {
         const start = moment(d).format(dateFormat);
         const end = moment(d)
           .add(this.interval, 'seconds')
           .format(dateFormat);
         return `${start}-${end}`;
       }),
-      y: this.data.MetricDataResults[2].Values,
+      y: this.data.MetricDataResults[1].Values,
     };
 
     this.invocationsLineGraph.options.maxY = Math.max([
@@ -401,28 +401,6 @@ class Main {
       StartTime: this.startTime,
       EndTime: this.endTime,
       MetricDataQueries: [
-        {
-          Id: 'duration',
-          MetricStat: {
-            Metric: {
-              Dimensions: [
-                {
-                  Name: 'FunctionName',
-                  Value: functionName,
-                },
-                {
-                  Name: 'Resource',
-                  Value: functionName,
-                },
-              ],
-              MetricName: 'Duration',
-              Namespace: 'AWS/Lambda',
-            },
-            Period: this.durationInterval,
-            Stat: 'Maximum',
-          },
-          ReturnData: true,
-        },
         {
           Id: 'errors',
           MetricStat: {

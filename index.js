@@ -9,7 +9,6 @@ import {
   dateFormats,
   DEPLOYMENT_STATUS,
 } from './constants';
-import { awsRegionLocations, logo, dateFormats } from './constants';
 import { helpModal } from './modals';
 
 const blessed = require('blessed');
@@ -350,13 +349,11 @@ class Main {
 
     this.updateLambdaTableRows();
     this.updateLambdaDeploymentStatus();
-    for (let i = 0; i < lambdaFunctions.length; i++) {
-      this.table.rows.items[i].data = lambdaFunctions[i];
-    }
 
     const eventBridgeResources = this.data.StackResourceSummaries.filter(
       (res) => res.ResourceType === 'Custom::EventBridge',
     ).reduce((eventBridges, eventBridge) => {
+      // eslint-disable-next-line no-param-reassign
       eventBridges[eventBridge.PhysicalResourceId] = {};
       return eventBridges;
     }, {});
@@ -410,14 +407,14 @@ class Main {
   }
 
   updateLambdaDeploymentStatus() {
-    for (const [key, value] of Object.entries(this.lambdasDeploymentStatus)) {
+    Object.entries(this.lambdasDeploymentStatus).forEach(([key, value]) => {
       if (
         value === DEPLOYMENT_STATUS.SUCCESS
-        || value == DEPLOYMENT_STATUS.ERROR
+        || value === DEPLOYMENT_STATUS.ERROR
       ) {
         this.lambdasDeploymentStatus[key] = undefined;
       }
-    }
+    });
   }
 
   updateLambdaTableRows() {

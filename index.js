@@ -145,7 +145,6 @@ class Main {
     this.funcName = null;
 
     this.interval = program.interval || 3600; // 1 hour
-    this.durationInterval = 60; // 1 minute, minimum permitted value
     this.endTime = new Date();
     if (program.startTime) {
       // eslint-disable-next-line prefer-destructuring

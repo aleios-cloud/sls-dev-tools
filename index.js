@@ -55,7 +55,7 @@ class Main {
   constructor() {
     this.grid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.bar = this.grid.set(4, 6, 4, 3, contrib.bar, {
-      label: 'Lambda Duration (most recent)',
+      label: 'Lambda Duration (ms) (most recent)',
       barWidth: 6,
       barSpacing: 6,
       xOffset: 2,
@@ -269,11 +269,21 @@ class Main {
   }
 
   setBarChartData() {
-    const durations = this.data.MetricDataResults[0];
-    this.bar.setData({
-      titles: durations.Timestamps.map((t) => moment(t).format(dateFormats.graphDisplayTime)).slice(-5),
-      data: durations.Values.map((t) => Math.round(t)).slice(-5),
-    });
+    const regex = /RequestId:(\s)*(\w|-)*(\s)*Duration:(\s)*(\d|\.)*(\s)*ms/gm;
+    // Extract reports from the server logs
+    const matches = this.lambdaLog.content.match(regex);
+    const splits = [];
+    if (matches !== null) {
+      for (let i = 0; i < matches.length; i++) {
+        // Split report into fields using tabs (or 4 spaces)
+        splits.push(matches[i].split(/\t|\s\s\s\s/));
+      }
+      this.bar.setData({
+        titles: ['1', '2', '3', '4', '5'],
+        // Extract numerical value from field by splitting on spaces, and taking second value
+        data: splits.map((s) => s[1].split(' ')[1]).slice(-5),
+      });
+    }
   }
 
   setLineGraphData() {
@@ -317,12 +327,12 @@ class Main {
     this.padInvocationsAndErrorsWithZeros();
     this.sortMetricDataResultsByTimestamp();
 
-    this.setBarChartData();
-    this.setLineGraphData();
-
     this.getLogStreams(`/aws/lambda/${this.funcName}`).then(() => {
       screen.render();
     });
+
+    this.setBarChartData();
+    this.setLineGraphData();
   }
 
   getLogStreams(logGroupName) {
@@ -353,9 +363,7 @@ class Main {
     }
     const params = {
       logGroupName,
-      interleaved: true,
       logStreamNames,
-      limit: 100,
     };
     cloudwatchLogs
       .filterLogEvents(params)

@@ -4,7 +4,10 @@
 /* eslint-disable new-cap */
 import AWS from 'aws-sdk';
 import {
-  awsRegionLocations, logo, dateFormats, DEPLOYMENT_STATUS,
+  awsRegionLocations,
+  logo,
+  dateFormats,
+  DEPLOYMENT_STATUS,
 } from './constants';
 
 const blessed = require('blessed');
@@ -24,6 +27,7 @@ program
   .option('-p, --profile <profile>', 'aws profile name to use')
   .option('-l, --location <location>', 'location of your serverless project')
   .option('--sls', 'use the serverless framework to execute commands')
+  .option('--sam', 'use the SAM framework to execute commands')
   .parse(process.argv);
 
 const screen = blessed.screen({ smartCSR: true });
@@ -31,6 +35,9 @@ const profile = program.profile || 'default';
 const location = program.location || process.cwd();
 let provider = '';
 switch (program) {
+  case program.sam:
+    provider = 'SAM';
+    break;
   case program.sls:
   default:
     provider = 'serverlessFramework';
@@ -47,8 +54,6 @@ const eventbridge = new AWS.EventBridge();
 function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
 }
-
-const deployingLambdas = [];
 class Main {
   constructor() {
     this.lambdasDeploymentStatus = {};
@@ -119,7 +124,8 @@ class Main {
         `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`,
       );
     });
-    screen.key(['d', 'D'], () => this.deployLambda(this.table));
+    screen.key(['d'], () => this.deployFunction(this.table));
+    screen.key(['f'], () => this.deployStack(this.table));
     screen.on('resize', () => {
       this.bar.emit('attach');
       this.table.emit('attach');
@@ -191,10 +197,47 @@ class Main {
     screen.render();
   }
 
-  deployLambda() {
+  deployStack() {
+    this.updateLambdaTableRows();
+    for (let i = 0; i < this.table.data.length; i++) {
+      this.flashLambdaTableRow(i);
+      this.lambdasDeploymentStatus[this.table.rows.items[i].data[0]] = DEPLOYMENT_STATUS.PENDING;
+    }
+    if (provider === 'serverlessFramework') {
+      exec(
+        `serverless deploy -r ${program.region} --aws-profile ${profile}`,
+        { cwd: location },
+        (error, stdout) => this.handleStackDeployment(
+          error,
+          stdout,
+        ),
+      );
+    }
+  }
+
+  handleStackDeployment(error, stdout) {
+    if (error) {
+      this.log.log(error);
+      // eslint-disable-next-line no-return-assign
+      Object.keys(this.lambdasDeploymentStatus).forEach((functionName) => this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR);
+    } else {
+      this.log.log(stdout);
+      Object.keys(this.lambdasDeploymentStatus).forEach(
+        // eslint-disable-next-line no-return-assign
+        (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.SUCCESS),
+      );
+    }
+    for (let i = 0; i < this.table.data.length; i++) {
+      this.unflashLambdaTableRow(i);
+    }
+    this.updateLambdaTableRows();
+  }
+
+  deployFunction() {
     const selectedRowIndex = this.table.rows.selected;
     if (selectedRowIndex !== -1) {
-      const selectedLambdaFunctionName = this.table.rows.items[selectedRowIndex].data[0];
+      const selectedLambdaFunctionName = this.table.rows.items[selectedRowIndex]
+        .data[0];
       this.updateLambdaTableRows();
       this.flashLambdaTableRow(selectedRowIndex);
       this.lambdasDeploymentStatus[selectedLambdaFunctionName] = DEPLOYMENT_STATUS.PENDING;
@@ -202,13 +245,22 @@ class Main {
         exec(
           `serverless deploy -f ${selectedLambdaFunctionName} -r ${program.region} --aws-profile ${profile}`,
           { cwd: location },
-          (error, stdout) => this.handleDeployment(error, stdout, selectedLambdaFunctionName, selectedRowIndex),
+          (error, stdout) => this.handleFunctionDeployment(
+            error,
+            stdout,
+            selectedLambdaFunctionName,
+            selectedRowIndex,
+          ),
+        );
+      } else if (provider === 'SAM') {
+        console.error(
+          'ERROR: UNABLE TO DEPLOY SINGLE FUNCTIONN WITH SAM. PRESS D TO DEPLOY STACK',
         );
       }
     }
   }
 
-  handleDeployment(error, stdout, lambdaName, lambdaIndex) {
+  handleFunctionDeployment(error, stdout, lambdaName, lambdaIndex) {
     if (error) {
       this.log.log(error);
       this.lambdasDeploymentStatus[lambdaName] = DEPLOYMENT_STATUS.ERROR;
@@ -228,7 +280,7 @@ class Main {
       (res) => res.ResourceType === 'AWS::Lambda::Function',
     ).map((lam) => [
       lam.PhysicalResourceId.replace(`${program.stackName}-`, ''),
-      lam.LastUpdatedTimestamp,
+      moment(lam.LastUpdatedTimestamp).format('MMMM Do YYYY, h:mm:ss a'),
     ]);
 
     this.updateLambdaTableRows();
@@ -260,8 +312,8 @@ class Main {
   }
 
   unflashLambdaTableRow(rowIndex) {
-    this.table.rows.items[rowIndex].style.fg = () => ((rowIndex === this.table.rows.selected) ? 'white' : 'green');
-    this.table.rows.items[rowIndex].style.bg = () => ((rowIndex === this.table.rows.selected) ? 'blue' : 'default');
+    this.table.rows.items[rowIndex].style.fg = () => (rowIndex === this.table.rows.selected ? 'white' : 'green');
+    this.table.rows.items[rowIndex].style.bg = () => (rowIndex === this.table.rows.selected ? 'blue' : 'default');
   }
 
   padInvocationsAndErrorsWithZeros() {
@@ -292,14 +344,19 @@ class Main {
 
   updateLambdaDeploymentStatus() {
     for (const [key, value] of Object.entries(this.lambdasDeploymentStatus)) {
-      if (value === DEPLOYMENT_STATUS.SUCCESS || value == DEPLOYMENT_STATUS.ERROR) {
+      if (
+        value === DEPLOYMENT_STATUS.SUCCESS
+        || value == DEPLOYMENT_STATUS.ERROR
+      ) {
         this.lambdasDeploymentStatus[key] = undefined;
       }
     }
   }
 
   updateLambdaTableRows() {
-    const lambdaFunctionsWithDeploymentIndicator = JSON.parse(JSON.stringify(this.table.data));
+    const lambdaFunctionsWithDeploymentIndicator = JSON.parse(
+      JSON.stringify(this.table.data),
+    );
     let deploymentIndicator;
     for (let i = 0; i < this.table.data.length; i++) {
       deploymentIndicator = null;
@@ -313,9 +370,13 @@ class Main {
         case DEPLOYMENT_STATUS.ERROR:
           deploymentIndicator = emoji.get('x');
           break;
+        default:
+          break;
       }
       if (deploymentIndicator) {
-        lambdaFunctionsWithDeploymentIndicator[i][0] = `${deploymentIndicator} ${this.table.data[i][0]}`;
+        lambdaFunctionsWithDeploymentIndicator[
+          i
+        ][0] = `${deploymentIndicator} ${this.table.data[i][0]}`;
       }
     }
 

@@ -82,7 +82,7 @@ class Main {
     this.lambdasDeploymentStatus = {};
     this.grid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.bar = this.grid.set(4, 6, 4, 3, contrib.bar, {
-      label: 'Lambda Duration (most recent)',
+      label: 'Lambda Duration (ms) (most recent)',
       barWidth: 6,
       barSpacing: 6,
       xOffset: 2,
@@ -384,7 +384,7 @@ class Main {
     /* For the invocations and errors data in this.data.MetricDataResults, we will add '0' for each
      * timestamp that doesn't have an entry. This is to make the graph more readable.
      */
-    for (let index = 1; index <= 2; index++) {
+    for (let index = 0; index <= 1; index++) {
       for (
         let timestamp = moment(this.startTime).valueOf();
         timestamp < moment(this.endTime).valueOf();
@@ -455,15 +455,25 @@ class Main {
   }
 
   setBarChartData() {
-    const durations = this.data.MetricDataResults[0];
-    this.bar.setData({
-      titles: durations.Timestamps.map((t) => moment(t).format(dateFormats.graphDisplayTime)).slice(-6),
-      data: durations.Values.map((t) => Math.round(t)).slice(-6),
-    });
+    const regex = /RequestId:(\s)*(\w|-)*(\s)*Duration:(\s)*(\d|\.)*(\s)*ms/gm;
+    // Extract reports from the server logs
+    const matches = this.lambdaLog.content.match(regex);
+    const splits = [];
+    if (matches !== null) {
+      for (let i = 0; i < matches.length; i++) {
+        // Split report into fields using tabs (or 4 spaces)
+        splits.push(matches[i].split(/\t|\s\s\s\s/));
+      }
+      this.bar.setData({
+        titles: ['1', '2', '3', '4', '5'],
+        // Extract numerical value from field by splitting on spaces, and taking second value
+        data: splits.map((s) => s[1].split(' ')[1]).slice(-5),
+      });
+    }
   }
 
   setLineGraphData() {
-    const dateFormat = moment(this.data.MetricDataResults[1]).isAfter(
+    const dateFormat = moment(this.data.MetricDataResults[0]).isAfter(
       moment().subtract(3, 'days'),
     )
       ? dateFormats.graphDisplayTime
@@ -472,21 +482,21 @@ class Main {
     const functionError = {
       title: 'errors',
       style: { line: 'red' },
-      x: this.data.MetricDataResults[2].Timestamps.map((d) => moment(d).format(dateFormat)),
-      y: this.data.MetricDataResults[1].Values,
+      x: this.data.MetricDataResults[1].Timestamps.map((d) => moment(d).format(dateFormat)),
+      y: this.data.MetricDataResults[0].Values,
     };
 
     const functionInvocations = {
       title: 'invocations',
       style: { line: 'green' },
-      x: this.data.MetricDataResults[2].Timestamps.map((d) => {
+      x: this.data.MetricDataResults[1].Timestamps.map((d) => {
         const start = moment(d).format(dateFormat);
         const end = moment(d)
           .add(this.interval, 'seconds')
           .format(dateFormat);
         return `${start}-${end}`;
       }),
-      y: this.data.MetricDataResults[2].Values,
+      y: this.data.MetricDataResults[1].Values,
     };
 
     this.invocationsLineGraph.options.maxY = Math.max([
@@ -503,12 +513,12 @@ class Main {
     this.padInvocationsAndErrorsWithZeros();
     this.sortMetricDataResultsByTimestamp();
 
-    this.setBarChartData();
-    this.setLineGraphData();
-
     this.getLogStreams(`/aws/lambda/${this.fullFuncName}`).then(() => {
       screen.render();
     });
+
+    this.setBarChartData();
+    this.setLineGraphData();
   }
 
   getLogStreams(logGroupName) {
@@ -541,9 +551,7 @@ class Main {
     }
     const params = {
       logGroupName,
-      interleaved: true,
       logStreamNames,
-      limit: 100,
     };
     cloudwatchLogs
       .filterLogEvents(params)
@@ -581,28 +589,6 @@ class Main {
       StartTime: this.startTime,
       EndTime: this.endTime,
       MetricDataQueries: [
-        {
-          Id: 'duration',
-          MetricStat: {
-            Metric: {
-              Dimensions: [
-                {
-                  Name: 'FunctionName',
-                  Value: functionName,
-                },
-                {
-                  Name: 'Resource',
-                  Value: functionName,
-                },
-              ],
-              MetricName: 'Duration',
-              Namespace: 'AWS/Lambda',
-            },
-            Period: this.interval,
-            Stat: 'Maximum',
-          },
-          ReturnData: true,
-        },
         {
           Id: 'errors',
           MetricStat: {

@@ -9,6 +9,8 @@ import {
   dateFormats,
   DEPLOYMENT_STATUS,
 } from './constants';
+import { awsRegionLocations, logo, dateFormats } from './constants';
+import { helpModal } from './modals';
 
 const blessed = require('blessed');
 const contrib = require('blessed-contrib');
@@ -27,7 +29,7 @@ try {
   console.log('No config provided, using defaults');
 }
 
-program.version('0.1.0');
+program.version('0.1.4');
 program
   .requiredOption('-n, --stack-name <stackName>', 'AWS stack name')
   .requiredOption('-r, --region <region>', 'AWS region')
@@ -39,6 +41,25 @@ program
   .option('--sam', 'use the SAM framework to execute commands')
   .parse(process.argv);
 
+function getAWSCredentials() {
+  if (program.profile) {
+    return new AWS.SharedIniFileCredentials({ profile: program.profile });
+  }
+  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    return new AWS.Credentials({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      sessionToken: process.env.AWS_SESSION_TOKEN,
+    });
+  }
+  if (process.env.AWS_PROFILE) {
+    return new AWS.SharedIniFileCredentials({
+      profile: process.env.AWS_PROFILE,
+    });
+  }
+  return new AWS.SharedIniFileCredentials({ profile: 'default' });
+}
+
 const screen = blessed.screen({ smartCSR: true });
 const profile = program.profile || 'default';
 const location = program.location || process.cwd();
@@ -48,13 +69,11 @@ if (program.sam) {
 } else {
   provider = 'serverlessFramework';
 }
-const credentials = new AWS.SharedIniFileCredentials({ profile });
-AWS.config.credentials = credentials;
+AWS.config.credentials = getAWSCredentials();
 AWS.config.region = program.region;
 const cloudformation = new AWS.CloudFormation();
 const cloudwatch = new AWS.CloudWatch();
 const cloudwatchLogs = new AWS.CloudWatchLogs();
-const eventbridge = new AWS.EventBridge();
 
 function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
@@ -99,7 +118,7 @@ class Main {
       },
     });
     this.eventBridgeTree.rows.interactive = false;
-    this.log = this.grid.set(8, 0, 4, 9, blessed.log, {
+    this.lambdaLog = this.grid.set(8, 0, 4, 6, blessed.log, {
       fg: 'green',
       selectedFg: 'green',
       label: 'Server Log',
@@ -107,11 +126,19 @@ class Main {
       scrollbar: { bg: 'blue' },
       mouse: true,
     });
+    this.consoleLogs = this.grid.set(8, 6, 4, 3, blessed.log, {
+      fg: 'red',
+      selectedFg: 'dark-red',
+      label: 'Dashboard Logs',
+      interactive: true,
+      scrollbar: { bg: 'red' },
+      mouse: true,
+    });
     this.titleBox = this.grid.set(0, 0, 2, 6, blessed.box, {
       tags: true,
       content:
         `${logo}\n Dev Tools for the Serverless World.`
-        + '\n    - Select a function from the list on the right',
+        + '    Press `h` for help',
       style: {
         fg: 'green',
         border: {
@@ -119,7 +146,7 @@ class Main {
         },
       },
     });
-    screen.key(['escape', 'q', 'C-c'], () => process.exit(0));
+    screen.key(['q', 'C-c'], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.key(['o', 'O'], () => {
       const selectedLambdaFunctionName = this.table.rows.items[
@@ -131,6 +158,7 @@ class Main {
     });
     screen.key(['d'], () => this.deployFunction(this.table));
     screen.key(['s'], () => this.deployStack(this.table));
+    screen.key(['h', 'H'], () => helpModal(screen, blessed));
     screen.on('resize', () => {
       this.bar.emit('attach');
       this.table.emit('attach');
@@ -138,7 +166,8 @@ class Main {
       this.titleBox.emit('attach');
       this.invocationsLineGraph.emit('attach');
       this.map.emit('attach');
-      this.log.emit('attach');
+      this.lambdaLog.emit('attach');
+      this.consoleLogs.emit('attach');
     });
     screen.title = 'sls-dev-tools';
     this.marker = false;
@@ -159,6 +188,11 @@ class Main {
           - dateOffset,
       );
     }
+
+    global.console = {
+      log: (m) => this.consoleLogs.log(m),
+      error: (m) => this.consoleLogs.log(m),
+    };
   }
 
   async render() {
@@ -315,8 +349,10 @@ class Main {
     ]);
 
     this.updateLambdaTableRows();
-
     this.updateLambdaDeploymentStatus();
+    for (let i = 0; i < lambdaFunctions.length; i++) {
+      this.table.rows.items[i].data = lambdaFunctions[i];
+    }
 
     const eventBridgeResources = this.data.StackResourceSummaries.filter(
       (res) => res.ResourceType === 'Custom::EventBridge',
@@ -518,9 +554,9 @@ class Main {
       .then(
         (data) => {
           const { events } = data;
-          this.log.setContent('');
+          this.lambdaLog.setContent('');
           events.forEach((event) => {
-            this.log.log(event.message);
+            this.lambdaLog.log(event.message);
           });
         },
         (err) => {

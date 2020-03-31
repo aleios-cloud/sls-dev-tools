@@ -25,8 +25,8 @@
     "eslint-plugin-import": "^2.18.2"
   },
   "scripts": {
-    "build": "babel index.js constants.js --out-dir lib",
-    "dev": "babel index.js constants.js --out-dir lib --watch",
+    "build": "babel index.js constants.js modals.js --out-dir lib",
+    "dev": "babel index.js constants.js modals.js --out-dir lib --watch",
     "start": "node ./lib/index.js"
   },
   "babel": {
@@ -43,7 +43,7 @@
     ]
   },
   "description": "The Dev Tools for the Serverless World",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "main": "index.js",
   "directories": {
     "lib": "lib"

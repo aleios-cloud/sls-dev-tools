@@ -247,7 +247,7 @@ class Main {
     } else if (provider === 'SAM') {
       exec('sam build', { cwd: location }, (error) => {
         if (error) {
-          this.log.log(error);
+          console.error(error);
           Object.keys(this.lambdasDeploymentStatus).forEach(
             // eslint-disable-next-line no-return-assign
             (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR),
@@ -274,13 +274,13 @@ class Main {
 
   handleStackDeployment(error, stdout) {
     if (error) {
-      this.log.log(error);
+      console.error(error);
       Object.keys(this.lambdasDeploymentStatus).forEach(
         // eslint-disable-next-line no-return-assign
         (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR),
       );
     } else {
-      this.log.log(stdout);
+      console.log(stdout);
       Object.keys(this.lambdasDeploymentStatus).forEach(
         // eslint-disable-next-line no-return-assign
         (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.SUCCESS),
@@ -314,7 +314,7 @@ class Main {
         );
       } else if (provider === 'SAM') {
         console.error(
-          'ERROR: UNABLE TO DEPLOY SINGLE FUNCTIONN WITH SAM. PRESS D TO DEPLOY STACK',
+          'ERROR: UNABLE TO DEPLOY SINGLE FUNCTION WITH SAM. PRESS s TO DEPLOY STACK',
         );
         return;
       }
@@ -326,10 +326,10 @@ class Main {
 
   handleFunctionDeployment(error, stdout, lambdaName, lambdaIndex) {
     if (error) {
-      this.log.log(error);
+      console.error(error);
       this.lambdasDeploymentStatus[lambdaName] = DEPLOYMENT_STATUS.ERROR;
     } else {
-      this.log.log(stdout);
+      console.log(stdout);
       this.lambdasDeploymentStatus[lambdaName] = DEPLOYMENT_STATUS.SUCCESS;
     }
     this.unflashLambdaTableRow(lambdaIndex);

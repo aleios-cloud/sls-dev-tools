@@ -46,6 +46,7 @@ Options:
 ```
 Shortcuts
 - Pressing "h" while the tool is open will display a helpbox with all the keybindings and cli options.
+- Pressing "q" will quit the tool
 - Pressing "o" while selecting a function from the function list will open the relevant page of the AWS console (saving some clicks!)
 - Pressing "d" while selecting a function from the function list will deploy the selected lambda function, note this is not possible while using SAM
 - Pressing "s" while selecting a function will deploy the entire stack

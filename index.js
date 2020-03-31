@@ -20,10 +20,11 @@ const emoji = require('node-emoji');
 
 let slsDevToolsConfig;
 try {
+  console.log('Loading config');
   // eslint-disable-next-line global-require, import/no-dynamic-require
   slsDevToolsConfig = require(`${process.cwd()}/slsdevtools.config.js`);
 } catch (e) {
-  // Ignore no config provided
+  console.log('No config provided, using defaults');
 }
 
 program.version('0.1.0');
@@ -204,45 +205,45 @@ class Main {
   deployStack() {
     if (provider === 'serverlessFramework') {
       exec(
-        `serverless deploy -r ${program.region} --aws-profile ${profile}`,
+        `serverless deploy -r ${program.region} --aws-profile ${profile} ${
+          slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ''
+        }`,
         { cwd: location },
         (error, stdout) => this.handleStackDeployment(error, stdout),
       );
     } else if (provider === 'SAM') {
-      if (!slsDevToolsConfig || !slsDevToolsConfig.capabilities || !slsDevToolsConfig.s3Bucket) {
-        console.error(
-          'Missing arguments from sls dev tools config for SAM deployment',
-        );
-        return;
-      }
       exec('sam build', { cwd: location }, (error) => {
         if (error) {
           this.log.log(error);
-          // eslint-disable-next-line no-return-assign
           Object.keys(this.lambdasDeploymentStatus).forEach(
+            // eslint-disable-next-line no-return-assign
             (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR),
           );
         } else {
           exec(
-            `sam deploy --region ${program.region} --profile ${profile} --stack-name ${program.stackName} --s3-bucket ${slsDevToolsConfig.s3Bucket} --capabilities ${slsDevToolsConfig.capabilities}`,
+            `sam deploy --region ${
+              program.region
+            } --profile ${profile} --stack-name ${program.stackName} ${
+              slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ''
+            }`,
             { cwd: location },
             (deployError, stdout) => this.handleStackDeployment(deployError, stdout),
           );
         }
       });
     }
-    for (let i = 0; i < this.table.data.length; i++) {
+    this.table.data.forEach((v, i) => {
       this.flashLambdaTableRow(i);
       this.lambdasDeploymentStatus[this.table.rows.items[i].data[0]] = DEPLOYMENT_STATUS.PENDING;
-    }
+    });
     this.updateLambdaTableRows();
   }
 
   handleStackDeployment(error, stdout) {
     if (error) {
       this.log.log(error);
-      // eslint-disable-next-line no-return-assign
       Object.keys(this.lambdasDeploymentStatus).forEach(
+        // eslint-disable-next-line no-return-assign
         (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR),
       );
     } else {
@@ -252,9 +253,9 @@ class Main {
         (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.SUCCESS),
       );
     }
-    for (let i = 0; i < this.table.data.length; i++) {
+    this.table.data.forEach((v, i) => {
       this.unflashLambdaTableRow(i);
-    }
+    });
     this.updateLambdaTableRows();
   }
 
@@ -265,7 +266,11 @@ class Main {
         .data[0];
       if (provider === 'serverlessFramework') {
         exec(
-          `serverless deploy -f ${selectedLambdaFunctionName} -r ${program.region} --aws-profile ${profile}`,
+          `serverless deploy -f ${selectedLambdaFunctionName} -r ${
+            program.region
+          } --aws-profile ${profile} ${
+            slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ''
+          }`,
           { cwd: location },
           (error, stdout) => this.handleFunctionDeployment(
             error,

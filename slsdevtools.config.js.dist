@@ -1,4 +1,3 @@
 module.exports = {
-  capabilities: 'CAPABILITY_IAM',
-  s3Bucket: 'deployment-bucket-name',
+  deploymentArgs: '--capabilites CAPABILITY_IAM --s3-bucket deployment-bucket-name',
 };

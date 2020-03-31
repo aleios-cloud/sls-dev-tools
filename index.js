@@ -18,6 +18,14 @@ const open = require('open');
 const { exec } = require('child_process');
 const emoji = require('node-emoji');
 
+let slsDevToolsConfig;
+try {
+  // eslint-disable-next-line global-require, import/no-dynamic-require
+  slsDevToolsConfig = require(`${process.cwd()}/slsdevtools.config.js`);
+} catch (e) {
+  // Ignore no config provided
+}
+
 program.version('0.1.0');
 program
   .requiredOption('-n, --stack-name <stackName>', 'AWS stack name')
@@ -34,14 +42,10 @@ const screen = blessed.screen({ smartCSR: true });
 const profile = program.profile || 'default';
 const location = program.location || process.cwd();
 let provider = '';
-switch (program) {
-  case program.sam:
-    provider = 'SAM';
-    break;
-  case program.sls:
-  default:
-    provider = 'serverlessFramework';
-    break;
+if (program.sam) {
+  provider = 'SAM';
+} else {
+  provider = 'serverlessFramework';
 }
 const credentials = new AWS.SharedIniFileCredentials({ profile });
 AWS.config.credentials = credentials;
@@ -125,7 +129,7 @@ class Main {
       );
     });
     screen.key(['d'], () => this.deployFunction(this.table));
-    screen.key(['f'], () => this.deployStack(this.table));
+    screen.key(['s'], () => this.deployStack(this.table));
     screen.on('resize', () => {
       this.bar.emit('attach');
       this.table.emit('attach');
@@ -198,28 +202,49 @@ class Main {
   }
 
   deployStack() {
-    this.updateLambdaTableRows();
-    for (let i = 0; i < this.table.data.length; i++) {
-      this.flashLambdaTableRow(i);
-      this.lambdasDeploymentStatus[this.table.rows.items[i].data[0]] = DEPLOYMENT_STATUS.PENDING;
-    }
     if (provider === 'serverlessFramework') {
       exec(
         `serverless deploy -r ${program.region} --aws-profile ${profile}`,
         { cwd: location },
-        (error, stdout) => this.handleStackDeployment(
-          error,
-          stdout,
-        ),
+        (error, stdout) => this.handleStackDeployment(error, stdout),
       );
+    } else if (provider === 'SAM') {
+      if (!slsDevToolsConfig || !slsDevToolsConfig.capabilities || !slsDevToolsConfig.s3Bucket) {
+        console.error(
+          'Missing arguments from sls dev tools config for SAM deployment',
+        );
+        return;
+      }
+      exec('sam build', { cwd: location }, (error) => {
+        if (error) {
+          this.log.log(error);
+          // eslint-disable-next-line no-return-assign
+          Object.keys(this.lambdasDeploymentStatus).forEach(
+            (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR),
+          );
+        } else {
+          exec(
+            `sam deploy --region ${program.region} --profile ${profile} --stack-name ${program.stackName} --s3-bucket ${slsDevToolsConfig.s3Bucket} --capabilities ${slsDevToolsConfig.capabilities}`,
+            { cwd: location },
+            (deployError, stdout) => this.handleStackDeployment(deployError, stdout),
+          );
+        }
+      });
     }
+    for (let i = 0; i < this.table.data.length; i++) {
+      this.flashLambdaTableRow(i);
+      this.lambdasDeploymentStatus[this.table.rows.items[i].data[0]] = DEPLOYMENT_STATUS.PENDING;
+    }
+    this.updateLambdaTableRows();
   }
 
   handleStackDeployment(error, stdout) {
     if (error) {
       this.log.log(error);
       // eslint-disable-next-line no-return-assign
-      Object.keys(this.lambdasDeploymentStatus).forEach((functionName) => this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR);
+      Object.keys(this.lambdasDeploymentStatus).forEach(
+        (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR),
+      );
     } else {
       this.log.log(stdout);
       Object.keys(this.lambdasDeploymentStatus).forEach(
@@ -238,9 +263,6 @@ class Main {
     if (selectedRowIndex !== -1) {
       const selectedLambdaFunctionName = this.table.rows.items[selectedRowIndex]
         .data[0];
-      this.updateLambdaTableRows();
-      this.flashLambdaTableRow(selectedRowIndex);
-      this.lambdasDeploymentStatus[selectedLambdaFunctionName] = DEPLOYMENT_STATUS.PENDING;
       if (provider === 'serverlessFramework') {
         exec(
           `serverless deploy -f ${selectedLambdaFunctionName} -r ${program.region} --aws-profile ${profile}`,
@@ -256,7 +278,11 @@ class Main {
         console.error(
           'ERROR: UNABLE TO DEPLOY SINGLE FUNCTIONN WITH SAM. PRESS D TO DEPLOY STACK',
         );
+        return;
       }
+      this.flashLambdaTableRow(selectedRowIndex);
+      this.lambdasDeploymentStatus[selectedLambdaFunctionName] = DEPLOYMENT_STATUS.PENDING;
+      this.updateLambdaTableRows();
     }
   }
 

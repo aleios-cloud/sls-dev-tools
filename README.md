@@ -22,6 +22,7 @@ The Dev Tools for the Serverless World
   - To get the stack name, log on to AWS cloudformation and it is shown in the overview section of stack info. It may not be what you expected e.g. it might have `-dev` on the end, so worth checking if the dev tools are not working.
   - The region is the AWS region, for example, us-east-1.
   - Use --sls or --sam to specify the framework used to execute commands (the serverless framework is used by default if no option is provided)
+  - For deployments using the sam framework extra arguments for capabilites and s3 bucket must be added in the sls-dev-tools.config
 - Choose a function with the arrow keys, and press enter to see the metrics for that function.
   - If you get an `AccessDenied` error in which case you must add the `GetMetricData` permission from CloudWatch in the IAM console on AWS.
   - If you're not seeing any data in the graphs, try changing your start date to make sure you have had invocations since then.
@@ -46,6 +47,7 @@ Options:
 Shortcuts
 - Pressing "o" while selecting a function from the function list will open the relevant page of the AWS console (saving some clicks!)
 - Pressing "d" while selecting a function from the function list will deploy the selected lambda function
+- Pressing "s" while selecting a function will deploy the entire stack
 ```
 
 # A note on AWS API calls and pricing

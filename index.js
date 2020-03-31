@@ -21,11 +21,10 @@ const emoji = require('node-emoji');
 
 let slsDevToolsConfig;
 try {
-  console.log('Loading config');
   // eslint-disable-next-line global-require, import/no-dynamic-require
   slsDevToolsConfig = require(`${process.cwd()}/slsdevtools.config.js`);
 } catch (e) {
-  console.log('No config provided, using defaults');
+  // No config provided
 }
 
 program.version('0.1.4');
@@ -544,9 +543,9 @@ class Main {
 
   getLogEvents(logGroupName, logStreamNames) {
     if (logStreamNames.length === 0) {
-      if (this.log.content === '') {
-        this.log.setContent('ERROR: No log streams found for this function.');
-      }
+      this.lambdaLog.setContent(
+        'ERROR: No log streams found for this function.',
+      );
       return;
     }
     const params = {

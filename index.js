@@ -154,6 +154,10 @@ class Main {
         `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`,
       );
     });
+    screen.key(['i'], () => {
+      const selectedEventBridge = this.eventBridgeTree.rows.items[this.eventBridgeTree.rows.selected];
+      return eventInjectionModal(screen, blessed, selectedEventBridge);
+    });
     screen.key(['d'], () => this.deployFunction());
     screen.key(['s'], () => this.deployStack());
     screen.key(['h', 'H'], () => helpModal(screen, blessed));

@@ -147,6 +147,7 @@ class Main {
     screen.key(['q', 'C-c'], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.key(['o', 'O'], () => {
+      // If focus is currently on this.table
       if (this.focusIndex === 0) {
         const selectedLambdaFunctionName = this.table.rows.items[
           this.table.rows.selected
@@ -158,6 +159,7 @@ class Main {
       return 0;
     });
     screen.key(['i'], () => {
+      // If focus is currently on this.eventBridgeTree
       if (this.focusIndex === 1) {
         const selectedEventBridge = this.eventBridgeTree.rows.items[this.eventBridgeTree.rows.selected];
         return eventInjectionModal(screen, blessed, selectedEventBridge);
@@ -204,6 +206,7 @@ class Main {
     };
 
     this.focusList = [this.table, this.eventBridgeTree];
+    // Curent element of focusList in focus
     this.focusIndex = 0;
   }
 

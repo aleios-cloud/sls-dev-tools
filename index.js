@@ -9,7 +9,7 @@ import {
   dateFormats,
   DEPLOYMENT_STATUS,
 } from './constants';
-import { helpModal } from './modals';
+import { helpModal, eventInjectionModal } from './modals';
 
 const blessed = require('blessed');
 const contrib = require('blessed-contrib');
@@ -154,9 +154,10 @@ class Main {
         `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`,
       );
     });
-    screen.key(['d'], () => this.deployFunction(this.table));
-    screen.key(['s'], () => this.deployStack(this.table));
+    screen.key(['d'], () => this.deployFunction());
+    screen.key(['s'], () => this.deployStack());
     screen.key(['h', 'H'], () => helpModal(screen, blessed));
+    screen.key(['tab'], () => this.changeFocus());
     screen.on('resize', () => {
       this.bar.emit('attach');
       this.table.emit('attach');
@@ -191,6 +192,9 @@ class Main {
       log: (m) => this.consoleLogs.log(m),
       error: (m) => this.consoleLogs.log(m),
     };
+
+    this.focusList = [this.table, this.eventBridgeTree];
+    this.focusIndex = 0;
   }
 
   async render() {
@@ -207,8 +211,19 @@ class Main {
 
     setInterval(() => {
       this.updateResourcesInformation();
-      this.table.focus();
+      this.returnFocus();
     }, 3000);
+  }
+
+  changeFocus() {
+    this.focusList[this.focusIndex].rows.interactive = false;
+    this.focusIndex = (this.focusIndex + 1) % this.focusList.length;
+    this.focusList[this.focusIndex].rows.interactive = true;
+    this.returnFocus();
+  }
+
+  returnFocus() {
+    this.focusList[this.focusIndex].focus();
   }
 
   updateMap() {

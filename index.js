@@ -147,16 +147,22 @@ class Main {
     screen.key(['q', 'C-c'], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.key(['o', 'O'], () => {
-      const selectedLambdaFunctionName = this.table.rows.items[
-        this.table.rows.selected
-      ].data[0];
-      return open(
-        `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`,
-      );
+      if (this.focusIndex === 0) {
+        const selectedLambdaFunctionName = this.table.rows.items[
+          this.table.rows.selected
+        ].data[0];
+        return open(
+          `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`,
+        );
+      }
+      return 0;
     });
     screen.key(['i'], () => {
-      const selectedEventBridge = this.eventBridgeTree.rows.items[this.eventBridgeTree.rows.selected];
-      return eventInjectionModal(screen, blessed, selectedEventBridge);
+      if (this.focusIndex === 1) {
+        const selectedEventBridge = this.eventBridgeTree.rows.items[this.eventBridgeTree.rows.selected];
+        return eventInjectionModal(screen, blessed, selectedEventBridge);
+      }
+      return 0;
     });
     screen.key(['d'], () => this.deployFunction());
     screen.key(['s'], () => this.deployStack());

@@ -3,8 +3,10 @@ const helpModal = (screen, blessed) => {
     ['Keybinding', 'Action'],
     ['-----------', '-----------'],
     ['Enter', 'Displays function data when focused on Functions table'],
-    ['O or o', 'Opens the AWS console for a selected lambda function'],
-    ['Q or q', 'Close the application'],
+    ['o', 'Opens the AWS console for a selected lambda function'],
+    ['q', 'Close the application'],
+    ['d', 'Deploys the selected lambda function'],
+    ['s', 'Deploys all the lambda functions within the stack'],
     ['Arrows', 'Used to select from list, by default the function list'],
   ];
   const cliOptionsData = [

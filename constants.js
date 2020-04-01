@@ -27,3 +27,10 @@ export const dateFormats = {
   graphDisplayTime: 'HH:mm',
   graphDisplayDate: 'DDMM',
 };
+
+
+export const DEPLOYMENT_STATUS = {
+  PENDING: "PENDING",
+  SUCCESS: "SUCCESS",
+  ERROR: "ERROR",
+}

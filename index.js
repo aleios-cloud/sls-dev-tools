@@ -3,7 +3,12 @@
 /* eslint-disable no-console */
 /* eslint-disable new-cap */
 import AWS from 'aws-sdk';
-import { awsRegionLocations, logo, dateFormats } from './constants';
+import {
+  awsRegionLocations,
+  logo,
+  dateFormats,
+  DEPLOYMENT_STATUS,
+} from './constants';
 import { helpModal } from './modals';
 
 const blessed = require('blessed');
@@ -11,14 +16,27 @@ const contrib = require('blessed-contrib');
 const moment = require('moment');
 const program = require('commander');
 const open = require('open');
+const { exec } = require('child_process');
+const emoji = require('node-emoji');
+
+let slsDevToolsConfig;
+try {
+  // eslint-disable-next-line global-require, import/no-dynamic-require
+  slsDevToolsConfig = require(`${process.cwd()}/slsdevtools.config.js`);
+} catch (e) {
+  // No config provided
+}
 
 program.version('0.1.4');
 program
-  .option('-n, --stack-name <stackName>', 'AWS stack name')
-  .option('-r, --region <region>', 'AWS region')
+  .requiredOption('-n, --stack-name <stackName>', 'AWS stack name')
+  .requiredOption('-r, --region <region>', 'AWS region')
   .option('-t, --start-time <startTime>', 'when to start from')
   .option('-i, --interval <interval>', 'interval of graphs, in seconds')
   .option('-p, --profile <profile>', 'aws profile name to use')
+  .option('-l, --location <location>', 'location of your serverless project')
+  .option('--sls', 'use the serverless framework to execute commands')
+  .option('--sam', 'use the SAM framework to execute commands')
   .parse(process.argv);
 
 function getAWSCredentials() {
@@ -41,6 +59,14 @@ function getAWSCredentials() {
 }
 
 const screen = blessed.screen({ smartCSR: true });
+const profile = program.profile || 'default';
+const location = program.location || process.cwd();
+let provider = '';
+if (program.sam) {
+  provider = 'SAM';
+} else {
+  provider = 'serverlessFramework';
+}
 AWS.config.credentials = getAWSCredentials();
 AWS.config.region = program.region;
 const cloudformation = new AWS.CloudFormation();
@@ -50,9 +76,9 @@ const cloudwatchLogs = new AWS.CloudWatchLogs();
 function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
 }
-
 class Main {
   constructor() {
+    this.lambdasDeploymentStatus = {};
     this.grid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.bar = this.grid.set(4, 6, 4, 3, contrib.bar, {
       label: 'Lambda Duration (ms) (most recent)',
@@ -125,9 +151,11 @@ class Main {
         this.table.rows.selected
       ].data[0];
       return open(
-        `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${selectedLambdaFunctionName}?tab=configuration`,
+        `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`,
       );
     });
+    screen.key(['d'], () => this.deployFunction(this.table));
+    screen.key(['s'], () => this.deployStack(this.table));
     screen.key(['h', 'H'], () => helpModal(screen, blessed));
     screen.on('resize', () => {
       this.bar.emit('attach');
@@ -168,6 +196,7 @@ class Main {
   async render() {
     await this.table.rows.on('select', (item) => {
       [this.funcName] = item.data;
+      this.fullFuncName = `${program.stackName}-${this.funcName}`;
       this.updateGraphs();
     });
 
@@ -205,40 +234,149 @@ class Main {
     screen.render();
   }
 
+  deployStack() {
+    if (provider === 'serverlessFramework') {
+      exec(
+        `serverless deploy -r ${program.region} --aws-profile ${profile} ${
+          slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ''
+        }`,
+        { cwd: location },
+        (error, stdout) => this.handleStackDeployment(error, stdout),
+      );
+    } else if (provider === 'SAM') {
+      exec('sam build', { cwd: location }, (error) => {
+        if (error) {
+          console.error(error);
+          Object.keys(this.lambdasDeploymentStatus).forEach(
+            // eslint-disable-next-line no-return-assign
+            (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR),
+          );
+        } else {
+          exec(
+            `sam deploy --region ${
+              program.region
+            } --profile ${profile} --stack-name ${program.stackName} ${
+              slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ''
+            }`,
+            { cwd: location },
+            (deployError, stdout) => this.handleStackDeployment(deployError, stdout),
+          );
+        }
+      });
+    }
+    this.table.data.forEach((v, i) => {
+      this.flashLambdaTableRow(i);
+      this.lambdasDeploymentStatus[this.table.rows.items[i].data[0]] = DEPLOYMENT_STATUS.PENDING;
+    });
+    this.updateLambdaTableRows();
+  }
+
+  handleStackDeployment(error, stdout) {
+    if (error) {
+      console.error(error);
+      Object.keys(this.lambdasDeploymentStatus).forEach(
+        // eslint-disable-next-line no-return-assign
+        (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR),
+      );
+    } else {
+      console.log(stdout);
+      Object.keys(this.lambdasDeploymentStatus).forEach(
+        // eslint-disable-next-line no-return-assign
+        (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.SUCCESS),
+      );
+    }
+    this.table.data.forEach((v, i) => {
+      this.unflashLambdaTableRow(i);
+    });
+    this.updateLambdaTableRows();
+  }
+
+  deployFunction() {
+    const selectedRowIndex = this.table.rows.selected;
+    if (selectedRowIndex !== -1) {
+      const selectedLambdaFunctionName = this.table.rows.items[selectedRowIndex]
+        .data[0];
+      if (provider === 'serverlessFramework') {
+        exec(
+          `serverless deploy -f ${selectedLambdaFunctionName} -r ${
+            program.region
+          } --aws-profile ${profile} ${
+            slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ''
+          }`,
+          { cwd: location },
+          (error, stdout) => this.handleFunctionDeployment(
+            error,
+            stdout,
+            selectedLambdaFunctionName,
+            selectedRowIndex,
+          ),
+        );
+      } else if (provider === 'SAM') {
+        console.error(
+          'ERROR: UNABLE TO DEPLOY SINGLE FUNCTION WITH SAM. PRESS s TO DEPLOY STACK',
+        );
+        return;
+      }
+      this.flashLambdaTableRow(selectedRowIndex);
+      this.lambdasDeploymentStatus[selectedLambdaFunctionName] = DEPLOYMENT_STATUS.PENDING;
+      this.updateLambdaTableRows();
+    }
+  }
+
+  handleFunctionDeployment(error, stdout, lambdaName, lambdaIndex) {
+    if (error) {
+      console.error(error);
+      this.lambdasDeploymentStatus[lambdaName] = DEPLOYMENT_STATUS.ERROR;
+    } else {
+      console.log(stdout);
+      this.lambdasDeploymentStatus[lambdaName] = DEPLOYMENT_STATUS.SUCCESS;
+    }
+    this.unflashLambdaTableRow(lambdaIndex);
+    this.updateLambdaTableRows();
+  }
+
   async updateResourcesInformation() {
-    const newData = await getStackResources(
-      program.stackName,
-      this.setData,
-    );
+    const newData = await getStackResources(program.stackName, this.setData);
     this.data = newData;
 
-    const lambdaFunctions = this.data.StackResourceSummaries.filter(
+    this.table.data = newData.StackResourceSummaries.filter(
       (res) => res.ResourceType === 'AWS::Lambda::Function',
-    ).map((lam) => [lam.PhysicalResourceId, lam.LastUpdatedTimestamp]);
+    ).map((lam) => [
+      lam.PhysicalResourceId.replace(`${program.stackName}-`, ''),
+      moment(lam.LastUpdatedTimestamp).format('MMMM Do YYYY, h:mm:ss a'),
+    ]);
 
-    this.table.setData({
-      headers: ['logical', 'updated'],
-      data: lambdaFunctions,
-    });
-
-    for (let i = 0; i < lambdaFunctions.length; i++) {
-      this.table.rows.items[i].data = lambdaFunctions[i];
-    }
+    this.updateLambdaTableRows();
+    this.updateLambdaDeploymentStatus();
 
     const eventBridgeResources = this.data.StackResourceSummaries.filter(
       (res) => res.ResourceType === 'Custom::EventBridge',
     ).reduce((eventBridges, eventBridge) => {
+      // eslint-disable-next-line no-param-reassign
       eventBridges[eventBridge.PhysicalResourceId] = {};
       return eventBridges;
     }, {});
 
-    this.eventBridgeTree.setData({ extended: true, children: eventBridgeResources });
+    this.eventBridgeTree.setData({
+      extended: true,
+      children: eventBridgeResources,
+    });
 
     if (this.funcName) {
       this.updateGraphs();
     }
 
     screen.render();
+  }
+
+  flashLambdaTableRow(rowIndex) {
+    this.table.rows.items[rowIndex].style.fg = 'blue';
+    this.table.rows.items[rowIndex].style.bg = 'green';
+  }
+
+  unflashLambdaTableRow(rowIndex) {
+    this.table.rows.items[rowIndex].style.fg = () => (rowIndex === this.table.rows.selected ? 'white' : 'green');
+    this.table.rows.items[rowIndex].style.bg = () => (rowIndex === this.table.rows.selected ? 'blue' : 'default');
   }
 
   padInvocationsAndErrorsWithZeros() {
@@ -264,6 +402,54 @@ class Main {
           this.data.MetricDataResults[index].Values.push(0);
         }
       }
+    }
+  }
+
+  updateLambdaDeploymentStatus() {
+    Object.entries(this.lambdasDeploymentStatus).forEach(([key, value]) => {
+      if (
+        value === DEPLOYMENT_STATUS.SUCCESS
+        || value === DEPLOYMENT_STATUS.ERROR
+      ) {
+        this.lambdasDeploymentStatus[key] = undefined;
+      }
+    });
+  }
+
+  updateLambdaTableRows() {
+    const lambdaFunctionsWithDeploymentIndicator = JSON.parse(
+      JSON.stringify(this.table.data),
+    );
+    let deploymentIndicator;
+    for (let i = 0; i < this.table.data.length; i++) {
+      deploymentIndicator = null;
+      switch (this.lambdasDeploymentStatus[this.table.data[i][0]]) {
+        case DEPLOYMENT_STATUS.PENDING:
+          deploymentIndicator = emoji.get('coffee');
+          break;
+        case DEPLOYMENT_STATUS.SUCCESS:
+          deploymentIndicator = emoji.get('sparkles');
+          break;
+        case DEPLOYMENT_STATUS.ERROR:
+          deploymentIndicator = emoji.get('x');
+          break;
+        default:
+          break;
+      }
+      if (deploymentIndicator) {
+        lambdaFunctionsWithDeploymentIndicator[
+          i
+        ][0] = `${deploymentIndicator} ${this.table.data[i][0]}`;
+      }
+    }
+
+    this.table.setData({
+      headers: ['logical', 'updated'],
+      data: lambdaFunctionsWithDeploymentIndicator,
+    });
+
+    for (let i = 0; i < this.table.data.length; i++) {
+      this.table.rows.items[i].data = this.table.data[i];
     }
   }
 
@@ -320,13 +506,13 @@ class Main {
   }
 
   async updateGraphs() {
-    const data = await this.getLambdaMetrics(this.funcName);
+    const data = await this.getLambdaMetrics(this.fullFuncName);
     this.data = data;
 
     this.padInvocationsAndErrorsWithZeros();
     this.sortMetricDataResultsByTimestamp();
 
-    this.getLogStreams(`/aws/lambda/${this.funcName}`).then(() => {
+    this.getLogStreams(`/aws/lambda/${this.fullFuncName}`).then(() => {
       screen.render();
     });
 
@@ -357,7 +543,9 @@ class Main {
 
   getLogEvents(logGroupName, logStreamNames) {
     if (logStreamNames.length === 0) {
-      this.lambdaLog.setContent('ERROR: No log streams found for this function.');
+      this.lambdaLog.setContent(
+        'ERROR: No log streams found for this function.',
+      );
       return;
     }
     const params = {

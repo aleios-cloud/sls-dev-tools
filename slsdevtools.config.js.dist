@@ -1,0 +1,3 @@
+module.exports = {
+  deploymentArgs: '--capabilites CAPABILITY_IAM --s3-bucket deployment-bucket-name',
+};

@@ -231,7 +231,7 @@ class Main {
         this.modalOpen = true;
         const selectedRow = this.eventBridgeTree.rows.selected;
         const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow];
-        return eventInjectionModal(screen, blessed, selectedEventBridge, this, program.region);
+        return eventInjectionModal(screen, blessed, selectedEventBridge, this);
       }
       return 0;
     });

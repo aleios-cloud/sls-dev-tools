@@ -69,23 +69,19 @@ const helpModal = (screen, blessed, prog) => {
   });
 };
 
-const eventTemplate = (busName, region) => {
-  const time = new Date().toISOString();
-  return `
+const eventTemplate = (busName) => `
 {
-  "id": "53dc4d37-cffa-4f76-80c9-8b7d4a4d2eaa",
-  "bus": ${busName.substring(2)},
-  "detail-type": "Scheduled Event",
-  "source": "aws.events",
-  "account": "123456789012",
-  "time": ${time},
-  "region": ${region},
-  "resources": [ "arn:aws:events:us-east-1:123456789012:rule/MyScheduledRule" ],
-  "detail": {}
+  Entries: [
+    {
+      "EventBusName": ${busName.substring(2)},
+      "DetailType": "Scheduled Event",
+      "Source": "aws.events",
+      "Detail": {}
+    },
+  ]
 }`;
-};
 
-const eventInjectionModal = (screen, blessed, eventBridge, prog, region) => {
+const eventInjectionModal = (screen, blessed, eventBridge, prog) => {
   const eventInjectLayout = blessed.layout({
     parent: screen,
     top: 'center',
@@ -103,7 +99,7 @@ const eventInjectionModal = (screen, blessed, eventBridge, prog, region) => {
     left: 'center',
     border: 'line',
     pad: 2,
-    value: eventTemplate(eventBridge, region),
+    value: eventTemplate(eventBridge),
     width: 110,
     height: 20,
     keys: true,

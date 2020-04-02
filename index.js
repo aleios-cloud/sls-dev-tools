@@ -31,7 +31,7 @@ program.version('0.2.0');
 program
   .requiredOption('-n, --stack-name <stackName>', 'AWS stack name')
   .requiredOption('-r, --region <region>', 'AWS region')
-  .option('-t, --start-time <startTime>', 'when to start from')
+  .option('-t, --start-time <startTime>', "when to start from, date string with form '30 March 2020 09:00 GMT'")
   .option('-i, --interval <interval>', 'interval of graphs, in seconds')
   .option('-p, --profile <profile>', 'aws profile name to use')
   .option('-l, --location <location>', 'location of your serverless project')

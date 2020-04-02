@@ -129,7 +129,7 @@ const eventInjectionModal = (screen, blessed, eventBridge, prog) => {
 
   eventInjectLayout.focus();
 
-  eventInjectLayout.key(['c'], () => {
+  eventInjectLayout.key(['e'], () => {
     textarea.readEditor();
   });
 

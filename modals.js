@@ -1,4 +1,4 @@
-const helpModal = (screen, blessed) => {
+const helpModal = (screen, blessed, prog) => {
   const helpMenuData = [
     ['Keybinding', 'Action'],
     ['-----------', '-----------'],
@@ -8,6 +8,8 @@ const helpModal = (screen, blessed) => {
     ['d', 'Deploys the selected lambda function'],
     ['s', 'Deploys all the lambda functions within the stack'],
     ['Arrows', 'Used to select from list, by default the function list'],
+    ['Tab', 'Used to switch focus between lambda functions and event buses'],
+    ['i', 'Open an event injection window for the selected event bus']
   ];
   const cliOptionsData = [
     ['---------', '----------'],
@@ -29,6 +31,7 @@ const helpModal = (screen, blessed) => {
     height: 27,
     border: 'line',
     style: { border: { fg: 'green' } },
+    keys: true,
   });
   blessed.listtable({
     parent: helpLayout,
@@ -58,12 +61,27 @@ const helpModal = (screen, blessed) => {
     style: { fg: 'green', border: { fg: 'green' } },
     content: 'Please give feedback via GitHub Issues \n ESC to close',
   });
-  screen.key(['escape'], () => {
+  helpLayout.focus();
+  helpLayout.key(['escape'], () => {
+    prog.setModalOpen(false);
+    prog.returnFocus();
     helpLayout.destroy();
   });
 };
 
-const eventInjectionModal = (screen, blessed, eventBridge) => {
+const eventTemplate = (busName) => `
+{
+  Entries: [
+    {
+      "EventBusName": ${busName.substring(2)},
+      "DetailType": "Scheduled Event",
+      "Source": "aws.events",
+      "Detail": {}
+    },
+  ]
+}`;
+
+const eventInjectionModal = (screen, blessed, eventBridge, prog) => {
   const eventInjectLayout = blessed.layout({
     parent: screen,
     top: 'center',
@@ -72,6 +90,24 @@ const eventInjectionModal = (screen, blessed, eventBridge) => {
     height: 27,
     border: 'line',
     style: { border: { fg: 'green' } },
+    keys: true,
+    grabKeys: true,
+  });
+  const textarea = blessed.textarea({
+    parent: eventInjectLayout,
+    top: 'center',
+    left: 'center',
+    border: 'line',
+    pad: 2,
+    value: eventTemplate(eventBridge),
+    width: 110,
+    height: 20,
+    keys: true,
+    style: {
+      border: { fg: 'green' },
+      header: { fg: 'bright-green', bold: true, underline: true },
+      cell: { fg: 'yellow' },
+    },
   });
   blessed.box({
     parent: eventInjectLayout,
@@ -83,12 +119,32 @@ const eventInjectionModal = (screen, blessed, eventBridge) => {
     padding: { left: 2, right: 2 },
     border: 'line',
     style: { fg: 'green', border: { fg: 'green' } },
-    content: 'ESC to close',
+    content: 'e to enter editor | ESC to unfocus editor \n z to inject event | x to discard and close',
   });
-  screen.key(['escape'], () => {
+
+  const closeModal = () => {
+    prog.setModalOpen(false);
+    prog.returnFocus();
     eventInjectLayout.destroy();
+  };
+
+  eventInjectLayout.focus();
+
+  eventInjectLayout.key(['e'], () => {
+    textarea.readEditor();
+  });
+
+  eventInjectLayout.key(['z'], () => {
+    // Inject event textarea.getValue()
+    closeModal();
+  });
+
+  eventInjectLayout.key(['x'], () => {
+    // Discard modal
+    closeModal();
   });
 };
+
 module.exports = {
   helpModal,
   eventInjectionModal,

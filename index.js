@@ -180,7 +180,7 @@ class Main {
     // Curent element of focusList in focus
     this.focusIndex = 0;
     this.focusList = [this.lambdasTable, this.eventBridgeTree];
-
+    this.returnFocus();
     this.modalOpen = false;
   }
 
@@ -231,7 +231,7 @@ class Main {
         this.modalOpen = true;
         const selectedRow = this.eventBridgeTree.rows.selected;
         const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow];
-        return eventInjectionModal(screen, blessed, selectedEventBridge, this);
+        return eventInjectionModal(screen, blessed, selectedEventBridge, this, program.region);
       }
       return 0;
     });
@@ -255,7 +255,6 @@ class Main {
 
     setInterval(() => {
       this.updateResourcesInformation();
-      // this.returnFocus();
     }, 3000);
   }
 

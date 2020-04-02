@@ -64,24 +64,28 @@ const helpModal = (screen, blessed, prog) => {
   helpLayout.focus();
   helpLayout.key(['escape'], () => {
     prog.setModalOpen(false);
+    prog.returnFocus();
     helpLayout.destroy();
   });
 };
 
-const eventTemplate = (busName) => `
+const eventTemplate = (busName, region) => {
+  const time = new Date().toISOString();
+  return `
 {
   "id": "53dc4d37-cffa-4f76-80c9-8b7d4a4d2eaa",
-  "bus": ${busName},
+  "bus": ${busName.substring(2)},
   "detail-type": "Scheduled Event",
   "source": "aws.events",
   "account": "123456789012",
-  "time": "2015-10-08T16:53:06Z",
-  "region": "us-east-1",
+  "time": ${time},
+  "region": ${region},
   "resources": [ "arn:aws:events:us-east-1:123456789012:rule/MyScheduledRule" ],
   "detail": {}
 }`;
+};
 
-const eventInjectionModal = (screen, blessed, eventBridge, prog) => {
+const eventInjectionModal = (screen, blessed, eventBridge, prog, region) => {
   const eventInjectLayout = blessed.layout({
     parent: screen,
     top: 'center',
@@ -99,7 +103,7 @@ const eventInjectionModal = (screen, blessed, eventBridge, prog) => {
     left: 'center',
     border: 'line',
     pad: 2,
-    value: eventTemplate(eventBridge),
+    value: eventTemplate(eventBridge, region),
     width: 110,
     height: 20,
     keys: true,
@@ -119,11 +123,12 @@ const eventInjectionModal = (screen, blessed, eventBridge, prog) => {
     padding: { left: 2, right: 2 },
     border: 'line',
     style: { fg: 'green', border: { fg: 'green' } },
-    content: 'e to enter editor | ESC to unfocus editor \n z to deploy event | x to discard and close',
+    content: 'e to enter editor | ESC to unfocus editor \n z to inject event | x to discard and close',
   });
 
   const closeModal = () => {
     prog.setModalOpen(false);
+    prog.returnFocus();
     eventInjectLayout.destroy();
   };
 

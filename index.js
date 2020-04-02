@@ -180,18 +180,42 @@ class Main {
     // Curent element of focusList in focus
     this.focusIndex = 0;
     this.focusList = [this.lambdasTable, this.eventBridgeTree];
+
+    this.modalOpen = false;
   }
 
   setKeypresses() {
-    screen.key(['d'], () => this.deployFunction());
-    screen.key(['s'], () => this.deployStack());
-    screen.key(['h', 'H'], () => helpModal(screen, blessed));
-    screen.key(['tab'], () => this.changeFocus());
+    screen.key(['d'], () => {
+      // If focus is currently on this.lambdasTable
+      if (this.focusIndex === 0 && this.modalOpen === false) {
+        return this.deployFunction();
+      }
+      return 0;
+    });
+    screen.key(['s'], () => {
+      if (this.modalOpen === false) {
+        return this.deployStack();
+      }
+      return 0;
+    });
+    screen.key(['h', 'H'], () => {
+      if (this.modalOpen === false) {
+        this.modalOpen = true;
+        return helpModal(screen, blessed, this);
+      }
+      return 0;
+    });
+    screen.key(['tab'], () => {
+      if (this.modalOpen === false) {
+        return this.changeFocus();
+      }
+      return 0;
+    });
     screen.key(['q', 'C-c'], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.key(['o', 'O'], () => {
       // If focus is currently on this.lambdasTable
-      if (this.focusIndex === 0) {
+      if (this.focusIndex === 0 && this.modalOpen === false) {
         const selectedLambdaFunctionName = this.lambdasTable.rows.items[
           this.lambdasTable.rows.selected
         ].data[0];
@@ -204,12 +228,17 @@ class Main {
     screen.key(['i'], () => {
       // If focus is currently on this.eventBridgeTree
       if (this.focusIndex === 1) {
+        this.modalOpen = true;
         const selectedRow = this.eventBridgeTree.rows.selected;
         const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow];
-        return eventInjectionModal(screen, blessed, selectedEventBridge);
+        return eventInjectionModal(screen, blessed, selectedEventBridge, this);
       }
       return 0;
     });
+  }
+
+  setModalOpen(value) {
+    this.modalOpen = value;
   }
 
   async render() {

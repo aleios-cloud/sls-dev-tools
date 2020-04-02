@@ -1,4 +1,4 @@
-const helpModal = (screen, blessed) => {
+const helpModal = (screen, blessed, prog) => {
   const helpMenuData = [
     ['Keybinding', 'Action'],
     ['-----------', '-----------'],
@@ -63,6 +63,7 @@ const helpModal = (screen, blessed) => {
   });
   helpLayout.focus();
   helpLayout.key(['escape'], () => {
+    prog.setModalOpen(false);
     helpLayout.destroy();
   });
 };
@@ -80,7 +81,7 @@ const eventTemplate = (busName) => `
   "detail": {}
 }`;
 
-const eventInjectionModal = (screen, blessed, eventBridge) => {
+const eventInjectionModal = (screen, blessed, eventBridge, prog) => {
   const eventInjectLayout = blessed.layout({
     parent: screen,
     top: 'center',
@@ -122,12 +123,13 @@ const eventInjectionModal = (screen, blessed, eventBridge) => {
   });
 
   const closeModal = () => {
+    prog.setModalOpen(false);
     eventInjectLayout.destroy();
   };
 
   eventInjectLayout.focus();
 
-  eventInjectLayout.key(['e'], () => {
+  eventInjectLayout.key(['c'], () => {
     textarea.readEditor();
   });
 

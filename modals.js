@@ -29,6 +29,7 @@ const helpModal = (screen, blessed) => {
     height: 27,
     border: 'line',
     style: { border: { fg: 'green' } },
+    keys: true,
   });
   blessed.listtable({
     parent: helpLayout,
@@ -58,10 +59,24 @@ const helpModal = (screen, blessed) => {
     style: { fg: 'green', border: { fg: 'green' } },
     content: 'Please give feedback via GitHub Issues \n ESC to close',
   });
-  screen.key(['escape'], () => {
+  helpLayout.focus();
+  helpLayout.key(['escape'], () => {
     helpLayout.destroy();
   });
 };
+
+const eventTemplate = (busName) => `
+{
+  "id": "53dc4d37-cffa-4f76-80c9-8b7d4a4d2eaa",
+  "bus": ${busName},
+  "detail-type": "Scheduled Event",
+  "source": "aws.events",
+  "account": "123456789012",
+  "time": "2015-10-08T16:53:06Z",
+  "region": "us-east-1",
+  "resources": [ "arn:aws:events:us-east-1:123456789012:rule/MyScheduledRule" ],
+  "detail": {}
+}`;
 
 const eventInjectionModal = (screen, blessed, eventBridge) => {
   const eventInjectLayout = blessed.layout({
@@ -72,6 +87,24 @@ const eventInjectionModal = (screen, blessed, eventBridge) => {
     height: 27,
     border: 'line',
     style: { border: { fg: 'green' } },
+    keys: true,
+    grabKeys: true,
+  });
+  const textarea = blessed.textarea({
+    parent: eventInjectLayout,
+    top: 'center',
+    left: 'center',
+    border: 'line',
+    pad: 2,
+    value: eventTemplate(eventBridge),
+    width: 110,
+    height: 20,
+    keys: true,
+    style: {
+      border: { fg: 'green' },
+      header: { fg: 'bright-green', bold: true, underline: true },
+      cell: { fg: 'yellow' },
+    },
   });
   blessed.box({
     parent: eventInjectLayout,
@@ -83,12 +116,30 @@ const eventInjectionModal = (screen, blessed, eventBridge) => {
     padding: { left: 2, right: 2 },
     border: 'line',
     style: { fg: 'green', border: { fg: 'green' } },
-    content: 'ESC to close',
+    content: 'e to enter editor | z to deploy event | x to discard and close',
   });
-  screen.key(['escape'], () => {
+
+  const closeModal = () => {
     eventInjectLayout.destroy();
+  };
+
+  eventInjectLayout.focus();
+
+  eventInjectLayout.key(['e'], () => {
+    textarea.readEditor();
+  });
+
+  eventInjectLayout.key(['z'], () => {
+    // Inject event textarea.getValue()
+    closeModal();
+  });
+
+  eventInjectLayout.key(['x'], () => {
+    // Discard modal
+    closeModal();
   });
 };
+
 module.exports = {
   helpModal,
   eventInjectionModal,

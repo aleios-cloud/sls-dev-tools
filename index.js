@@ -161,7 +161,7 @@ class Main {
     screen.key(['i'], () => {
       // If focus is currently on this.eventBridgeTree
       if (this.focusIndex === 1) {
-        const selectedEventBridge = this.eventBridgeTree.rows.items[this.eventBridgeTree.rows.selected];
+        const selectedEventBridge = this.eventBridgeTree.rows.ritems[this.eventBridgeTree.rows.selected];
         return eventInjectionModal(screen, blessed, selectedEventBridge);
       }
       return 0;
@@ -224,7 +224,7 @@ class Main {
 
     setInterval(() => {
       this.updateResourcesInformation();
-      this.returnFocus();
+      // this.returnFocus();
     }, 3000);
   }
 

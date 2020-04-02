@@ -5,8 +5,9 @@
     "previous": "Previous",
     "tagline": "Dev tools for the serverless world",
     "docs": {
-      "doc2": {
-        "title": "doc2"
+      "pricing": {
+        "title": "Cloudwatch Pricing",
+        "sidebar_label": "Cloudwatch Pricing"
       },
       "README": {
         "title": "Installation and use",

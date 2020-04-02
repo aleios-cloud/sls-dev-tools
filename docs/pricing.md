@@ -1,7 +1,8 @@
----	
-id: doc2	
-title: Cloudwatch Pricing	
----	
+---
+id: pricing
+title: Cloudwatch Pricing
+sidebar_label: Cloudwatch Pricing
+---
 
 # A note on AWS API calls and pricing	
 

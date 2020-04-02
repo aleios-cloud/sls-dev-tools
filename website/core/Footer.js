@@ -42,26 +42,26 @@ class Footer extends React.Component {
                 alt={"Theodo"}
                 width="52"
                 height="52"
-                style={{paddingRight: '30px'}}
+                style={{ paddingRight: "30px" }}
               />
             </a>
           )}
           <div>
             <h5>Docs</h5>
-            <a href={this.docUrl('README.html', this.props.language)}>
+            <a href={this.docUrl("README.html", this.props.language)}>
               Installation and use
             </a>
-            <a href={this.docUrl('doc2.html', this.props.language)}>
+            <a href={this.docUrl("pricing.html", this.props.language)}>
               AWS pricing
             </a>
           </div>
           <div>
             <h5>Community</h5>
             <a
-              href="https://twitter.com/EllerbyBen"
-              target="_blank"
-              rel="noreferrer noopener">
-              Twitter
+              href={"https://twitter.com/SlsDevTools"}
+              className="twitter-follow-button"
+            >
+              Follow @SlsDevTools
             </a>
           </div>
           <div>
@@ -75,33 +75,10 @@ class Footer extends React.Component {
               data-count-href="/facebook/docusaurus/stargazers"
               data-show-count="true"
               data-count-aria-label="# stargazers on GitHub"
-              aria-label="Star this project on GitHub">
+              aria-label="Star this project on GitHub"
+            >
               Star
             </a>
-            {this.props.config.twitterUsername && (
-              <div className="social">
-                <a
-                  href={`https://twitter.com/${
-                    this.props.config.twitterUsername
-                  }`}
-                  className="twitter-follow-button">
-                  Follow @{this.props.config.twitterUsername}
-                </a>
-              </div>
-            )}
-            {this.props.config.facebookAppId && (
-              <div className="social">
-                <div
-                  className="fb-like"
-                  data-href={this.props.config.url}
-                  data-colorscheme="dark"
-                  data-layout="standard"
-                  data-share="true"
-                  data-width="225"
-                  data-show-faces="false"
-                />
-              </div>
-            )}
           </div>
         </section>
       </footer>

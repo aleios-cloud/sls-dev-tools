@@ -8,6 +8,8 @@ const helpModal = (screen, blessed) => {
     ['d', 'Deploys the selected lambda function'],
     ['s', 'Deploys all the lambda functions within the stack'],
     ['Arrows', 'Used to select from list, by default the function list'],
+    ['Tab', 'Used to switch focus between lambda functions and event buses'],
+    ['i', 'Open an event injection window for the selected event bus']
   ];
   const cliOptionsData = [
     ['---------', '----------'],
@@ -116,7 +118,7 @@ const eventInjectionModal = (screen, blessed, eventBridge) => {
     padding: { left: 2, right: 2 },
     border: 'line',
     style: { fg: 'green', border: { fg: 'green' } },
-    content: 'e to enter editor | z to deploy event | x to discard and close',
+    content: 'e to enter editor | ESC to unfocus editor \n z to deploy event | x to discard and close',
   });
 
   const closeModal = () => {

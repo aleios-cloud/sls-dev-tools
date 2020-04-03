@@ -72,10 +72,24 @@ AWS.config.region = program.region;
 const cloudformation = new AWS.CloudFormation();
 const cloudwatch = new AWS.CloudWatch();
 const cloudwatchLogs = new AWS.CloudWatchLogs();
+const eventBridge = new AWS.EventBridge({ region: program.region });
 
 function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
 }
+
+function getEventBuses() {
+  return eventBridge.listEventBuses().promise();
+}
+
+function injectEvent(eventJson) {
+  const params = JSON.parse(eventJson);
+  eventBridge.putEvents(params, (err, data) => {
+    if (err) console.log(err, err.stack); // an error occurred
+    else     console.log(data);           // successful response
+  });
+}
+
 class Main {
   constructor() {
     this.lambdasDeploymentStatus = {};
@@ -181,32 +195,32 @@ class Main {
     this.focusIndex = 0;
     this.focusList = [this.lambdasTable, this.eventBridgeTree];
     this.returnFocus();
-    this.modalOpen = false;
+    this.isModalOpen = false;
   }
 
   setKeypresses() {
     screen.key(['d'], () => {
       // If focus is currently on this.lambdasTable
-      if (this.focusIndex === 0 && this.modalOpen === false) {
+      if (this.focusIndex === 0 && this.isModalOpen === false) {
         return this.deployFunction();
       }
       return 0;
     });
     screen.key(['s'], () => {
-      if (this.modalOpen === false) {
+      if (this.isModalOpen === false) {
         return this.deployStack();
       }
       return 0;
     });
     screen.key(['h', 'H'], () => {
-      if (this.modalOpen === false) {
-        this.modalOpen = true;
+      if (this.isModalOpen === false) {
+        this.isModalOpen = true;
         return helpModal(screen, blessed, this);
       }
       return 0;
     });
     screen.key(['tab'], () => {
-      if (this.modalOpen === false) {
+      if (this.isModalOpen === false) {
         return this.changeFocus();
       }
       return 0;
@@ -215,7 +229,7 @@ class Main {
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.key(['o', 'O'], () => {
       // If focus is currently on this.lambdasTable
-      if (this.focusIndex === 0 && this.modalOpen === false) {
+      if (this.focusIndex === 0 && this.isModalOpen === false) {
         const selectedLambdaFunctionName = this.lambdasTable.rows.items[
           this.lambdasTable.rows.selected
         ].data[0];
@@ -227,18 +241,19 @@ class Main {
     });
     screen.key(['i'], () => {
       // If focus is currently on this.eventBridgeTree
-      if (this.focusIndex === 1) {
-        this.modalOpen = true;
+      if (this.focusIndex === 1 && this.isModalOpen === false) {
+        this.isModalOpen = true;
         const selectedRow = this.eventBridgeTree.rows.selected;
-        const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow];
-        return eventInjectionModal(screen, blessed, selectedEventBridge, this);
+        // take substring to remove leading characters displayed in tree
+        const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow].substring(2);
+        return eventInjectionModal(screen, blessed, selectedEventBridge, this, injectEvent);
       }
       return 0;
     });
   }
 
-  setModalOpen(value) {
-    this.modalOpen = value;
+  setIsModalOpen(value) {
+    this.isModalOpen = value;
   }
 
   async render() {
@@ -397,6 +412,8 @@ class Main {
     const newData = await getStackResources(program.stackName, this.setData);
     this.data = newData;
 
+    const eventBridgeResources = await getEventBuses();
+
     this.lambdasTable.data = newData.StackResourceSummaries.filter(
       (res) => res.ResourceType === 'AWS::Lambda::Function',
     ).map((lam) => [
@@ -407,17 +424,15 @@ class Main {
     this.updateLambdaTableRows();
     this.updateLambdaDeploymentStatus();
 
-    const eventBridgeResources = this.data.StackResourceSummaries.filter(
-      (res) => res.ResourceType === 'Custom::EventBridge',
-    ).reduce((eventBridges, eventBridge) => {
-      // eslint-disable-next-line no-param-reassign
-      eventBridges[eventBridge.PhysicalResourceId] = {};
-      return eventBridges;
-    }, {});
+    const busNames = eventBridgeResources.EventBuses.map((o) => o.Name)
+      .reduce((eventBridges, bus) => {
+        eventBridges[bus] = {};
+        return eventBridges;
+      }, {});
 
     this.eventBridgeTree.setData({
       extended: true,
-      children: eventBridgeResources,
+      children: busNames,
     });
 
     if (this.funcName) {

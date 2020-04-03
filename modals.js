@@ -63,25 +63,24 @@ const helpModal = (screen, blessed, prog) => {
   });
   helpLayout.focus();
   helpLayout.key(['escape'], () => {
-    prog.setModalOpen(false);
+    prog.setIsModalOpen(false);
     prog.returnFocus();
     helpLayout.destroy();
   });
 };
 
-const eventTemplate = (busName) => `
-{
-  Entries: [
+const eventTemplate = (busName) => `{
+  "Entries": [
     {
-      "EventBusName": ${busName.substring(2)},
+      "EventBusName": "${busName}",
       "DetailType": "Scheduled Event",
-      "Source": "aws.events",
-      "Detail": {}
-    },
+      "Source": "custom.hello",
+      "Detail": "{}"
+    }
   ]
 }`;
 
-const eventInjectionModal = (screen, blessed, eventBridge, prog) => {
+const eventInjectionModal = (screen, blessed, eventBridge, prog, injectEvent) => {
   const eventInjectLayout = blessed.layout({
     parent: screen,
     top: 'center',
@@ -123,7 +122,7 @@ const eventInjectionModal = (screen, blessed, eventBridge, prog) => {
   });
 
   const closeModal = () => {
-    prog.setModalOpen(false);
+    prog.setIsModalOpen(false);
     prog.returnFocus();
     eventInjectLayout.destroy();
   };
@@ -135,7 +134,8 @@ const eventInjectionModal = (screen, blessed, eventBridge, prog) => {
   });
 
   eventInjectLayout.key(['z'], () => {
-    // Inject event textarea.getValue()
+    // Inject event
+    injectEvent(textarea.getValue());
     closeModal();
   });
 

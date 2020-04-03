@@ -27,10 +27,8 @@ The Dev Tools for the Serverless World
   - If you get an `AccessDenied` error in which case you must add the `GetMetricData` permission from CloudWatch in the IAM console on AWS.
   - If you're not seeing any data in the graphs, try changing your start date to make sure you have had invocations since then.
 - Switch focus between lambda functions and event buses by pressing tab.
-- Choose an event bus with the arrows keys, and press i to open an event injection window for that bus.
-  - You can write an event and inject it from here.
 - The line graph shows the number of invocations and errors that occurred within the time interval.
-- The bar chart shows the response time of 5 most recent invocations
+- The bar chart shows the response time of 5 most recent invocations.
 
 ```
 Options:
@@ -48,11 +46,12 @@ Options:
 
 ```
 Shortcuts
-- Pressing "h" while the tool is open will display a helpbox with all the keybindings and cli options.
+- Pressing "h" while the tool is open will display a helpbox with all the keybindings and cli options
 - Pressing "q" will quit the tool
 - Pressing "o" while selecting a function from the function list will open the relevant page of the AWS console (saving some clicks!)
 - Pressing "d" while selecting a function from the function list will deploy the selected lambda function, note this is not possible while using SAM
 - Pressing "s" while selecting a function will deploy the entire stack
+- Pressing "i" while selecting an event bus will open a window to write and inject an event for that bus
 ```
 
 # A note on AWS API calls and pricing	

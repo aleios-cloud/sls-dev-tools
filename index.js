@@ -90,6 +90,10 @@ function injectEvent(eventJson) {
   });
 }
 
+// By default, readInput() is called after using readEditor(), which
+// places the cursor inside the textarea. This disables that functionality.
+blessed.textarea.prototype.readInput = () => {};
+
 class Main {
   constructor() {
     this.lambdasDeploymentStatus = {};

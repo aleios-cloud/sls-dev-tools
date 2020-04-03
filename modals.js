@@ -1,4 +1,4 @@
-const helpModal = (screen, blessed, prog) => {
+const helpModal = (screen, blessed, application) => {
   const helpMenuData = [
     ['Keybinding', 'Action'],
     ['-----------', '-----------'],
@@ -63,8 +63,8 @@ const helpModal = (screen, blessed, prog) => {
   });
   helpLayout.focus();
   helpLayout.key(['escape'], () => {
-    prog.setIsModalOpen(false);
-    prog.returnFocus();
+    application.setIsModalOpen(false);
+    application.returnFocus();
     helpLayout.destroy();
   });
 };
@@ -80,7 +80,7 @@ const eventTemplate = (busName) => `{
   ]
 }`;
 
-const eventInjectionModal = (screen, blessed, eventBridge, prog, injectEvent) => {
+const eventInjectionModal = (screen, blessed, eventBridge, application, injectEvent) => {
   const eventInjectLayout = blessed.layout({
     parent: screen,
     top: 'center',
@@ -92,6 +92,7 @@ const eventInjectionModal = (screen, blessed, eventBridge, prog, injectEvent) =>
     keys: true,
     grabKeys: true,
   });
+
   const textarea = blessed.textarea({
     parent: eventInjectLayout,
     top: 'center',
@@ -101,7 +102,6 @@ const eventInjectionModal = (screen, blessed, eventBridge, prog, injectEvent) =>
     value: eventTemplate(eventBridge),
     width: 110,
     height: 20,
-    keys: true,
     style: {
       border: { fg: 'green' },
       header: { fg: 'bright-green', bold: true, underline: true },
@@ -118,28 +118,28 @@ const eventInjectionModal = (screen, blessed, eventBridge, prog, injectEvent) =>
     padding: { left: 2, right: 2 },
     border: 'line',
     style: { fg: 'green', border: { fg: 'green' } },
-    content: 'e to enter editor | ESC to unfocus editor \n z to inject event | x to discard and close',
+    content: 'i to enter editor \n ENTER to inject event | ESC to discard and close',
   });
 
   const closeModal = () => {
-    prog.setIsModalOpen(false);
-    prog.returnFocus();
+    application.setIsModalOpen(false);
+    application.returnFocus();
     eventInjectLayout.destroy();
   };
 
   eventInjectLayout.focus();
 
-  eventInjectLayout.key(['e'], () => {
+  eventInjectLayout.key(['i'], () => {
     textarea.readEditor();
   });
 
-  eventInjectLayout.key(['z'], () => {
+  eventInjectLayout.key(['enter'], () => {
     // Inject event
     injectEvent(textarea.getValue());
     closeModal();
   });
 
-  eventInjectLayout.key(['x'], () => {
+  eventInjectLayout.key(['escape'], () => {
     // Discard modal
     closeModal();
   });

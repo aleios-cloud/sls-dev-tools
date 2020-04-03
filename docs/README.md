@@ -19,8 +19,10 @@ sidebar_label: Installation and use
 - Choose a function with the arrow keys, and press enter to see the metrics for that function.
   - If you get an `AccessDenied` error in which case you must add the `GetMetricData` permission from CloudWatch in the IAM console on AWS.
   - If you're not seeing any data in the graphs, try changing your start date to make sure you have had invocations since then.
+- The EventBridge pane allows you to view event buses in your region, and send events to each bus from a template editor.
+- Switch focus between lambda functions and event buses by pressing tab.
 - The line graph shows the number of invocations and errors that occurred within the time interval.
-- The bar chart shows the average response time of the invocations within the last 6 time intervals that had some invocations.
+- The bar chart shows the response time of 5 most recent invocations.
 
 ```
 Options:
@@ -38,14 +40,32 @@ Options:
 
 ```
 Shortcuts
-- Pressing "h" while the tool is open will display a helpbox with all the keybindings and cli options.
+- Pressing "h" while the tool is open will display a helpbox with all the keybindings and cli options
 - Pressing "q" will quit the tool
 - Pressing "o" while selecting a function from the function list will open the relevant page of the AWS console (saving some clicks!)
 - Pressing "d" while selecting a function from the function list will deploy the selected lambda function, note this is not possible while using SAM
 - Pressing "s" while selecting a function will deploy the entire stack
+- Pressing "i" while selecting an event bus will open a window to write and inject an event for that bus
 ```
 
-## Libs
+# A note on AWS API calls and pricing	
+
+This tool does make use of the AWS API to get metrics. Authentication is handled implicitly via the AWS NodeJS SDK. Pricing around Cloudwatch is designed for scale, but be warned that this tool is making calls to AWS.	
+
+Full details on AWS API pricing can be found here:	
+- https://aws.amazon.com/cloudwatch/pricing/	
+
+For instance, the cost of GetMetricData as of 25/08/19 was $0.01 per 1,000 metrics requested.	
+- This tool take no liability in pricing data provided and please use AWS's docs to ensure pricing is appropriate for you.	
+
+The current list of calls made by the tool:	
+
+- CloudFormation: listStackResources	
+- CloudWatch: getMetricData	
+- CloudWatchLogs: describeLogStreams, filterLogEvents	
+- More may be added, check code for full list
+
+# Libs
 
 Heavily based off the amazing [blessed](https://github.com/chjj/blessed) and [blessed-contrib](https://github.com/yaronn/blessed-contrib) projects.
 
@@ -54,4 +74,3 @@ Heavily based off the amazing [blessed](https://github.com/chjj/blessed) and [bl
 | [Ben Ellerby](https://github.com/BenEllerby) | [Abbie Howell](https://github.com/abbiehowell) | [Rob Cronin](https://github.com/robcronin) | [Gavin Williams](https://github.com/DotGav) | [Antoine Eudes](https://github.com/antoineeudes) |
 |---|---|---|---|---|
 | ![Ben Ellerby](https://avatars2.githubusercontent.com/u/11080984?s=150) | ![Abbie Howell](https://avatars3.githubusercontent.com/u/41898453?s=150) | ![Rob Cronin](https://avatars3.githubusercontent.com/u/32868346?s=150) | ![Gavin Williams](https://github.com/DotGav.png?size=150) | ![Antoine Eudes](https://avatars3.githubusercontent.com/u/13795384?s=150) |
-

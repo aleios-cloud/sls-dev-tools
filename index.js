@@ -9,7 +9,7 @@ import {
   dateFormats,
   DEPLOYMENT_STATUS,
 } from './constants';
-import { helpModal } from './modals';
+import { helpModal, eventInjectionModal } from './modals';
 
 const blessed = require('blessed');
 const contrib = require('blessed-contrib');
@@ -72,29 +72,47 @@ AWS.config.region = program.region;
 const cloudformation = new AWS.CloudFormation();
 const cloudwatch = new AWS.CloudWatch();
 const cloudwatchLogs = new AWS.CloudWatchLogs();
+const eventBridge = new AWS.EventBridge();
 
 function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
 }
+
+function getEventBuses() {
+  return eventBridge.listEventBuses().promise();
+}
+
+function injectEvent(eventJson) {
+  const params = JSON.parse(eventJson);
+  eventBridge.putEvents(params, (err, data) => {
+    if (err) console.error(err, err.stack); // an error occurred
+    else     console.log(data);             // successful response
+  });
+}
+
+// By default, readInput() is called after using readEditor(), which
+// places the cursor inside the textarea. This disables that functionality.
+blessed.textarea.prototype.readInput = () => {};
+
 class Main {
   constructor() {
     this.lambdasDeploymentStatus = {};
-    this.grid = new contrib.grid({ rows: 12, cols: 12, screen });
-    this.bar = this.grid.set(4, 6, 4, 3, contrib.bar, {
+    this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
+    this.lambdaInfoBar = this.layoutGrid.set(4, 6, 4, 3, contrib.bar, {
       label: 'Lambda Duration (ms) (most recent)',
       barWidth: 6,
       barSpacing: 6,
       xOffset: 2,
       maxHeight: 9,
     });
-    this.table = this.grid.set(0, 6, 4, 6, contrib.table, {
+    this.lambdasTable = this.layoutGrid.set(0, 6, 4, 6, contrib.table, {
       keys: true,
       fg: 'green',
       label: 'Lambda Functions',
       columnSpacing: 1,
       columnWidth: [44, 60],
     });
-    this.invocationsLineGraph = this.grid.set(2, 0, 6, 6, contrib.line, {
+    this.invocationsLineGraph = this.layoutGrid.set(2, 0, 6, 6, contrib.line, {
       maxY: 0,
       label: 'Function Metrics',
       showLegend: true,
@@ -103,10 +121,10 @@ class Main {
       wholeNumbersOnly: true,
       legend: { width: 50 },
     });
-    this.map = this.grid.set(4, 9, 4, 3, contrib.map, {
+    this.map = this.layoutGrid.set(4, 9, 4, 3, contrib.map, {
       label: `Servers Location (${program.region})`,
     });
-    this.eventBridgeTree = this.grid.set(8, 9, 4, 3, contrib.tree, {
+    this.eventBridgeTree = this.layoutGrid.set(8, 9, 4, 3, contrib.tree, {
       label: 'Event Bridges',
       style: {
         fg: 'green',
@@ -116,7 +134,7 @@ class Main {
       },
     });
     this.eventBridgeTree.rows.interactive = false;
-    this.lambdaLog = this.grid.set(8, 0, 4, 6, blessed.log, {
+    this.lambdaLog = this.layoutGrid.set(8, 0, 4, 6, blessed.log, {
       fg: 'green',
       selectedFg: 'green',
       label: 'Server Log',
@@ -124,7 +142,7 @@ class Main {
       scrollbar: { bg: 'blue' },
       mouse: true,
     });
-    this.consoleLogs = this.grid.set(8, 6, 4, 3, blessed.log, {
+    this.consoleLogs = this.layoutGrid.set(8, 6, 4, 3, blessed.log, {
       fg: 'red',
       selectedFg: 'dark-red',
       label: 'Dashboard Logs',
@@ -132,7 +150,7 @@ class Main {
       scrollbar: { bg: 'red' },
       mouse: true,
     });
-    this.titleBox = this.grid.set(0, 0, 2, 6, blessed.box, {
+    this.titleBox = this.layoutGrid.set(0, 0, 2, 6, blessed.box, {
       tags: true,
       content:
         `${logo}\n Dev Tools for the Serverless World.`
@@ -144,22 +162,10 @@ class Main {
         },
       },
     });
-    screen.key(['q', 'C-c'], () => process.exit(0));
-    // fixes https://github.com/yaronn/blessed-contrib/issues/10
-    screen.key(['o', 'O'], () => {
-      const selectedLambdaFunctionName = this.table.rows.items[
-        this.table.rows.selected
-      ].data[0];
-      return open(
-        `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`,
-      );
-    });
-    screen.key(['d'], () => this.deployFunction(this.table));
-    screen.key(['s'], () => this.deployStack(this.table));
-    screen.key(['h', 'H'], () => helpModal(screen, blessed));
+    this.setKeypresses();
     screen.on('resize', () => {
-      this.bar.emit('attach');
-      this.table.emit('attach');
+      this.lambdaInfoBar.emit('attach');
+      this.lambdasTable.emit('attach');
       // errorsLine.emit('attach');
       this.titleBox.emit('attach');
       this.invocationsLineGraph.emit('attach');
@@ -169,9 +175,7 @@ class Main {
     });
     screen.title = 'sls-dev-tools';
     this.marker = false;
-
     this.funcName = null;
-
     this.interval = program.interval || 3600; // 1 hour
     this.endTime = new Date();
     if (program.startTime) {
@@ -179,7 +183,6 @@ class Main {
       this.startTime = new Date(program.startTime);
     } else {
       const dateOffset = 24 * 60 * 60 * 1000; // 1 day
-
       // Round to closest interval to make query faster.
       this.startTime = new Date(
         Math.round(new Date().getTime() / this.interval) * this.interval
@@ -191,10 +194,77 @@ class Main {
       log: (m) => this.consoleLogs.log(m),
       error: (m) => this.consoleLogs.log(m),
     };
+
+    // Curent element of focusList in focus
+    this.focusIndex = 0;
+    this.focusList = [this.lambdasTable, this.eventBridgeTree];
+    this.returnFocus();
+    this.isModalOpen = false;
+
+    // Dictionary to store previous submissions for each event bus
+    this.previousSubmittedEvent = {};
+  }
+
+  setKeypresses() {
+    screen.key(['d'], () => {
+      // If focus is currently on this.lambdasTable
+      if (this.focusIndex === 0 && this.isModalOpen === false) {
+        return this.deployFunction();
+      }
+      return 0;
+    });
+    screen.key(['s'], () => {
+      if (this.isModalOpen === false) {
+        return this.deployStack();
+      }
+      return 0;
+    });
+    screen.key(['h', 'H'], () => {
+      if (this.isModalOpen === false) {
+        this.isModalOpen = true;
+        return helpModal(screen, blessed, this);
+      }
+      return 0;
+    });
+    screen.key(['tab'], () => {
+      if (this.isModalOpen === false) {
+        return this.changeFocus();
+      }
+      return 0;
+    });
+    screen.key(['q', 'C-c'], () => process.exit(0));
+    // fixes https://github.com/yaronn/blessed-contrib/issues/10
+    screen.key(['o', 'O'], () => {
+      // If focus is currently on this.lambdasTable
+      if (this.focusIndex === 0 && this.isModalOpen === false) {
+        const selectedLambdaFunctionName = this.lambdasTable.rows.items[
+          this.lambdasTable.rows.selected
+        ].data[0];
+        return open(
+          `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`,
+        );
+      }
+      return 0;
+    });
+    screen.key(['i'], () => {
+      // If focus is currently on this.eventBridgeTree
+      if (this.focusIndex === 1 && this.isModalOpen === false) {
+        this.isModalOpen = true;
+        const selectedRow = this.eventBridgeTree.rows.selected;
+        // take substring to remove leading characters displayed in tree
+        const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow].substring(2);
+        return eventInjectionModal(screen, blessed, selectedEventBridge, this, injectEvent);
+      }
+      return 0;
+    });
+  }
+
+  setIsModalOpen(value) {
+    this.isModalOpen = value;
   }
 
   async render() {
-    await this.table.rows.on('select', (item) => {
+    await this.lambdasTable.rows.on('select', (item) => {
       [this.funcName] = item.data;
       this.fullFuncName = `${program.stackName}-${this.funcName}`;
       this.updateGraphs();
@@ -207,8 +277,18 @@ class Main {
 
     setInterval(() => {
       this.updateResourcesInformation();
-      this.table.focus();
     }, 3000);
+  }
+
+  changeFocus() {
+    this.focusList[this.focusIndex].rows.interactive = false;
+    this.focusIndex = (this.focusIndex + 1) % this.focusList.length;
+    this.focusList[this.focusIndex].rows.interactive = true;
+    this.returnFocus();
+  }
+
+  returnFocus() {
+    this.focusList[this.focusIndex].focus();
   }
 
   updateMap() {
@@ -264,9 +344,9 @@ class Main {
         }
       });
     }
-    this.table.data.forEach((v, i) => {
+    this.lambdasTable.data.forEach((v, i) => {
       this.flashLambdaTableRow(i);
-      this.lambdasDeploymentStatus[this.table.rows.items[i].data[0]] = DEPLOYMENT_STATUS.PENDING;
+      this.lambdasDeploymentStatus[this.lambdasTable.rows.items[i].data[0]] = DEPLOYMENT_STATUS.PENDING;
     });
     this.updateLambdaTableRows();
   }
@@ -285,16 +365,16 @@ class Main {
         (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.SUCCESS),
       );
     }
-    this.table.data.forEach((v, i) => {
+    this.lambdasTable.data.forEach((v, i) => {
       this.unflashLambdaTableRow(i);
     });
     this.updateLambdaTableRows();
   }
 
   deployFunction() {
-    const selectedRowIndex = this.table.rows.selected;
+    const selectedRowIndex = this.lambdasTable.rows.selected;
     if (selectedRowIndex !== -1) {
-      const selectedLambdaFunctionName = this.table.rows.items[selectedRowIndex]
+      const selectedLambdaFunctionName = this.lambdasTable.rows.items[selectedRowIndex]
         .data[0];
       if (provider === 'serverlessFramework') {
         exec(
@@ -339,7 +419,9 @@ class Main {
     const newData = await getStackResources(program.stackName, this.setData);
     this.data = newData;
 
-    this.table.data = newData.StackResourceSummaries.filter(
+    const eventBridgeResources = await getEventBuses();
+
+    this.lambdasTable.data = newData.StackResourceSummaries.filter(
       (res) => res.ResourceType === 'AWS::Lambda::Function',
     ).map((lam) => [
       lam.PhysicalResourceId.replace(`${program.stackName}-`, ''),
@@ -349,17 +431,15 @@ class Main {
     this.updateLambdaTableRows();
     this.updateLambdaDeploymentStatus();
 
-    const eventBridgeResources = this.data.StackResourceSummaries.filter(
-      (res) => res.ResourceType === 'Custom::EventBridge',
-    ).reduce((eventBridges, eventBridge) => {
-      // eslint-disable-next-line no-param-reassign
-      eventBridges[eventBridge.PhysicalResourceId] = {};
-      return eventBridges;
-    }, {});
+    const busNames = eventBridgeResources.EventBuses.map((o) => o.Name)
+      .reduce((eventBridges, bus) => {
+        eventBridges[bus] = {};
+        return eventBridges;
+      }, {});
 
     this.eventBridgeTree.setData({
       extended: true,
-      children: eventBridgeResources,
+      children: busNames,
     });
 
     if (this.funcName) {
@@ -370,13 +450,13 @@ class Main {
   }
 
   flashLambdaTableRow(rowIndex) {
-    this.table.rows.items[rowIndex].style.fg = 'blue';
-    this.table.rows.items[rowIndex].style.bg = 'green';
+    this.lambdasTable.rows.items[rowIndex].style.fg = 'blue';
+    this.lambdasTable.rows.items[rowIndex].style.bg = 'green';
   }
 
   unflashLambdaTableRow(rowIndex) {
-    this.table.rows.items[rowIndex].style.fg = () => (rowIndex === this.table.rows.selected ? 'white' : 'green');
-    this.table.rows.items[rowIndex].style.bg = () => (rowIndex === this.table.rows.selected ? 'blue' : 'default');
+    this.lambdasTable.rows.items[rowIndex].style.fg = () => (rowIndex === this.lambdasTable.rows.selected ? 'white' : 'green');
+    this.lambdasTable.rows.items[rowIndex].style.bg = () => (rowIndex === this.lambdasTable.rows.selected ? 'blue' : 'default');
   }
 
   padInvocationsAndErrorsWithZeros() {
@@ -418,12 +498,12 @@ class Main {
 
   updateLambdaTableRows() {
     const lambdaFunctionsWithDeploymentIndicator = JSON.parse(
-      JSON.stringify(this.table.data),
+      JSON.stringify(this.lambdasTable.data),
     );
     let deploymentIndicator;
-    for (let i = 0; i < this.table.data.length; i++) {
+    for (let i = 0; i < this.lambdasTable.data.length; i++) {
       deploymentIndicator = null;
-      switch (this.lambdasDeploymentStatus[this.table.data[i][0]]) {
+      switch (this.lambdasDeploymentStatus[this.lambdasTable.data[i][0]]) {
         case DEPLOYMENT_STATUS.PENDING:
           deploymentIndicator = emoji.get('coffee');
           break;
@@ -439,17 +519,17 @@ class Main {
       if (deploymentIndicator) {
         lambdaFunctionsWithDeploymentIndicator[
           i
-        ][0] = `${deploymentIndicator} ${this.table.data[i][0]}`;
+        ][0] = `${deploymentIndicator} ${this.lambdasTable.data[i][0]}`;
       }
     }
 
-    this.table.setData({
+    this.lambdasTable.setData({
       headers: ['logical', 'updated'],
       data: lambdaFunctionsWithDeploymentIndicator,
     });
 
-    for (let i = 0; i < this.table.data.length; i++) {
-      this.table.rows.items[i].data = this.table.data[i];
+    for (let i = 0; i < this.lambdasTable.data.length; i++) {
+      this.lambdasTable.rows.items[i].data = this.lambdasTable.data[i];
     }
   }
 
@@ -463,7 +543,7 @@ class Main {
         // Split report into fields using tabs (or 4 spaces)
         splits.push(matches[i].split(/\t|\s\s\s\s/));
       }
-      this.bar.setData({
+      this.lambdaInfoBar.setData({
         titles: ['1', '2', '3', '4', '5'],
         // Extract numerical value from field by splitting on spaces, and taking second value
         data: splits.map((s) => s[1].split(' ')[1]).slice(-5),

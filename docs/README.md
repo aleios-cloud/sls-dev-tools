@@ -19,6 +19,8 @@ sidebar_label: Installation and use
 - Choose a function with the arrow keys, and press enter to see the metrics for that function.
   - If you get an `AccessDenied` error in which case you must add the `GetMetricData` permission from CloudWatch in the IAM console on AWS.
   - If you're not seeing any data in the graphs, try changing your start date to make sure you have had invocations since then.
+- Choose an event bus with the arrows keys, and press i to open an event injection window for that bus.
+  - You can write an event and inject it from here
 - Switch focus between lambda functions and event buses by pressing tab.
 - The line graph shows the number of invocations and errors that occurred within the time interval.
 - The bar chart shows the response time of 5 most recent invocations.

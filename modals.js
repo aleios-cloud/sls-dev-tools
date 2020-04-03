@@ -1,4 +1,4 @@
-const helpModal = (screen, blessed, prog) => {
+const helpModal = (screen, blessed, application) => {
   const helpMenuData = [
     ['Keybinding', 'Action'],
     ['-----------', '-----------'],
@@ -9,7 +9,7 @@ const helpModal = (screen, blessed, prog) => {
     ['s', 'Deploys all the lambda functions within the stack'],
     ['Arrows', 'Used to select from list, by default the function list'],
     ['Tab', 'Used to switch focus between lambda functions and event buses'],
-    ['i', 'Open an event injection window for the selected event bus']
+    ['i', 'Open an event injection window for the selected event bus'],
   ];
   const cliOptionsData = [
     ['---------', '----------'],
@@ -63,25 +63,24 @@ const helpModal = (screen, blessed, prog) => {
   });
   helpLayout.focus();
   helpLayout.key(['escape'], () => {
-    prog.setModalOpen(false);
-    prog.returnFocus();
+    application.setIsModalOpen(false);
+    application.returnFocus();
     helpLayout.destroy();
   });
 };
 
-const eventTemplate = (busName) => `
-{
-  Entries: [
+const eventTemplate = (busName) => `{
+  "Entries": [
     {
-      "EventBusName": ${busName.substring(2)},
-      "DetailType": "Scheduled Event",
-      "Source": "aws.events",
-      "Detail": {}
-    },
+      "EventBusName": "${busName}",
+      "DetailType": "",
+      "Source": "",
+      "Detail": "{}"
+    }
   ]
 }`;
 
-const eventInjectionModal = (screen, blessed, eventBridge, prog) => {
+const eventInjectionModal = (screen, blessed, eventBridge, application, injectEvent) => {
   const eventInjectLayout = blessed.layout({
     parent: screen,
     top: 'center',
@@ -93,16 +92,19 @@ const eventInjectionModal = (screen, blessed, eventBridge, prog) => {
     keys: true,
     grabKeys: true,
   });
+
+  // Prefill textarea with previous submission if there is one
+  const preset = application.previousSubmittedEvent[eventBridge] ? application.previousSubmittedEvent[eventBridge] : eventTemplate(eventBridge);
+
   const textarea = blessed.textarea({
     parent: eventInjectLayout,
     top: 'center',
     left: 'center',
     border: 'line',
     pad: 2,
-    value: eventTemplate(eventBridge),
+    value: preset,
     width: 110,
     height: 20,
-    keys: true,
     style: {
       border: { fg: 'green' },
       header: { fg: 'bright-green', bold: true, underline: true },
@@ -119,27 +121,29 @@ const eventInjectionModal = (screen, blessed, eventBridge, prog) => {
     padding: { left: 2, right: 2 },
     border: 'line',
     style: { fg: 'green', border: { fg: 'green' } },
-    content: 'e to enter editor | ESC to unfocus editor \n z to inject event | x to discard and close',
+    content: 'i to enter editor \n ENTER to inject event | ESC to discard and close',
   });
 
   const closeModal = () => {
-    prog.setModalOpen(false);
-    prog.returnFocus();
+    application.setIsModalOpen(false);
+    application.returnFocus();
     eventInjectLayout.destroy();
   };
 
   eventInjectLayout.focus();
 
-  eventInjectLayout.key(['e'], () => {
+  eventInjectLayout.key(['i'], () => {
     textarea.readEditor();
   });
 
-  eventInjectLayout.key(['z'], () => {
-    // Inject event textarea.getValue()
+  eventInjectLayout.key(['enter'], () => {
+    // Inject event
+    application.previousSubmittedEvent[eventBridge] = textarea.getValue();
+    injectEvent(textarea.getValue());
     closeModal();
   });
 
-  eventInjectLayout.key(['x'], () => {
+  eventInjectLayout.key(['escape'], () => {
     // Discard modal
     closeModal();
   });

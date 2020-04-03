@@ -72,7 +72,7 @@ AWS.config.region = program.region;
 const cloudformation = new AWS.CloudFormation();
 const cloudwatch = new AWS.CloudWatch();
 const cloudwatchLogs = new AWS.CloudWatchLogs();
-const eventBridge = new AWS.EventBridge({ region: program.region });
+const eventBridge = new AWS.EventBridge();
 
 function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
@@ -85,8 +85,8 @@ function getEventBuses() {
 function injectEvent(eventJson) {
   const params = JSON.parse(eventJson);
   eventBridge.putEvents(params, (err, data) => {
-    if (err) console.log(err, err.stack); // an error occurred
-    else     console.log(data);           // successful response
+    if (err) console.error(err, err.stack); // an error occurred
+    else     console.log(data);             // successful response
   });
 }
 
@@ -200,6 +200,9 @@ class Main {
     this.focusList = [this.lambdasTable, this.eventBridgeTree];
     this.returnFocus();
     this.isModalOpen = false;
+
+    // Dictionary to store previous submissions for each event bus
+    this.previousSubmittedEvent = {};
   }
 
   setKeypresses() {

@@ -9,7 +9,7 @@ const helpModal = (screen, blessed, application) => {
     ['s', 'Deploys all the lambda functions within the stack'],
     ['Arrows', 'Used to select from list, by default the function list'],
     ['Tab', 'Used to switch focus between lambda functions and event buses'],
-    ['i', 'Open an event injection window for the selected event bus']
+    ['i', 'Open an event injection window for the selected event bus'],
   ];
   const cliOptionsData = [
     ['---------', '----------'],
@@ -73,8 +73,8 @@ const eventTemplate = (busName) => `{
   "Entries": [
     {
       "EventBusName": "${busName}",
-      "DetailType": "Scheduled Event",
-      "Source": "custom.hello",
+      "DetailType": "",
+      "Source": "",
       "Detail": "{}"
     }
   ]
@@ -93,13 +93,16 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
     grabKeys: true,
   });
 
+  // Prefill textarea with previous submission if there is one
+  const preset = application.previousSubmittedEvent[eventBridge] ? application.previousSubmittedEvent[eventBridge] : eventTemplate(eventBridge);
+
   const textarea = blessed.textarea({
     parent: eventInjectLayout,
     top: 'center',
     left: 'center',
     border: 'line',
     pad: 2,
-    value: eventTemplate(eventBridge),
+    value: preset,
     width: 110,
     height: 20,
     style: {
@@ -135,6 +138,7 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
 
   eventInjectLayout.key(['enter'], () => {
     // Inject event
+    application.previousSubmittedEvent[eventBridge] = textarea.getValue();
     injectEvent(textarea.getValue());
     closeModal();
   });

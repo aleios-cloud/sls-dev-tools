@@ -171,7 +171,10 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
       censor: false,
       value: preset[i],
     });
-    textbox.on('cancel', () => closeModal());
+    textbox.on('cancel', () => {
+      updateEventValues();
+      closeModal();
+    });
     textboxes.push(textbox);
   }
 
@@ -200,7 +203,7 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
     padding: { left: 2, right: 2 },
     border: 'line',
     style: { fg: 'green', border: { fg: 'green' } },
-    content: 'Arrow keys to select field | ENTER to edit/submit\nESC to discard and close',
+    content: 'Arrow keys to select field | ENTER to toggle edit mode \nENTER on Submit to inject event | ESC to close        ',
   });
 
   eventInjectLayout.focus();

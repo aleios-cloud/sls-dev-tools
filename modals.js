@@ -99,7 +99,7 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
 
   const numTextboxes = 4;
 
-  let currentTextbox = 4;
+  let currentTextbox = 1;
 
   const textboxes = [];
 
@@ -184,7 +184,7 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
     align: 'center',
     padding: { left: 2, right: 2 },
     border: 'line',
-    style: { fg: 'yellow', border: { fg: 'yellow' } },
+    style: { fg: 'green', border: { fg: 'green' } },
     content: 'Submit',
   });
 
@@ -204,6 +204,8 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
   });
 
   eventInjectLayout.focus();
+
+  selectTextbox(currentTextbox);
 
   eventInjectLayout.key(['enter'], () => {
     // Inject event or select field for entry

@@ -82,17 +82,14 @@ function getEventBuses() {
   return eventBridge.listEventBuses().promise();
 }
 
-function injectEvent(eventJson) {
-  const params = JSON.parse(eventJson);
+function injectEvent(event) {
+  const params = { Entries: [] };
+  params.Entries.push(event);
   eventBridge.putEvents(params, (err, data) => {
     if (err) console.error(err, err.stack); // an error occurred
     else     console.log(data);             // successful response
   });
 }
-
-// By default, readInput() is called after using readEditor(), which
-// places the cursor inside the textarea. This disables that functionality.
-blessed.textarea.prototype.readInput = () => {};
 
 class Main {
   constructor() {

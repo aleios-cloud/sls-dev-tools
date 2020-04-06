@@ -178,7 +178,7 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
     padding: { left: 2, right: 2 },
     border: 'line',
     style: { fg: 'green', border: { fg: 'green' } },
-    content: 'Arrow keys to select field \n ENTER to edit/submit | ESC to discard and close',
+    content: 'Arrow keys to select field | ENTER to edit/submit\nESC to discard and close',
   });
 
   eventInjectLayout.focus();

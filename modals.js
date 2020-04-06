@@ -95,6 +95,8 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
   // String values textboxes are initialized with
   const preset = [event.EventBusName, event.DetailType, event.Source, event.Detail];
 
+  const fields = ['EventBusName', 'DetailType', 'Source', 'Detail'];
+
   const numTextboxes = 4;
 
   let currentTextbox = 4;
@@ -131,7 +133,27 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
     eventInjectLayout.destroy();
   };
 
+  blessed.box({
+    parent: eventInjectLayout,
+    width: 110,
+    left: 'right',
+    top: 'center',
+    align: 'center',
+    padding: { left: 2, right: 2 },
+    style: { fg: 'green' },
+    content: 'Event Injection',
+  });
+
   for (let i = 0; i < numTextboxes; i += 1) {
+    blessed.box({
+      parent: eventInjectLayout,
+      width: 110,
+      left: 'right',
+      top: 'center',
+      align: 'left',
+      padding: { left: 1, right: 1 },
+      content: fields[i],
+    });
     const textbox = blessed.textbox({
       parent: eventInjectLayout,
       top: 'center',

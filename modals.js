@@ -69,17 +69,6 @@ const helpModal = (screen, blessed, application) => {
   });
 };
 
-const eventTemplate = (busName) => `{
-  "Entries": [
-    {
-      "EventBusName": "${busName}",
-      "DetailType": "",
-      "Source": "",
-      "Detail": "{}"
-    }
-  ]
-}`;
-
 const eventInjectionModal = (screen, blessed, eventBridge, application, injectEvent) => {
   const eventInjectLayout = blessed.layout({
     parent: screen,
@@ -93,24 +82,71 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
     grabKeys: true,
   });
 
-  // Prefill textarea with previous submission if there is one
-  const preset = application.previousSubmittedEvent[eventBridge] ? application.previousSubmittedEvent[eventBridge] : eventTemplate(eventBridge);
+  // Prefill textbox with previous submission if there is one
+  const event = application.previousSubmittedEvent[eventBridge]
+    ? application.previousSubmittedEvent[eventBridge]
+    : {
+      EventBusName: eventBridge,
+      DetailType: '',
+      Source: '',
+      Detail: '{}',
+    };
 
-  const textarea = blessed.textarea({
-    parent: eventInjectLayout,
-    top: 'center',
-    left: 'center',
-    border: 'line',
-    pad: 2,
-    value: preset,
-    width: 110,
-    height: 20,
-    style: {
-      border: { fg: 'green' },
-      header: { fg: 'bright-green', bold: true, underline: true },
-      cell: { fg: 'yellow' },
-    },
-  });
+  // String values textboxes are initialized with
+  const preset = [event.EventBusName, event.DetailType, event.Source, event.Detail];
+
+  const numTextboxes = 4;
+
+  const textboxes = [];
+
+  const focusTextbox = (index) => {
+    if (index >= 0 && index < textboxes.length) {
+      textboxes[index].focus();
+    } else {
+      console.error('Index out of bounds');
+    }
+  };
+
+  const updateEventValues = () => {
+    event.EventBusName = textboxes[0].getValue();
+    event.DetailType = textboxes[1].getValue();
+    event.Source = textboxes[2].getValue();
+    event.Detail = textboxes[3].getValue();
+  };
+
+  for (let i = 0; i < numTextboxes; i += 1) {
+    const textbox = blessed.textbox({
+      parent: eventInjectLayout,
+      top: 'center',
+      left: 'center',
+      border: 'line',
+      pad: 2,
+      width: 110,
+      style: {
+        border: { fg: 'green' },
+        header: { fg: 'bright-green', bold: true, underline: true },
+        cell: { fg: 'yellow' },
+      },
+      keys: true,
+      inputOnFocus: true,
+      secret: false,
+      censor: false,
+      value: preset[i],
+    });
+    // All textboxes except the last
+    if (i < numTextboxes - 1) {
+      // Change focus to next textbox
+      textbox.on('submit', () => focusTextbox((i + 1) % numTextboxes));
+    }
+    // All textboxes except the first
+    if (i > 0) {
+      // Change focus to prev textbox
+      textbox.on('cancel', () => focusTextbox((i - 1) % numTextboxes));
+    }
+    textbox.on('action', () => updateEventValues());
+    textboxes.push(textbox);
+  }
+
   blessed.box({
     parent: eventInjectLayout,
     width: 110,
@@ -125,6 +161,8 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
   });
 
   const closeModal = () => {
+    // Store all text to populate modal when next opened
+    application.previousSubmittedEvent[eventBridge] = event;
     application.setIsModalOpen(false);
     application.returnFocus();
     eventInjectLayout.destroy();
@@ -133,13 +171,13 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
   eventInjectLayout.focus();
 
   eventInjectLayout.key(['i'], () => {
-    textarea.readEditor();
+    // Edit fields
+    textboxes[0].focus();
   });
 
   eventInjectLayout.key(['enter'], () => {
     // Inject event
-    application.previousSubmittedEvent[eventBridge] = textarea.getValue();
-    injectEvent(textarea.getValue());
+    injectEvent(event);
     closeModal();
   });
 

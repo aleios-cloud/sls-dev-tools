@@ -97,13 +97,21 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
 
   const numTextboxes = 4;
 
+  let currentTextbox = 4;
+
   const textboxes = [];
 
-  const focusTextbox = (index) => {
-    if (index >= 0 && index < textboxes.length) {
-      textboxes[index].focus();
-    } else {
-      console.error('Index out of bounds');
+  const unselectTextbox = (index) => {
+    textboxes[index].style.border.fg = 'green';
+    if (index === 4) {
+      textboxes[index].style.fg = 'green';
+    }
+  };
+
+  const selectTextbox = (index) => {
+    textboxes[index].style.border.fg = 'yellow';
+    if (index === 4) {
+      textboxes[index].style.fg = 'yellow';
     }
   };
 
@@ -112,6 +120,15 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
     event.DetailType = textboxes[1].getValue();
     event.Source = textboxes[2].getValue();
     event.Detail = textboxes[3].getValue();
+  };
+
+  const closeModal = () => {
+    // Store all text to populate modal when next opened
+    updateEventValues();
+    application.previousSubmittedEvent[eventBridge] = event;
+    application.setIsModalOpen(false);
+    application.returnFocus();
+    eventInjectLayout.destroy();
   };
 
   for (let i = 0; i < numTextboxes; i += 1) {
@@ -127,25 +144,29 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
         header: { fg: 'bright-green', bold: true, underline: true },
         cell: { fg: 'yellow' },
       },
-      keys: true,
       inputOnFocus: true,
       secret: false,
       censor: false,
       value: preset[i],
     });
-    // All textboxes except the last
-    if (i < numTextboxes - 1) {
-      // Change focus to next textbox
-      textbox.on('submit', () => focusTextbox((i + 1) % numTextboxes));
-    }
-    // All textboxes except the first
-    if (i > 0) {
-      // Change focus to prev textbox
-      textbox.on('cancel', () => focusTextbox((i - 1) % numTextboxes));
-    }
-    textbox.on('action', () => updateEventValues());
+    textbox.on('cancel', () => closeModal());
     textboxes.push(textbox);
   }
+
+  const submit = blessed.box({
+    parent: eventInjectLayout,
+    width: 110,
+    height: 4,
+    left: 'right',
+    top: 'center',
+    align: 'center',
+    padding: { left: 2, right: 2 },
+    border: 'line',
+    style: { fg: 'yellow', border: { fg: 'yellow' } },
+    content: 'Submit',
+  });
+
+  textboxes.push(submit);
 
   blessed.box({
     parent: eventInjectLayout,
@@ -157,30 +178,37 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
     padding: { left: 2, right: 2 },
     border: 'line',
     style: { fg: 'green', border: { fg: 'green' } },
-    content: 'i to enter editor \n ENTER to inject event | ESC to discard and close',
+    content: 'Arrow keys to select field \n ENTER to edit/submit | ESC to discard and close',
   });
-
-  const closeModal = () => {
-    // Store all text to populate modal when next opened
-    application.previousSubmittedEvent[eventBridge] = event;
-    application.setIsModalOpen(false);
-    application.returnFocus();
-    eventInjectLayout.destroy();
-  };
 
   eventInjectLayout.focus();
 
-  eventInjectLayout.key(['i'], () => {
-    // Edit fields
-    textboxes[0].focus();
-  });
-
   eventInjectLayout.key(['enter'], () => {
-    // Inject event
-    injectEvent(event);
-    closeModal();
+    // Inject event or select field for entry
+    if (currentTextbox === 4) {
+      updateEventValues();
+      injectEvent(event);
+      closeModal();
+    } else {
+      textboxes[currentTextbox].focus();
+    }
   });
-
+  eventInjectLayout.key(['up'], () => {
+    unselectTextbox(currentTextbox);
+    currentTextbox -= 1;
+    if (currentTextbox === -1) {
+      currentTextbox = 4;
+    }
+    selectTextbox(currentTextbox);
+  });
+  eventInjectLayout.key(['down'], () => {
+    unselectTextbox(currentTextbox);
+    currentTextbox += 1;
+    if (currentTextbox === 5) {
+      currentTextbox = 0;
+    }
+    selectTextbox(currentTextbox);
+  });
   eventInjectLayout.key(['escape'], () => {
     // Discard modal
     closeModal();

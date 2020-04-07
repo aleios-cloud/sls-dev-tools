@@ -9,7 +9,9 @@ import {
   dateFormats,
   DEPLOYMENT_STATUS,
 } from './constants';
-import { helpModal, eventInjectionModal } from './modals';
+import { helpModal } from './modals/helpModal';
+import { eventRegistryModal } from './modals/eventRegistryModal';
+import { eventInjectionModal } from './modals/eventInjectionModal';
 
 const blessed = require('blessed');
 const contrib = require('blessed-contrib');
@@ -251,6 +253,17 @@ class Main {
         // take substring to remove leading characters displayed in tree
         const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow].substring(2);
         return eventInjectionModal(screen, blessed, selectedEventBridge, this, injectEvent);
+      }
+      return 0;
+    });
+    screen.key(['r'], () => {
+      // If focus is currently on this.eventBridgeTree
+      if (this.focusIndex === 1 && this.isModalOpen === false) {
+        this.isModalOpen = true;
+        const selectedRow = this.eventBridgeTree.rows.selected;
+        // take substring to remove leading characters displayed in tree
+        const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow].substring(2);
+        return eventRegistryModal(screen, blessed, selectedEventBridge, this);
       }
       return 0;
     });

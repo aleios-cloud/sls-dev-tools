@@ -78,6 +78,6 @@ Heavily based off the amazing [blessed](https://github.com/chjj/blessed) and [bl
 
 ## Core Team
 
-| [Ben Ellerby](https://github.com/BenEllerby) | [Abbie Howell](https://github.com/abbiehowell) | [Rob Cronin](https://github.com/robcronin) | [Gavin Williams](https://github.com/DotGav) | [Antoine Eudes](https://github.com/antoineeudes) |
-|---|---|---|---|---|
-| ![Ben Ellerby](https://avatars2.githubusercontent.com/u/11080984?s=150) | ![Abbie Howell](https://avatars3.githubusercontent.com/u/41898453?s=150) | ![Rob Cronin](https://avatars3.githubusercontent.com/u/32868346?s=150) | ![Gavin Williams](https://github.com/DotGav.png?size=150) | ![Antoine Eudes](https://avatars3.githubusercontent.com/u/13795384?s=150) |
+| [Ben Ellerby](https://github.com/BenEllerby) | [Abbie Howell](https://github.com/abbiehowell) | [Rob Cronin](https://github.com/robcronin) | [Gavin Williams](https://github.com/DotGav) | [Antoine Eudes](https://github.com/antoineeudes) | [Mansur Pasha](https://github.com/mansurpasha) | [Luc Esplin](https://github.com/luce-theodo) |
+|---|---|---|---|---|---|---|
+| ![Ben Ellerby](https://avatars2.githubusercontent.com/u/11080984?s=150) | ![Abbie Howell](https://avatars3.githubusercontent.com/u/41898453?s=150) | ![Rob Cronin](https://avatars3.githubusercontent.com/u/32868346?s=150) | ![Gavin Williams](https://github.com/DotGav.png?size=150) | ![Antoine Eudes](https://avatars3.githubusercontent.com/u/13795384?s=150) | ![Mansur Pasha](https://github.com/mansurpasha.png?size=150) | ![Luc Esplin](https://github.com/luce-theodo.png?size=150) |

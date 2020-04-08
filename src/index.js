@@ -140,11 +140,11 @@ class Main {
       mouse: true,
     });
     this.consoleLogs = this.layoutGrid.set(8, 6, 4, 3, blessed.log, {
-      fg: 'red',
-      selectedFg: 'dark-red',
+      fg: 'green',
+      selectedFg: 'dark-green',
       label: 'Dashboard Logs',
       interactive: true,
-      scrollbar: { bg: 'red' },
+      scrollbar: { bg: 'blue' },
       mouse: true,
     });
     this.titleBox = this.layoutGrid.set(0, 0, 2, 6, blessed.box, {

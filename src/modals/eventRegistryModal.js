@@ -4,9 +4,7 @@ function updateRegistryTable(api, table) {
       console.error(err);
     } else {
       const registries = [];
-      for (let i = 0; i < data.Registries.length; i += 1) {
-        registries.push(data.Registries[i].RegistryName);
-      }
+      data.Registries.forEach((r) => registries.push(r.RegistryName));
       table.setItems(registries);
     }
   });

@@ -1,4 +1,18 @@
-const eventRegistryModal = (screen, blessed, eventBridge, application) => {
+function updateRegistryTable(api, table) {
+  api.listRegistries({ Scope: 'LOCAL' }, (err, data) => {
+    if (err) {
+      console.error(err);
+    } else {
+      const registries = [];
+      for (let i = 0; i < data.Registries.length; i += 1) {
+        registries.push(data.Registries[i].RegistryName);
+      }
+      table.setItems(registries);
+    }
+  });
+}
+
+const eventRegistryModal = (screen, blessed, eventBridge, application, api) => {
   const eventRegistryLayout = blessed.layout({
     parent: screen,
     top: 'center',
@@ -29,6 +43,18 @@ const eventRegistryModal = (screen, blessed, eventBridge, application) => {
     content: 'Event Registry',
   });
 
+  const registryTable = blessed.list({
+    parent: eventRegistryLayout,
+    width: 110,
+    height: 10,
+    left: 'right',
+    top: 'center',
+    keys: true,
+    fg: 'green',
+    interactive: true,
+    items: ['loading'],
+  });
+
   blessed.box({
     parent: eventRegistryLayout,
     width: 110,
@@ -42,9 +68,10 @@ const eventRegistryModal = (screen, blessed, eventBridge, application) => {
     content: 'ESC to close        ',
   });
 
-  eventRegistryLayout.focus();
+  updateRegistryTable(api, registryTable);
+  registryTable.focus();
 
-  eventRegistryLayout.key(['escape'], () => {
+  registryTable.key(['escape'], () => {
     // Discard modal
     closeModal();
   });

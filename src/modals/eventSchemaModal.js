@@ -1,3 +1,17 @@
+import { eventModal } from './eventModal';
+
+function updateSchemaTable(api, registry, table) {
+  api.listSchemas({ RegistryName: registry }, (err, data) => {
+    if (err) {
+      console.error(err);
+    } else {
+      const schemas = [];
+      data.Schemas.forEach((s) => schemas.push(s.SchemaName));
+      table.setItems(schemas);
+    }
+  });
+}
+
 const eventSchemaModal = (screen, blessed, eventBridge, application, api, registry) => {
   const eventSchemaLayout = blessed.layout({
     parent: screen,
@@ -26,7 +40,23 @@ const eventSchemaModal = (screen, blessed, eventBridge, application, api, regist
     align: 'center',
     padding: { left: 2, right: 2 },
     style: { fg: 'green' },
-    content: 'Event Injection',
+    content: 'Event Schemas',
+  });
+
+  const schemaTable = blessed.list({
+    parent: eventSchemaLayout,
+    width: 110,
+    height: 20,
+    border: 'line',
+    style: { fg: 'green', border: { fg: 'green' } },
+    padding: { left: 2, right: 2 },
+    left: 'right',
+    top: 'center',
+    keys: true,
+    interactive: true,
+    items: ['loading'],
+    invertSelected: true,
+    label: 'Schemas',
   });
 
   blessed.box({
@@ -39,12 +69,19 @@ const eventSchemaModal = (screen, blessed, eventBridge, application, api, regist
     padding: { left: 2, right: 2 },
     border: 'line',
     style: { fg: 'green', border: { fg: 'green' } },
-    content: 'ESC to close        ',
+    content: 'Arrow keys to navigate | ENTER to select \nESC to close        ',
   });
 
-  eventSchemaLayout.focus();
+  updateSchemaTable(api, registry, schemaTable);
+  schemaTable.focus();
 
-  eventSchemaLayout.key(['escape'], () => {
+  schemaTable.key(['enter'], () => {
+    const schema = schemaTable.ritems[schemaTable.selected];
+    eventSchemaLayout.destroy();
+    return eventModal(screen, blessed, eventBridge, application, api, registry, schema);
+  });
+
+  schemaTable.key(['escape'], () => {
     // Discard modal
     closeModal();
   });

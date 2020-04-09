@@ -69,14 +69,14 @@ const eventRegistryModal = (screen, blessed, eventBridge, application, api) => {
     padding: { left: 2, right: 2 },
     border: 'line',
     style: { fg: 'green', border: { fg: 'green' } },
-    content: 'Arrow keys to choose a registry | ENTER to select \nESC to close        ',
+    content: 'Arrow keys to navigate | ENTER to select \nESC to close        ',
   });
 
   updateRegistryTable(api, registryTable);
   registryTable.focus();
 
   registryTable.key(['enter'], () => {
-    const registry = registryTable.items[registryTable.selected];
+    const registry = registryTable.ritems[registryTable.selected];
     eventRegistryLayout.destroy();
     return eventSchemaModal(screen, blessed, eventBridge, application, api, registry);
   });

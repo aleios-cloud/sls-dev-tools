@@ -75,6 +75,7 @@ const cloudformation = new AWS.CloudFormation();
 const cloudwatch = new AWS.CloudWatch();
 const cloudwatchLogs = new AWS.CloudWatchLogs();
 const eventBridge = new AWS.EventBridge();
+const schemas = new AWS.Schemas();
 
 function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
@@ -263,7 +264,7 @@ class Main {
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree
         const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow].substring(2);
-        return eventRegistryModal(screen, blessed, selectedEventBridge, this);
+        return eventRegistryModal(screen, blessed, selectedEventBridge, this, schemas);
       }
       return 0;
     });

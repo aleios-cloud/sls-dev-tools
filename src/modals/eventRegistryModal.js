@@ -65,7 +65,7 @@ const eventRegistryModal = (screen, blessed, eventBridge, application, api) => {
     padding: { left: 2, right: 2 },
     border: 'line',
     style: { fg: 'green', border: { fg: 'green' } },
-    content: 'ESC to close        ',
+    content: 'Arrow keys to choose a registry | ENTER to select \nESC to close        ',
   });
 
   updateRegistryTable(api, registryTable);

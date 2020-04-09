@@ -46,13 +46,17 @@ const eventRegistryModal = (screen, blessed, eventBridge, application, api) => {
   const registryTable = blessed.list({
     parent: eventRegistryLayout,
     width: 110,
-    height: 10,
+    height: 20,
+    border: 'line',
+    style: { fg: 'green', border: { fg: 'green' } },
+    padding: { left: 2, right: 2 },
     left: 'right',
     top: 'center',
     keys: true,
-    fg: 'green',
     interactive: true,
     items: ['loading'],
+    invertSelected: true,
+    label: 'Registries',
   });
 
   blessed.box({

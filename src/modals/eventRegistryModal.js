@@ -1,3 +1,5 @@
+import { eventSchemaModal } from './eventSchemaModal';
+
 function updateRegistryTable(api, table) {
   api.listRegistries({ Scope: 'LOCAL' }, (err, data) => {
     if (err) {
@@ -68,6 +70,12 @@ const eventRegistryModal = (screen, blessed, eventBridge, application, api) => {
 
   updateRegistryTable(api, registryTable);
   registryTable.focus();
+
+  registryTable.key(['enter'], () => {
+    const registry = registryTable.items[registryTable.selected];
+    eventRegistryLayout.destroy();
+    return eventSchemaModal(screen, blessed, eventBridge, application, api, registry);
+  });
 
   registryTable.key(['escape'], () => {
     // Discard modal

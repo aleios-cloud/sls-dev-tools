@@ -9,7 +9,9 @@ import {
   dateFormats,
   DEPLOYMENT_STATUS,
 } from './constants';
-import { helpModal, eventInjectionModal } from './modals';
+import { helpModal } from './modals/helpModal';
+import { eventRegistryModal } from './modals/eventRegistryModal';
+import { eventInjectionModal } from './modals/eventInjectionModal';
 
 const blessed = require('blessed');
 const contrib = require('blessed-contrib');
@@ -73,9 +75,8 @@ const cloudformation = new AWS.CloudFormation();
 const cloudwatch = new AWS.CloudWatch();
 const cloudwatchLogs = new AWS.CloudWatchLogs();
 const eventBridge = new AWS.EventBridge();
+const schemas = new AWS.Schemas();
 const lambda = new AWS.Lambda();
-
-
 
 function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
@@ -277,7 +278,19 @@ class Main {
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree
         const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow].substring(2);
-        return eventInjectionModal(screen, blessed, selectedEventBridge, this, injectEvent);
+        const previousEvent = this.previousSubmittedEvent[selectedEventBridge];
+        return eventInjectionModal(screen, blessed, selectedEventBridge, this, injectEvent, previousEvent);
+      }
+      return 0;
+    });
+    screen.key(['r'], () => {
+      // If focus is currently on this.eventBridgeTree
+      if (this.focusIndex === 1 && this.isModalOpen === false) {
+        this.isModalOpen = true;
+        const selectedRow = this.eventBridgeTree.rows.selected;
+        // take substring to remove leading characters displayed in tree
+        const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow].substring(2);
+        return eventRegistryModal(screen, blessed, selectedEventBridge, this, schemas, injectEvent);
       }
       return 0;
     });

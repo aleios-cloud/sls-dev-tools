@@ -26,7 +26,8 @@ The Dev Tools for the Serverless World
 - Choose a function with the arrow keys, and press enter to see the metrics for that function.
   - If you get an `AccessDenied` error in which case you must add the `GetMetricData` permission from CloudWatch in the IAM console on AWS.
   - If you're not seeing any data in the graphs, try changing your start date to make sure you have had invocations since then.
-- The EventBridge pane allows you to view event buses in your region, and send events to each bus from a template editor.
+- The EventBridge pane allows you to view event buses in your region, and send events to each bus from a template editor. 
+- View the Event Registry, find schemas for all your events, and enter event properties using a simple form, without needing to write JSON boilerplate.  
 - Switch focus between lambda functions and event buses by pressing tab.
 - The line graph shows the number of invocations and errors that occurred within the time interval.
 - The bar chart shows the response time of 5 most recent invocations.
@@ -53,6 +54,7 @@ Shortcuts
 - Pressing "d" while selecting a function from the function list will deploy the selected lambda function, note this is not possible while using SAM
 - Pressing "s" while selecting a function will deploy the entire stack
 - Pressing "i" while selecting an event bus will open a window to write and inject an event for that bus
+- Pressing "r" while selecting an event bus will open the event registry. Select a event schema to edit the event properties, and inject it on that bus. 
 ```
 
 # A note on AWS API calls and pricing	

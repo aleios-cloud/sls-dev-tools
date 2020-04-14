@@ -5,9 +5,14 @@ function updateEvent(api, registry, schema) {
   return api.describeSchema({ RegistryName: registry, SchemaName: schema }).promise();
 }
 
-async function getProperties(api, registry, schema) {
+async function getProperties(api, registry, schema, event) {
   const data = await updateEvent(api, registry, schema);
   let parsedEvent = JSON.parse(data.Content);
+  // Update detailType and source fields from schema
+  const detailType = parsedEvent.components.schemas.AWSEvent['x-amazon-events-detail-type'];
+  const source = parsedEvent.components.schemas.AWSEvent['x-amazon-events-source'];
+  event.DetailType = detailType;
+  event.Source = source;
   // "detail" is contained in the AWSEvent schema as a reference,
   // typically of the form #/components/schemas/TestEvent
   const eventDetail = parsedEvent.components.schemas.AWSEvent.properties.detail.$ref;
@@ -21,10 +26,10 @@ async function getProperties(api, registry, schema) {
   return [];
 }
 
-const createDynamicForm = async (blessed, api, registry, schema, parent, textboxes, fieldNames, closeModal) => {
+const createDynamicForm = async (blessed, api, registry, schema, parent, textboxes, fieldNames, closeModal, event) => {
   let fieldList = [];
   try {
-    fieldList = await getProperties(api, registry, schema);
+    fieldList = await getProperties(api, registry, schema, event);
   } catch (e) {
     console.error(e);
   }
@@ -68,15 +73,6 @@ const createDetail = (keys, textboxes) => {
   }
 };
 
-const createPrefilledEvent = (eventBridge, detail) => {
-  return {
-    EventBusName: eventBridge,
-    DetailType: '',
-    Source: '',
-    Detail: detail,
-  };
-};
-
 const eventModal = (screen, blessed, eventBridge, application, api, registry, schema, injectEvent) => {
   const eventLayout = blessed.layout({
     parent: screen,
@@ -102,6 +98,13 @@ const eventModal = (screen, blessed, eventBridge, application, api, registry, sc
   const textboxes = [];
 
   const fieldNames = [];
+
+  const event = {
+    EventBusName: eventBridge,
+    DetailType: '',
+    Source: '',
+    Detail: '{}',
+  };
 
   const unselectTextbox = (index) => {
     textboxes[index].style.border.fg = 'green';
@@ -158,7 +161,7 @@ const eventModal = (screen, blessed, eventBridge, application, api, registry, sc
   // Push submit to front of textboxes array to avoid race conditions
   textboxes.push(submit);
 
-  createDynamicForm(blessed, api, registry, schema, fieldLayout, textboxes, fieldNames, closeModal);
+  createDynamicForm(blessed, api, registry, schema, fieldLayout, textboxes, fieldNames, closeModal, event);
 
   blessed.box({
     parent: eventLayout,
@@ -181,7 +184,7 @@ const eventModal = (screen, blessed, eventBridge, application, api, registry, sc
       if (currentTextbox === 0) {
         // Slice textboxes to ignore submit button
         const detail = JSON.stringify(createDetail(fieldNames, textboxes.slice(1)));
-        const event = createPrefilledEvent(eventBridge, detail);
+        event.Detail = detail;
         eventLayout.destroy();
         eventInjectionModal(screen, blessed, eventBridge, application, injectEvent, event);
       } else {

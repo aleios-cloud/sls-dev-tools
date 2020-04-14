@@ -170,7 +170,7 @@ const eventModal = (screen, blessed, eventBridge, application, api, registry, sc
     padding: { left: 2, right: 2 },
     border: 'line',
     style: { fg: 'green', border: { fg: 'green' } },
-    content: 'ESC to close',
+    content: 'Arrow keys to select field | ENTER to toggle edit mode \nENTER on Submit to inject event | ESC to close',
   });
 
   fieldLayout.focus();

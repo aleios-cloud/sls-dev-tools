@@ -12,7 +12,7 @@ function updateSchemaTable(api, registry, table) {
   });
 }
 
-const eventSchemaModal = (screen, blessed, eventBridge, application, api, registry) => {
+const eventSchemaModal = (screen, blessed, eventBridge, application, api, registry, injectEvent) => {
   const eventSchemaLayout = blessed.layout({
     parent: screen,
     top: 'center',
@@ -78,7 +78,7 @@ const eventSchemaModal = (screen, blessed, eventBridge, application, api, regist
   schemaTable.key(['enter'], () => {
     const schema = schemaTable.ritems[schemaTable.selected];
     eventSchemaLayout.destroy();
-    return eventModal(screen, blessed, eventBridge, application, api, registry, schema);
+    return eventModal(screen, blessed, eventBridge, application, api, registry, schema, injectEvent);
   });
 
   schemaTable.key(['escape'], () => {

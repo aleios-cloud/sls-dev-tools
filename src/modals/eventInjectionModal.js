@@ -1,6 +1,6 @@
 import { generateFieldWithTitle } from '../components/fieldWithTitle';
 
-const eventInjectionModal = (screen, blessed, eventBridge, application, injectEvent) => {
+const eventInjectionModal = (screen, blessed, eventBridge, application, injectEvent, prefilledEvent) => {
   const eventInjectLayout = blessed.layout({
     parent: screen,
     top: 'center',
@@ -14,14 +14,12 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
   });
 
   // Prefill textbox with previous submission if there is one
-  const event = application.previousSubmittedEvent[eventBridge]
-    ? application.previousSubmittedEvent[eventBridge]
-    : {
-      EventBusName: eventBridge,
-      DetailType: '',
-      Source: '',
-      Detail: '{}',
-    };
+  const event = prefilledEvent || {
+    EventBusName: eventBridge,
+    DetailType: '',
+    Source: '',
+    Detail: '{}',
+  };
 
   // String values textboxes are initialized with
   const preset = [event.EventBusName, event.DetailType, event.Source, event.Detail];

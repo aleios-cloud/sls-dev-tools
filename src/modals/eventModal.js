@@ -29,7 +29,20 @@ const createDynamicForm = async (blessed, api, registry, schema, parent, textbox
     console.error(e);
   }
 
-  if (fieldList !== []) {
+  if (fieldList.length > 5) {
+    blessed.box({
+      parent,
+      width: 106,
+      height: 4,
+      left: 'right',
+      top: 'center',
+      align: 'center',
+      padding: { left: 2, right: 2 },
+      border: 'line',
+      style: { fg: 'green', border: { fg: 'green' } },
+      content: "The tool currently can't display more than 5 fields.\nComing in the next version!",
+    });
+  } else if (fieldList !== []) {
     fieldList.forEach((field) => {
       const textbox = generateFieldWithTitle(blessed, parent, field, '', 106);
       textbox.on('cancel', () => {
@@ -38,8 +51,6 @@ const createDynamicForm = async (blessed, api, registry, schema, parent, textbox
       textboxes.push(textbox);
       fieldNames.push(field);
     });
-    // Highlight first field for entry, textboxes[0] is the submit button
-    textboxes[1].style.border.fg = 'yellow';
   }
 };
 
@@ -72,7 +83,7 @@ const eventModal = (screen, blessed, eventBridge, application, api, registry, sc
     top: 'center',
     left: 'center',
     width: 112,
-    height: 32,
+    height: 33,
     border: 'line',
     style: { border: { fg: 'green' } },
     keys: true,
@@ -86,7 +97,7 @@ const eventModal = (screen, blessed, eventBridge, application, api, registry, sc
     eventLayout.destroy();
   };
 
-  let currentTextbox = 1;
+  let currentTextbox = 0;
 
   const textboxes = [];
 
@@ -124,7 +135,7 @@ const eventModal = (screen, blessed, eventBridge, application, api, registry, sc
     top: 'center',
     left: 'center',
     width: 110,
-    height: 21,
+    height: 22,
     border: 'line',
     style: { border: { fg: 'green' } },
     keys: true,
@@ -140,7 +151,7 @@ const eventModal = (screen, blessed, eventBridge, application, api, registry, sc
     align: 'center',
     padding: { left: 2, right: 2 },
     border: 'line',
-    style: { fg: 'green', border: { fg: 'green' } },
+    style: { fg: 'yellow', border: { fg: 'yellow' } },
     content: 'Submit',
   });
 
@@ -168,6 +179,7 @@ const eventModal = (screen, blessed, eventBridge, application, api, registry, sc
     // If submit button is in focus
     try {
       if (currentTextbox === 0) {
+        // Slice textboxes to ignore submit button
         const detail = JSON.stringify(createDetail(fieldNames, textboxes.slice(1)));
         const event = createPrefilledEvent(eventBridge, detail);
         eventLayout.destroy();

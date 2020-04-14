@@ -12,7 +12,7 @@ function updateSchemaTable(api, registry, table) {
   });
 }
 
-const eventSchemaModal = (screen, blessed, eventBridge, application, api, registry) => {
+const eventSchemaModal = (screen, blessed, eventBridge, application, api, registry, injectEvent) => {
   const eventSchemaLayout = blessed.layout({
     parent: screen,
     top: 'center',
@@ -72,14 +72,20 @@ const eventSchemaModal = (screen, blessed, eventBridge, application, api, regist
     content: 'Arrow keys to navigate | ENTER to select \nESC to close        ',
   });
 
-  updateSchemaTable(api, registry, schemaTable);
-  schemaTable.focus();
 
-  schemaTable.key(['enter'], () => {
-    const schema = schemaTable.ritems[schemaTable.selected];
-    eventSchemaLayout.destroy();
-    return eventModal(screen, blessed, eventBridge, application, api, registry, schema);
-  });
+  if (registry === 'discovered-schemas') {
+    updateSchemaTable(api, registry, schemaTable);
+    schemaTable.focus();
+
+    schemaTable.key(['enter'], () => {
+      const schema = schemaTable.ritems[schemaTable.selected];
+      eventSchemaLayout.destroy();
+      return eventModal(screen, blessed, eventBridge, application, api, registry, schema, injectEvent);
+    });
+  } else {
+    schemaTable.setItems(['The tool currently only supports the discovered schemas registry.', 'Expect full support in the next version!']);
+    schemaTable.focus();
+  }
 
   schemaTable.key(['escape'], () => {
     // Discard modal

@@ -253,7 +253,8 @@ class Main {
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree
         const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow].substring(2);
-        return eventInjectionModal(screen, blessed, selectedEventBridge, this, injectEvent);
+        const previousEvent = this.previousSubmittedEvent[selectedEventBridge];
+        return eventInjectionModal(screen, blessed, selectedEventBridge, this, injectEvent, previousEvent);
       }
       return 0;
     });
@@ -264,7 +265,7 @@ class Main {
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree
         const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow].substring(2);
-        return eventRegistryModal(screen, blessed, selectedEventBridge, this, schemas);
+        return eventRegistryModal(screen, blessed, selectedEventBridge, this, schemas, injectEvent);
       }
       return 0;
     });

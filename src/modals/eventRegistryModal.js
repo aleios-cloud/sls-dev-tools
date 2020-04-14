@@ -12,7 +12,7 @@ function updateRegistryTable(api, table) {
   });
 }
 
-const eventRegistryModal = (screen, blessed, eventBridge, application, api) => {
+const eventRegistryModal = (screen, blessed, eventBridge, application, api, injectEvent) => {
   const eventRegistryLayout = blessed.layout({
     parent: screen,
     top: 'center',
@@ -78,7 +78,7 @@ const eventRegistryModal = (screen, blessed, eventBridge, application, api) => {
   registryTable.key(['enter'], () => {
     const registry = registryTable.ritems[registryTable.selected];
     eventRegistryLayout.destroy();
-    return eventSchemaModal(screen, blessed, eventBridge, application, api, registry);
+    return eventSchemaModal(screen, blessed, eventBridge, application, api, registry, injectEvent);
   });
 
   registryTable.key(['escape'], () => {

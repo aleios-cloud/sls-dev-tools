@@ -1,14 +1,45 @@
-function updateEvent(api, registry, schema, textbox) {
-  api.describeSchema({ RegistryName: registry, SchemaName: schema }, (err, data) => {
-    if (err) {
-      console.error(err);
-    } else {
-      console.log(data);
-      const eventJson = data.Content;
-      textbox.content = eventJson;
-    }
-  });
+import { generateFieldWithTitle } from '../components/fieldWithTitle';
+
+function updateEvent(api, registry, schema) {
+  return api.describeSchema({ RegistryName: registry, SchemaName: schema }).promise();
 }
+
+async function getProperties(api, registry, schema) {
+  const data = await updateEvent(api, registry, schema);
+  let parsedEvent = JSON.parse(data.Content);
+  // "detail" is contained in the AWSEvent schema as a reference,
+  // typically of the form #/components/schemas/TestEvent
+  const eventDetail = parsedEvent.components.schemas.AWSEvent.properties.detail.$ref;
+  //  Convert reference to an array of properties, to create a path to "detail"
+  const pathToDetail = eventDetail.replace('#/', '').split('/');
+  // Updated parsedEvent to the "detail" field stored at the end of the path
+  pathToDetail.forEach((parsed) => parsedEvent = parsedEvent[parsed]);
+  if (Object.prototype.hasOwnProperty.call(parsedEvent, 'required')) {
+    return parsedEvent.required;
+  }
+  return [];
+}
+
+const createDynamicForm = async (blessed, api, registry, schema, parent, textboxes, closeModal) => {
+  let fieldList = [];
+  try {
+    fieldList = await getProperties(api, registry, schema);
+  } catch (e) {
+    console.error(e);
+  }
+
+  if (fieldList !== []) {
+    fieldList.forEach((field) => {
+      const textbox = generateFieldWithTitle(blessed, parent, field, '', 106);
+      textbox.on('cancel', () => {
+        closeModal();
+      });
+      textboxes.push(textbox);
+    });
+    // Highlight first field for entry
+    textboxes[0].style.border.fg = 'yellow';
+  }
+};
 
 const eventModal = (screen, blessed, eventBridge, application, api, registry, schema) => {
   const eventLayout = blessed.layout({
@@ -30,6 +61,18 @@ const eventModal = (screen, blessed, eventBridge, application, api, registry, sc
     eventLayout.destroy();
   };
 
+  let currentTextbox = 0;
+
+  const textboxes = [];
+
+  const unselectTextbox = (index) => {
+    textboxes[index].style.border.fg = 'green';
+  };
+
+  const selectTextbox = (index) => {
+    textboxes[index].style.border.fg = 'yellow';
+  };
+
   blessed.box({
     parent: eventLayout,
     width: 110,
@@ -41,18 +84,19 @@ const eventModal = (screen, blessed, eventBridge, application, api, registry, sc
     content: 'Event Injection',
   });
 
-  const event = blessed.box({
+  const fieldLayout = blessed.layout({
     parent: eventLayout,
-    width: 110,
-    height: 4,
-    left: 'right',
     top: 'center',
-    align: 'center',
-    padding: { left: 2, right: 2 },
+    left: 'center',
+    width: 110,
+    height: 20,
     border: 'line',
-    style: { fg: 'green', border: { fg: 'green' } },
-    content: 'loading',
+    style: { border: { fg: 'green' } },
+    keys: true,
+    grabKeys: true,
   });
+
+  createDynamicForm(blessed, api, registry, schema, fieldLayout, textboxes, closeModal);
 
   blessed.box({
     parent: eventLayout,
@@ -67,11 +111,30 @@ const eventModal = (screen, blessed, eventBridge, application, api, registry, sc
     content: 'ESC to close',
   });
 
-  updateEvent(api, registry, schema, event);
+  fieldLayout.focus();
 
-  eventLayout.focus();
+  fieldLayout.key(['enter'], () => {
+    // Select field for entry
+    textboxes[currentTextbox].focus();
+  });
+  fieldLayout.key(['up'], () => {
+    unselectTextbox(currentTextbox);
+    currentTextbox -= 1;
+    if (currentTextbox === -1) {
+      currentTextbox = textboxes.length - 1;
+    }
+    selectTextbox(currentTextbox);
+  });
+  fieldLayout.key(['down'], () => {
+    unselectTextbox(currentTextbox);
+    currentTextbox += 1;
+    if (currentTextbox === textboxes.length) {
+      currentTextbox = 0;
+    }
+    selectTextbox(currentTextbox);
+  });
 
-  eventLayout.key(['escape'], () => {
+  fieldLayout.key(['escape'], () => {
     // Discard modal
     closeModal();
   });

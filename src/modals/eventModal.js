@@ -127,7 +127,7 @@ const eventModal = (screen, blessed, eventBridge, application, api, registry, sc
     align: 'center',
     padding: { left: 2, right: 2 },
     style: { fg: 'green' },
-    content: 'Event Injection',
+    content: `Event Injection - ${schema}`,
   });
 
   const fieldLayout = blessed.layout({

@@ -7,8 +7,12 @@ function updateEvent(api, registry, schema) {
 async function getProperties(api, registry, schema) {
   const data = await updateEvent(api, registry, schema);
   let parsedEvent = JSON.parse(data.Content);
+  // "detail" is contained in the AWSEvent schema as a reference,
+  // typically of the form #/components/schemas/TestEvent
   const eventDetail = parsedEvent.components.schemas.AWSEvent.properties.detail.$ref;
+  //  Convert reference to an array of properties, to create a path to "detail"
   const pathToDetail = eventDetail.replace('#/', '').split('/');
+  // Updated parsedEvent to the "detail" field stored at the end of the path
   pathToDetail.forEach((parsed) => parsedEvent = parsedEvent[parsed]);
   if (Object.prototype.hasOwnProperty.call(parsedEvent, 'required')) {
     return parsedEvent.required;

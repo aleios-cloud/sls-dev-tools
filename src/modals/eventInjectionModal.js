@@ -1,3 +1,5 @@
+import { generateFieldWithTitle } from '../components/fieldWithTitle';
+
 const eventInjectionModal = (screen, blessed, eventBridge, application, injectEvent) => {
   const eventInjectLayout = blessed.layout({
     parent: screen,
@@ -74,32 +76,7 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
   });
 
   for (let i = 0; i < numTextboxes; i += 1) {
-    blessed.box({
-      parent: eventInjectLayout,
-      width: 110,
-      left: 'right',
-      top: 'center',
-      align: 'left',
-      padding: { left: 1, right: 1 },
-      content: fields[i],
-    });
-    const textbox = blessed.textbox({
-      parent: eventInjectLayout,
-      top: 'center',
-      left: 'center',
-      border: 'line',
-      pad: 2,
-      width: 110,
-      style: {
-        border: { fg: 'green' },
-        header: { fg: 'bright-green', bold: true, underline: true },
-        cell: { fg: 'yellow' },
-      },
-      inputOnFocus: true,
-      secret: false,
-      censor: false,
-      value: preset[i],
-    });
+    const textbox = generateFieldWithTitle(blessed, eventInjectLayout, fields[i], preset[i], 110);
     textbox.on('cancel', () => {
       updateEventValues();
       closeModal();

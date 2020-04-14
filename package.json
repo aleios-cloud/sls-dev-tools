@@ -4,7 +4,7 @@
     "sls-dev-tools": "./lib/index.js"
   },
   "dependencies": {
-    "aws-sdk": "^2.514.0",
+    "aws-sdk": "^2.655.0",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.17",
     "commander": "^5.0.0",
@@ -43,7 +43,7 @@
     ]
   },
   "description": "The Dev Tools for the Serverless World",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "main": "src/index.js",
   "directories": {
     "lib": "lib"

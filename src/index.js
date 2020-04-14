@@ -29,7 +29,7 @@ try {
   // No config provided
 }
 
-program.version('0.2.1');
+program.version('0.2.2');
 program
   .requiredOption('-n, --stack-name <stackName>', 'AWS stack name')
   .requiredOption('-r, --region <region>', 'AWS region')
@@ -76,9 +76,34 @@ const cloudwatch = new AWS.CloudWatch();
 const cloudwatchLogs = new AWS.CloudWatchLogs();
 const eventBridge = new AWS.EventBridge();
 const schemas = new AWS.Schemas();
+const lambda = new AWS.Lambda();
 
 function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
+}
+
+let lambdaFunctions = {};
+let latestLambdaFunctionsUpdateTimestamp = -1;
+
+async function refreshLambdaFunctions() {
+  const allFunctions = [];
+  let marker = undefined;
+  while (true) {
+    const response = await lambda.listFunctions({
+      Marker: marker,
+      MaxItems: 50
+    }).promise();
+    const functions = response.Functions;
+    allFunctions.push(...functions);
+    if (!response.NextMarker) {
+      break;
+    }
+    marker = response.NextMarker;
+  }
+  lambdaFunctions = allFunctions.reduce(function(map, func) {
+      map[func.FunctionName] = func;
+      return map;
+  }, {});
 }
 
 function getEventBuses() {
@@ -110,7 +135,7 @@ class Main {
       fg: 'green',
       label: 'Lambda Functions',
       columnSpacing: 1,
-      columnWidth: [44, 60],
+      columnWidth: [45, 30, 15],
     });
     this.invocationsLineGraph = this.layoutGrid.set(2, 0, 6, 6, contrib.line, {
       maxY: 0,
@@ -143,11 +168,11 @@ class Main {
       mouse: true,
     });
     this.consoleLogs = this.layoutGrid.set(8, 6, 4, 3, blessed.log, {
-      fg: 'red',
-      selectedFg: 'dark-red',
+      fg: 'green',
+      selectedFg: 'dark-green',
       label: 'Dashboard Logs',
       interactive: true,
-      scrollbar: { bg: 'red' },
+      scrollbar: { bg: 'blue' },
       mouse: true,
     });
     this.titleBox = this.layoutGrid.set(0, 0, 2, 6, blessed.box, {
@@ -428,21 +453,50 @@ class Main {
   }
 
   async updateResourcesInformation() {
-    const newData = await getStackResources(program.stackName, this.setData);
-    this.data = newData;
+    const stackResources = await getStackResources(program.stackName, this.setData);
+    this.data = stackResources;
 
-    const eventBridgeResources = await getEventBuses();
+    let latestLastUpdatedTimestamp = -1;
+    const lambdaFunctionResources =
+        stackResources.StackResourceSummaries
+            .filter((res) => {
+              const isLambdaFunction = res.ResourceType === 'AWS::Lambda::Function';
+              if (isLambdaFunction) {
+                const lastUpdatedTimestampMilliseconds = moment(res.LastUpdatedTimestamp).valueOf();
+                if (lastUpdatedTimestampMilliseconds > latestLastUpdatedTimestamp) {
+                  latestLastUpdatedTimestamp = lastUpdatedTimestampMilliseconds;
+                }
+              }
+              return isLambdaFunction;
+            });
+    if (latestLastUpdatedTimestamp > latestLambdaFunctionsUpdateTimestamp) {
+      // In case of update in the Lambda function resources,
+      // instead of getting updated function configurations one by one individually,
+      // we are getting all the functions' configurations in batch
+      // even though there will be unrelated ones with the stack.
+      // Because this should result with less API calls in most cases.
+      await refreshLambdaFunctions();
+      latestLambdaFunctionsUpdateTimestamp = latestLastUpdatedTimestamp;
+    }
 
-    this.lambdasTable.data = newData.StackResourceSummaries.filter(
-      (res) => res.ResourceType === 'AWS::Lambda::Function',
-    ).map((lam) => [
-      lam.PhysicalResourceId.replace(`${program.stackName}-`, ''),
-      moment(lam.LastUpdatedTimestamp).format('MMMM Do YYYY, h:mm:ss a'),
-    ]);
+    this.lambdasTable.data = lambdaFunctionResources.map((lam) => {
+      const funcName = lam.PhysicalResourceId;
+      const func = lambdaFunctions[funcName];
+      let funcRuntime = '?';
+      if (func) {
+        funcRuntime = func.Runtime;
+      }
+      return [
+        lam.PhysicalResourceId.replace(`${program.stackName}-`, ''),
+        moment(lam.LastUpdatedTimestamp).format('MMMM Do YYYY, h:mm:ss a'),
+        funcRuntime
+      ]
+    });
 
     this.updateLambdaTableRows();
     this.updateLambdaDeploymentStatus();
 
+    const eventBridgeResources = await getEventBuses();
     const busNames = eventBridgeResources.EventBuses.map((o) => o.Name)
       .reduce((eventBridges, bus) => {
         eventBridges[bus] = {};
@@ -536,7 +590,7 @@ class Main {
     }
 
     this.lambdasTable.setData({
-      headers: ['logical', 'updated'],
+      headers: ['logical', 'updated', 'runtime'],
       data: lambdaFunctionsWithDeploymentIndicator,
     });
 

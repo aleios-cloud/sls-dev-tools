@@ -29,7 +29,7 @@ try {
   // No config provided
 }
 
-program.version('0.2.2');
+program.version('0.2.3');
 program
   .requiredOption('-n, --stack-name <stackName>', 'AWS stack name')
   .requiredOption('-r, --region <region>', 'AWS region')

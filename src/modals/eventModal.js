@@ -7,31 +7,56 @@ function updateEvent(api, registry, schema) {
     .promise();
 }
 
-async function getProperties(api, registry, schema, event) {
-  const data = await updateEvent(api, registry, schema);
-  let parsedEvent = JSON.parse(data.Content);
-
+function handleAWSEvent(eventJson, event) {
   // Update detailType and source fields from schema
   const detailType =
-    parsedEvent.components.schemas.AWSEvent["x-amazon-events-detail-type"];
+    eventJson.components.schemas.AWSEvent["x-amazon-events-detail-type"];
   const source =
-    parsedEvent.components.schemas.AWSEvent["x-amazon-events-source"];
+    eventJson.components.schemas.AWSEvent["x-amazon-events-source"];
   event.DetailType = detailType;
   event.Source = source;
 
   // "detail" is contained in the AWSEvent schema as a reference,
   // typically of the form #/components/schemas/TestEvent
   const eventDetail =
-    parsedEvent.components.schemas.AWSEvent.properties.detail.$ref;
+    eventJson.components.schemas.AWSEvent.properties.detail.$ref;
   //  Convert reference to an array of properties, to create a path to "detail"
   const pathToDetail = eventDetail.replace("#/", "").split("/");
-  // Updated parsedEvent to the "detail" field stored at the end of the path
-  pathToDetail.forEach((parsed) => (parsedEvent = parsedEvent[parsed]));
+  // Updated eventJson to the "detail" field stored at the end of the path
+  pathToDetail.forEach((parsed) => (eventJson = eventJson[parsed]));
 
-  if (Object.prototype.hasOwnProperty.call(parsedEvent, "required")) {
-    return parsedEvent.required;
+  if (Object.prototype.hasOwnProperty.call(eventJson, "required")) {
+    return eventJson.required;
   }
   return [];
+}
+
+function handleCustomEvent(eventJson) {
+  if (
+    Object.prototype.hasOwnProperty.call(
+      eventJson.components.schemas.Event,
+      "required"
+    )
+  ) {
+    return eventJson.components.schemas.Event.required;
+  }
+  const { properties } = eventJson.components.schemas.Event;
+  return Object.keys(properties);
+}
+
+async function getProperties(api, registry, schema, event) {
+  const data = await updateEvent(api, registry, schema);
+  const parsedEvent = JSON.parse(data.Content);
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      parsedEvent.components.schemas,
+      "AWSEvent"
+    )
+  ) {
+    return handleAWSEvent(parsedEvent, event);
+  }
+  return handleCustomEvent(parsedEvent);
 }
 
 const createDynamicForm = async (

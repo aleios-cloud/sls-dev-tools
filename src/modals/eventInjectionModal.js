@@ -1,14 +1,21 @@
-import { generateFieldWithTitle } from '../components/fieldWithTitle';
+import { generateFieldWithTitle } from "../components/fieldWithTitle";
 
-const eventInjectionModal = (screen, blessed, eventBridge, application, injectEvent, prefilledEvent) => {
+const eventInjectionModal = (
+  screen,
+  blessed,
+  eventBridge,
+  application,
+  injectEvent,
+  prefilledEvent
+) => {
   const eventInjectLayout = blessed.layout({
     parent: screen,
-    top: 'center',
-    left: 'center',
+    top: "center",
+    left: "center",
     width: 112,
     height: 27,
-    border: 'line',
-    style: { border: { fg: 'green' } },
+    border: "line",
+    style: { border: { fg: "green" } },
     keys: true,
     grabKeys: true,
   });
@@ -16,15 +23,20 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
   // Prefill textbox with previous submission if there is one
   const event = prefilledEvent || {
     EventBusName: eventBridge,
-    DetailType: '',
-    Source: '',
-    Detail: '{}',
+    DetailType: "",
+    Source: "",
+    Detail: "{}",
   };
 
   // String values textboxes are initialized with
-  const preset = [event.EventBusName, event.DetailType, event.Source, event.Detail];
+  const preset = [
+    event.EventBusName,
+    event.DetailType,
+    event.Source,
+    event.Detail,
+  ];
 
-  const fields = ['EventBusName', 'DetailType', 'Source', 'Detail'];
+  const fields = ["EventBusName", "DetailType", "Source", "Detail"];
 
   const numTextboxes = 4;
 
@@ -33,16 +45,16 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
   const textboxes = [];
 
   const unselectTextbox = (index) => {
-    textboxes[index].style.border.fg = 'green';
+    textboxes[index].style.border.fg = "green";
     if (index === 4) {
-      textboxes[index].style.fg = 'green';
+      textboxes[index].style.fg = "green";
     }
   };
 
   const selectTextbox = (index) => {
-    textboxes[index].style.border.fg = 'yellow';
+    textboxes[index].style.border.fg = "yellow";
     if (index === 4) {
-      textboxes[index].style.fg = 'yellow';
+      textboxes[index].style.fg = "yellow";
     }
   };
 
@@ -65,17 +77,23 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
   blessed.box({
     parent: eventInjectLayout,
     width: 110,
-    left: 'right',
-    top: 'center',
-    align: 'center',
+    left: "right",
+    top: "center",
+    align: "center",
     padding: { left: 2, right: 2 },
-    style: { fg: 'green' },
-    content: 'Event Injection',
+    style: { fg: "green" },
+    content: "Event Injection",
   });
 
   for (let i = 0; i < numTextboxes; i += 1) {
-    const textbox = generateFieldWithTitle(blessed, eventInjectLayout, fields[i], preset[i], 110);
-    textbox.on('cancel', () => {
+    const textbox = generateFieldWithTitle(
+      blessed,
+      eventInjectLayout,
+      fields[i],
+      preset[i],
+      110
+    );
+    textbox.on("cancel", () => {
       updateEventValues();
       closeModal();
     });
@@ -86,13 +104,13 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
     parent: eventInjectLayout,
     width: 110,
     height: 4,
-    left: 'right',
-    top: 'center',
-    align: 'center',
+    left: "right",
+    top: "center",
+    align: "center",
     padding: { left: 2, right: 2 },
-    border: 'line',
-    style: { fg: 'green', border: { fg: 'green' } },
-    content: 'Submit',
+    border: "line",
+    style: { fg: "green", border: { fg: "green" } },
+    content: "Submit",
   });
 
   textboxes.push(submit);
@@ -101,20 +119,21 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
     parent: eventInjectLayout,
     width: 110,
     height: 4,
-    left: 'right',
-    top: 'center',
-    align: 'center',
+    left: "right",
+    top: "center",
+    align: "center",
     padding: { left: 2, right: 2 },
-    border: 'line',
-    style: { fg: 'green', border: { fg: 'green' } },
-    content: 'Arrow keys to select field | ENTER to toggle edit mode \nENTER on Submit to inject event | ESC to close',
+    border: "line",
+    style: { fg: "green", border: { fg: "green" } },
+    content:
+      "Arrow keys to select field | ENTER to toggle edit mode \nENTER on Submit to inject event | ESC to close",
   });
 
   eventInjectLayout.focus();
 
   selectTextbox(currentTextbox);
 
-  eventInjectLayout.key(['enter'], () => {
+  eventInjectLayout.key(["enter"], () => {
     // Inject event or select field for entry
     if (currentTextbox === 4) {
       updateEventValues();
@@ -124,7 +143,7 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
       textboxes[currentTextbox].focus();
     }
   });
-  eventInjectLayout.key(['up'], () => {
+  eventInjectLayout.key(["up"], () => {
     unselectTextbox(currentTextbox);
     currentTextbox -= 1;
     if (currentTextbox === -1) {
@@ -132,7 +151,7 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
     }
     selectTextbox(currentTextbox);
   });
-  eventInjectLayout.key(['down'], () => {
+  eventInjectLayout.key(["down"], () => {
     unselectTextbox(currentTextbox);
     currentTextbox += 1;
     if (currentTextbox === 5) {
@@ -140,7 +159,7 @@ const eventInjectionModal = (screen, blessed, eventBridge, application, injectEv
     }
     selectTextbox(currentTextbox);
   });
-  eventInjectLayout.key(['escape'], () => {
+  eventInjectLayout.key(["escape"], () => {
     // Discard modal
     closeModal();
   });

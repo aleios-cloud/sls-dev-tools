@@ -1,4 +1,4 @@
-import { eventModal } from './eventModal';
+import { eventModal } from "./eventModal";
 
 function updateSchemaTable(api, registry, table) {
   api.listSchemas({ RegistryName: registry }, (err, data) => {
@@ -12,15 +12,23 @@ function updateSchemaTable(api, registry, table) {
   });
 }
 
-const eventSchemaModal = (screen, blessed, eventBridge, application, api, registry, injectEvent) => {
+const eventSchemaModal = (
+  screen,
+  blessed,
+  eventBridge,
+  application,
+  api,
+  registry,
+  injectEvent
+) => {
   const eventSchemaLayout = blessed.layout({
     parent: screen,
-    top: 'center',
-    left: 'center',
+    top: "center",
+    left: "center",
     width: 112,
     height: 27,
-    border: 'line',
-    style: { border: { fg: 'green' } },
+    border: "line",
+    style: { border: { fg: "green" } },
     keys: true,
     grabKeys: true,
   });
@@ -35,59 +43,70 @@ const eventSchemaModal = (screen, blessed, eventBridge, application, api, regist
   blessed.box({
     parent: eventSchemaLayout,
     width: 110,
-    left: 'right',
-    top: 'center',
-    align: 'center',
+    left: "right",
+    top: "center",
+    align: "center",
     padding: { left: 2, right: 2 },
-    style: { fg: 'green' },
-    content: 'Event Schemas',
+    style: { fg: "green" },
+    content: "Event Schemas",
   });
 
   const schemaTable = blessed.list({
     parent: eventSchemaLayout,
     width: 110,
     height: 20,
-    border: 'line',
-    style: { fg: 'green', border: { fg: 'green' } },
+    border: "line",
+    style: { fg: "green", border: { fg: "green" } },
     padding: { left: 2, right: 2 },
-    left: 'right',
-    top: 'center',
+    left: "right",
+    top: "center",
     keys: true,
     interactive: true,
-    items: ['loading'],
+    items: ["loading"],
     invertSelected: true,
-    label: 'Schemas',
+    label: "Schemas",
   });
 
   blessed.box({
     parent: eventSchemaLayout,
     width: 110,
     height: 4,
-    left: 'right',
-    top: 'center',
-    align: 'center',
+    left: "right",
+    top: "center",
+    align: "center",
     padding: { left: 2, right: 2 },
-    border: 'line',
-    style: { fg: 'green', border: { fg: 'green' } },
-    content: 'Arrow keys to navigate | ENTER to select \nESC to close        ',
+    border: "line",
+    style: { fg: "green", border: { fg: "green" } },
+    content: "Arrow keys to navigate | ENTER to select \nESC to close        ",
   });
 
-
-  if (registry === 'discovered-schemas') {
+  if (registry === "discovered-schemas") {
     updateSchemaTable(api, registry, schemaTable);
     schemaTable.focus();
 
-    schemaTable.key(['enter'], () => {
+    schemaTable.key(["enter"], () => {
       const schema = schemaTable.ritems[schemaTable.selected];
       eventSchemaLayout.destroy();
-      return eventModal(screen, blessed, eventBridge, application, api, registry, schema, injectEvent);
+      return eventModal(
+        screen,
+        blessed,
+        eventBridge,
+        application,
+        api,
+        registry,
+        schema,
+        injectEvent
+      );
     });
   } else {
-    schemaTable.setItems(['The tool currently only supports the discovered schemas registry.', 'Expect full support in the next version!']);
+    schemaTable.setItems([
+      "The tool currently only supports the discovered schemas registry.",
+      "Expect full support in the next version!",
+    ]);
     schemaTable.focus();
   }
 
-  schemaTable.key(['escape'], () => {
+  schemaTable.key(["escape"], () => {
     // Discard modal
     closeModal();
   });

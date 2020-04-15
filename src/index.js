@@ -1,25 +1,22 @@
 #!/usr/bin/env node
-/* eslint-disable no-plusplus */
-/* eslint-disable no-console */
-/* eslint-disable new-cap */
-import AWS from 'aws-sdk';
+import AWS from "aws-sdk";
 import {
   awsRegionLocations,
   logo,
   dateFormats,
   DEPLOYMENT_STATUS,
-} from './constants';
-import { helpModal } from './modals/helpModal';
-import { eventRegistryModal } from './modals/eventRegistryModal';
-import { eventInjectionModal } from './modals/eventInjectionModal';
+} from "./constants";
+import { helpModal } from "./modals/helpModal";
+import { eventRegistryModal } from "./modals/eventRegistryModal";
+import { eventInjectionModal } from "./modals/eventInjectionModal";
 
-const blessed = require('blessed');
-const contrib = require('blessed-contrib');
-const moment = require('moment');
-const program = require('commander');
-const open = require('open');
-const { exec } = require('child_process');
-const emoji = require('node-emoji');
+const blessed = require("blessed");
+const contrib = require("blessed-contrib");
+const moment = require("moment");
+const program = require("commander");
+const open = require("open");
+const { exec } = require("child_process");
+const emoji = require("node-emoji");
 
 let slsDevToolsConfig;
 try {
@@ -29,16 +26,19 @@ try {
   // No config provided
 }
 
-program.version('0.2.3');
+program.version("0.2.3");
 program
-  .requiredOption('-n, --stack-name <stackName>', 'AWS stack name')
-  .requiredOption('-r, --region <region>', 'AWS region')
-  .option('-t, --start-time <startTime>', "when to start from, date string with form '30 March 2020 09:00 GMT'")
-  .option('-i, --interval <interval>', 'interval of graphs, in seconds')
-  .option('-p, --profile <profile>', 'aws profile name to use')
-  .option('-l, --location <location>', 'location of your serverless project')
-  .option('--sls', 'use the serverless framework to execute commands')
-  .option('--sam', 'use the SAM framework to execute commands')
+  .requiredOption("-n, --stack-name <stackName>", "AWS stack name")
+  .requiredOption("-r, --region <region>", "AWS region")
+  .option(
+    "-t, --start-time <startTime>",
+    "when to start from, date string with form '30 March 2020 09:00 GMT'"
+  )
+  .option("-i, --interval <interval>", "interval of graphs, in seconds")
+  .option("-p, --profile <profile>", "aws profile name to use")
+  .option("-l, --location <location>", "location of your serverless project")
+  .option("--sls", "use the serverless framework to execute commands")
+  .option("--sam", "use the SAM framework to execute commands")
   .parse(process.argv);
 
 function getAWSCredentials() {
@@ -57,17 +57,17 @@ function getAWSCredentials() {
       profile: process.env.AWS_PROFILE,
     });
   }
-  return new AWS.SharedIniFileCredentials({ profile: 'default' });
+  return new AWS.SharedIniFileCredentials({ profile: "default" });
 }
 
 const screen = blessed.screen({ smartCSR: true });
-const profile = program.profile || 'default';
+const profile = program.profile || "default";
 const location = program.location || process.cwd();
-let provider = '';
+let provider = "";
 if (program.sam) {
-  provider = 'SAM';
+  provider = "SAM";
 } else {
-  provider = 'serverlessFramework';
+  provider = "serverlessFramework";
 }
 AWS.config.credentials = getAWSCredentials();
 AWS.config.region = program.region;
@@ -87,12 +87,14 @@ let latestLambdaFunctionsUpdateTimestamp = -1;
 
 async function refreshLambdaFunctions() {
   const allFunctions = [];
-  let marker = undefined;
+  let marker;
   while (true) {
-    const response = await lambda.listFunctions({
-      Marker: marker,
-      MaxItems: 50
-    }).promise();
+    const response = await lambda
+      .listFunctions({
+        Marker: marker,
+        MaxItems: 50,
+      })
+      .promise();
     const functions = response.Functions;
     allFunctions.push(...functions);
     if (!response.NextMarker) {
@@ -100,9 +102,9 @@ async function refreshLambdaFunctions() {
     }
     marker = response.NextMarker;
   }
-  lambdaFunctions = allFunctions.reduce(function(map, func) {
-      map[func.FunctionName] = func;
-      return map;
+  lambdaFunctions = allFunctions.reduce(function (map, func) {
+    map[func.FunctionName] = func;
+    return map;
   }, {});
 }
 
@@ -114,8 +116,9 @@ function injectEvent(event) {
   const params = { Entries: [] };
   params.Entries.push(event);
   eventBridge.putEvents(params, (err, data) => {
-    if (err) console.error(err, err.stack); // an error occurred
-    else     console.log(data);             // successful response
+    if (err) console.error(err, err.stack);
+    // an error occurred
+    else console.log(data); // successful response
   });
 }
 
@@ -124,7 +127,7 @@ class Main {
     this.lambdasDeploymentStatus = {};
     this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.lambdaInfoBar = this.layoutGrid.set(4, 6, 4, 3, contrib.bar, {
-      label: 'Lambda Duration (ms) (most recent)',
+      label: "Lambda Duration (ms) (most recent)",
       barWidth: 6,
       barSpacing: 6,
       xOffset: 2,
@@ -132,14 +135,14 @@ class Main {
     });
     this.lambdasTable = this.layoutGrid.set(0, 6, 4, 6, contrib.table, {
       keys: true,
-      fg: 'green',
-      label: 'Lambda Functions',
+      fg: "green",
+      label: "Lambda Functions",
       columnSpacing: 1,
       columnWidth: [45, 30, 15],
     });
     this.invocationsLineGraph = this.layoutGrid.set(2, 0, 6, 6, contrib.line, {
       maxY: 0,
-      label: 'Function Metrics',
+      label: "Function Metrics",
       showLegend: true,
       xPadding: 10,
       xLabelPadding: 10,
@@ -150,9 +153,9 @@ class Main {
       label: `Servers Location (${program.region})`,
     });
     this.eventBridgeTree = this.layoutGrid.set(8, 9, 4, 3, contrib.tree, {
-      label: 'Event Bridges',
+      label: "Event Bridges",
       style: {
-        fg: 'green',
+        fg: "green",
       },
       template: {
         lines: true,
@@ -160,45 +163,45 @@ class Main {
     });
     this.eventBridgeTree.rows.interactive = false;
     this.lambdaLog = this.layoutGrid.set(8, 0, 4, 6, blessed.log, {
-      fg: 'green',
-      selectedFg: 'green',
-      label: 'Server Log',
+      fg: "green",
+      selectedFg: "green",
+      label: "Server Log",
       interactive: true,
-      scrollbar: { bg: 'blue' },
+      scrollbar: { bg: "blue" },
       mouse: true,
     });
     this.consoleLogs = this.layoutGrid.set(8, 6, 4, 3, blessed.log, {
-      fg: 'green',
-      selectedFg: 'dark-green',
-      label: 'Dashboard Logs',
+      fg: "green",
+      selectedFg: "dark-green",
+      label: "Dashboard Logs",
       interactive: true,
-      scrollbar: { bg: 'blue' },
+      scrollbar: { bg: "blue" },
       mouse: true,
     });
     this.titleBox = this.layoutGrid.set(0, 0, 2, 6, blessed.box, {
       tags: true,
       content:
-        `${logo}\n Dev Tools for the Serverless World.`
-        + '    Press `h` for help',
+        `${logo}\n Dev Tools for the Serverless World.` +
+        "    Press `h` for help",
       style: {
-        fg: 'green',
+        fg: "green",
         border: {
-          fg: 'green',
+          fg: "green",
         },
       },
     });
     this.setKeypresses();
-    screen.on('resize', () => {
-      this.lambdaInfoBar.emit('attach');
-      this.lambdasTable.emit('attach');
+    screen.on("resize", () => {
+      this.lambdaInfoBar.emit("attach");
+      this.lambdasTable.emit("attach");
       // errorsLine.emit('attach');
-      this.titleBox.emit('attach');
-      this.invocationsLineGraph.emit('attach');
-      this.map.emit('attach');
-      this.lambdaLog.emit('attach');
-      this.consoleLogs.emit('attach');
+      this.titleBox.emit("attach");
+      this.invocationsLineGraph.emit("attach");
+      this.map.emit("attach");
+      this.lambdaLog.emit("attach");
+      this.consoleLogs.emit("attach");
     });
-    screen.title = 'sls-dev-tools';
+    screen.title = "sls-dev-tools";
     this.marker = false;
     this.funcName = null;
     this.interval = program.interval || 3600; // 1 hour
@@ -210,8 +213,8 @@ class Main {
       const dateOffset = 24 * 60 * 60 * 1000; // 1 day
       // Round to closest interval to make query faster.
       this.startTime = new Date(
-        Math.round(new Date().getTime() / this.interval) * this.interval
-          - dateOffset,
+        Math.round(new Date().getTime() / this.interval) * this.interval -
+          dateOffset
       );
     }
 
@@ -231,66 +234,84 @@ class Main {
   }
 
   setKeypresses() {
-    screen.key(['d'], () => {
+    screen.key(["d"], () => {
       // If focus is currently on this.lambdasTable
       if (this.focusIndex === 0 && this.isModalOpen === false) {
         return this.deployFunction();
       }
       return 0;
     });
-    screen.key(['s'], () => {
+    screen.key(["s"], () => {
       if (this.isModalOpen === false) {
         return this.deployStack();
       }
       return 0;
     });
-    screen.key(['h', 'H'], () => {
+    screen.key(["h", "H"], () => {
       if (this.isModalOpen === false) {
         this.isModalOpen = true;
         return helpModal(screen, blessed, this);
       }
       return 0;
     });
-    screen.key(['tab'], () => {
+    screen.key(["tab"], () => {
       if (this.isModalOpen === false) {
         return this.changeFocus();
       }
       return 0;
     });
-    screen.key(['q', 'C-c'], () => process.exit(0));
+    screen.key(["q", "C-c"], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
-    screen.key(['o', 'O'], () => {
+    screen.key(["o", "O"], () => {
       // If focus is currently on this.lambdasTable
       if (this.focusIndex === 0 && this.isModalOpen === false) {
         const selectedLambdaFunctionName = this.lambdasTable.rows.items[
           this.lambdasTable.rows.selected
         ].data[0];
         return open(
-          `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`,
+          `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`
         );
       }
       return 0;
     });
-    screen.key(['i'], () => {
+    screen.key(["i"], () => {
       // If focus is currently on this.eventBridgeTree
       if (this.focusIndex === 1 && this.isModalOpen === false) {
         this.isModalOpen = true;
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree
-        const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow].substring(2);
+        const selectedEventBridge = this.eventBridgeTree.rows.ritems[
+          selectedRow
+        ].substring(2);
         const previousEvent = this.previousSubmittedEvent[selectedEventBridge];
-        return eventInjectionModal(screen, blessed, selectedEventBridge, this, injectEvent, previousEvent);
+        return eventInjectionModal(
+          screen,
+          blessed,
+          selectedEventBridge,
+          this,
+          injectEvent,
+          previousEvent
+        );
       }
       return 0;
     });
-    screen.key(['r'], () => {
+    screen.key(["r"], () => {
       // If focus is currently on this.eventBridgeTree
       if (this.focusIndex === 1 && this.isModalOpen === false) {
         this.isModalOpen = true;
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree
-        const selectedEventBridge = this.eventBridgeTree.rows.ritems[selectedRow].substring(2);
-        return eventRegistryModal(screen, blessed, selectedEventBridge, this, schemas, injectEvent);
+        const selectedEventBridge = this.eventBridgeTree.rows.ritems[
+          selectedRow
+        ].substring(2);
+        return eventRegistryModal(
+          screen,
+          blessed,
+          selectedEventBridge,
+          this,
+          schemas,
+          injectEvent
+        );
       }
       return 0;
     });
@@ -301,7 +322,7 @@ class Main {
   }
 
   async render() {
-    await this.lambdasTable.rows.on('select', (item) => {
+    await this.lambdasTable.rows.on("select", (item) => {
       [this.funcName] = item.data;
       this.fullFuncName = `${program.stackName}-${this.funcName}`;
       this.updateGraphs();
@@ -332,8 +353,8 @@ class Main {
     if (this.marker) {
       this.map.addMarker({
         ...awsRegionLocations[program.region],
-        color: 'red',
-        char: 'X',
+        color: "red",
+        char: "X",
       });
     } else {
       this.map.clearMarkers();
@@ -341,8 +362,8 @@ class Main {
         if (key !== program.region) {
           this.map.addMarker({
             ...awsRegionLocations[key],
-            color: 'yellow',
-            char: 'X',
+            color: "yellow",
+            char: "X",
           });
         }
       });
@@ -352,38 +373,42 @@ class Main {
   }
 
   deployStack() {
-    if (provider === 'serverlessFramework') {
+    if (provider === "serverlessFramework") {
       exec(
         `serverless deploy -r ${program.region} --aws-profile ${profile} ${
-          slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ''
+          slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
         }`,
         { cwd: location },
-        (error, stdout) => this.handleStackDeployment(error, stdout),
+        (error, stdout) => this.handleStackDeployment(error, stdout)
       );
-    } else if (provider === 'SAM') {
-      exec('sam build', { cwd: location }, (error) => {
+    } else if (provider === "SAM") {
+      exec("sam build", { cwd: location }, (error) => {
         if (error) {
           console.error(error);
           Object.keys(this.lambdasDeploymentStatus).forEach(
             // eslint-disable-next-line no-return-assign
-            (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR),
+            (functionName) =>
+              (this.lambdasDeploymentStatus[functionName] =
+                DEPLOYMENT_STATUS.ERROR)
           );
         } else {
           exec(
             `sam deploy --region ${
               program.region
             } --profile ${profile} --stack-name ${program.stackName} ${
-              slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ''
+              slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
             }`,
             { cwd: location },
-            (deployError, stdout) => this.handleStackDeployment(deployError, stdout),
+            (deployError, stdout) =>
+              this.handleStackDeployment(deployError, stdout)
           );
         }
       });
     }
     this.lambdasTable.data.forEach((v, i) => {
       this.flashLambdaTableRow(i);
-      this.lambdasDeploymentStatus[this.lambdasTable.rows.items[i].data[0]] = DEPLOYMENT_STATUS.PENDING;
+      this.lambdasDeploymentStatus[this.lambdasTable.rows.items[i].data[0]] =
+        DEPLOYMENT_STATUS.PENDING;
     });
     this.updateLambdaTableRows();
   }
@@ -393,13 +418,16 @@ class Main {
       console.error(error);
       Object.keys(this.lambdasDeploymentStatus).forEach(
         // eslint-disable-next-line no-return-assign
-        (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR),
+        (functionName) =>
+          (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR)
       );
     } else {
       console.log(stdout);
       Object.keys(this.lambdasDeploymentStatus).forEach(
         // eslint-disable-next-line no-return-assign
-        (functionName) => (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.SUCCESS),
+        (functionName) =>
+          (this.lambdasDeploymentStatus[functionName] =
+            DEPLOYMENT_STATUS.SUCCESS)
       );
     }
     this.lambdasTable.data.forEach((v, i) => {
@@ -411,31 +439,34 @@ class Main {
   deployFunction() {
     const selectedRowIndex = this.lambdasTable.rows.selected;
     if (selectedRowIndex !== -1) {
-      const selectedLambdaFunctionName = this.lambdasTable.rows.items[selectedRowIndex]
-        .data[0];
-      if (provider === 'serverlessFramework') {
+      const selectedLambdaFunctionName = this.lambdasTable.rows.items[
+        selectedRowIndex
+      ].data[0];
+      if (provider === "serverlessFramework") {
         exec(
           `serverless deploy -f ${selectedLambdaFunctionName} -r ${
             program.region
           } --aws-profile ${profile} ${
-            slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ''
+            slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
           }`,
           { cwd: location },
-          (error, stdout) => this.handleFunctionDeployment(
-            error,
-            stdout,
-            selectedLambdaFunctionName,
-            selectedRowIndex,
-          ),
+          (error, stdout) =>
+            this.handleFunctionDeployment(
+              error,
+              stdout,
+              selectedLambdaFunctionName,
+              selectedRowIndex
+            )
         );
-      } else if (provider === 'SAM') {
+      } else if (provider === "SAM") {
         console.error(
-          'ERROR: UNABLE TO DEPLOY SINGLE FUNCTION WITH SAM. PRESS s TO DEPLOY STACK',
+          "ERROR: UNABLE TO DEPLOY SINGLE FUNCTION WITH SAM. PRESS s TO DEPLOY STACK"
         );
         return;
       }
       this.flashLambdaTableRow(selectedRowIndex);
-      this.lambdasDeploymentStatus[selectedLambdaFunctionName] = DEPLOYMENT_STATUS.PENDING;
+      this.lambdasDeploymentStatus[selectedLambdaFunctionName] =
+        DEPLOYMENT_STATUS.PENDING;
       this.updateLambdaTableRows();
     }
   }
@@ -453,22 +484,27 @@ class Main {
   }
 
   async updateResourcesInformation() {
-    const stackResources = await getStackResources(program.stackName, this.setData);
+    const stackResources = await getStackResources(
+      program.stackName,
+      this.setData
+    );
     this.data = stackResources;
 
     let latestLastUpdatedTimestamp = -1;
-    const lambdaFunctionResources =
-        stackResources.StackResourceSummaries
-            .filter((res) => {
-              const isLambdaFunction = res.ResourceType === 'AWS::Lambda::Function';
-              if (isLambdaFunction) {
-                const lastUpdatedTimestampMilliseconds = moment(res.LastUpdatedTimestamp).valueOf();
-                if (lastUpdatedTimestampMilliseconds > latestLastUpdatedTimestamp) {
-                  latestLastUpdatedTimestamp = lastUpdatedTimestampMilliseconds;
-                }
-              }
-              return isLambdaFunction;
-            });
+    const lambdaFunctionResources = stackResources.StackResourceSummaries.filter(
+      (res) => {
+        const isLambdaFunction = res.ResourceType === "AWS::Lambda::Function";
+        if (isLambdaFunction) {
+          const lastUpdatedTimestampMilliseconds = moment(
+            res.LastUpdatedTimestamp
+          ).valueOf();
+          if (lastUpdatedTimestampMilliseconds > latestLastUpdatedTimestamp) {
+            latestLastUpdatedTimestamp = lastUpdatedTimestampMilliseconds;
+          }
+        }
+        return isLambdaFunction;
+      }
+    );
     if (latestLastUpdatedTimestamp > latestLambdaFunctionsUpdateTimestamp) {
       // In case of update in the Lambda function resources,
       // instead of getting updated function configurations one by one individually,
@@ -482,26 +518,28 @@ class Main {
     this.lambdasTable.data = lambdaFunctionResources.map((lam) => {
       const funcName = lam.PhysicalResourceId;
       const func = lambdaFunctions[funcName];
-      let funcRuntime = '?';
+      let funcRuntime = "?";
       if (func) {
         funcRuntime = func.Runtime;
       }
       return [
-        lam.PhysicalResourceId.replace(`${program.stackName}-`, ''),
-        moment(lam.LastUpdatedTimestamp).format('MMMM Do YYYY, h:mm:ss a'),
-        funcRuntime
-      ]
+        lam.PhysicalResourceId.replace(`${program.stackName}-`, ""),
+        moment(lam.LastUpdatedTimestamp).format("MMMM Do YYYY, h:mm:ss a"),
+        funcRuntime,
+      ];
     });
 
     this.updateLambdaTableRows();
     this.updateLambdaDeploymentStatus();
 
     const eventBridgeResources = await getEventBuses();
-    const busNames = eventBridgeResources.EventBuses.map((o) => o.Name)
-      .reduce((eventBridges, bus) => {
+    const busNames = eventBridgeResources.EventBuses.map((o) => o.Name).reduce(
+      (eventBridges, bus) => {
         eventBridges[bus] = {};
         return eventBridges;
-      }, {});
+      },
+      {}
+    );
 
     this.eventBridgeTree.setData({
       extended: true,
@@ -516,13 +554,15 @@ class Main {
   }
 
   flashLambdaTableRow(rowIndex) {
-    this.lambdasTable.rows.items[rowIndex].style.fg = 'blue';
-    this.lambdasTable.rows.items[rowIndex].style.bg = 'green';
+    this.lambdasTable.rows.items[rowIndex].style.fg = "blue";
+    this.lambdasTable.rows.items[rowIndex].style.bg = "green";
   }
 
   unflashLambdaTableRow(rowIndex) {
-    this.lambdasTable.rows.items[rowIndex].style.fg = () => (rowIndex === this.lambdasTable.rows.selected ? 'white' : 'green');
-    this.lambdasTable.rows.items[rowIndex].style.bg = () => (rowIndex === this.lambdasTable.rows.selected ? 'blue' : 'default');
+    this.lambdasTable.rows.items[rowIndex].style.fg = () =>
+      rowIndex === this.lambdasTable.rows.selected ? "white" : "green";
+    this.lambdasTable.rows.items[rowIndex].style.bg = () =>
+      rowIndex === this.lambdasTable.rows.selected ? "blue" : "default";
   }
 
   padInvocationsAndErrorsWithZeros() {
@@ -533,17 +573,15 @@ class Main {
       for (
         let timestamp = moment(this.startTime).valueOf();
         timestamp < moment(this.endTime).valueOf();
-        timestamp = moment(timestamp)
-          .add(this.interval, 'seconds')
-          .valueOf()
+        timestamp = moment(timestamp).add(this.interval, "seconds").valueOf()
       ) {
         if (
           this.data.MetricDataResults[index].Timestamps.every(
-            (it) => it.valueOf() !== timestamp,
+            (it) => it.valueOf() !== timestamp
           )
         ) {
           this.data.MetricDataResults[index].Timestamps.push(
-            new Date(timestamp),
+            new Date(timestamp)
           );
           this.data.MetricDataResults[index].Values.push(0);
         }
@@ -554,8 +592,8 @@ class Main {
   updateLambdaDeploymentStatus() {
     Object.entries(this.lambdasDeploymentStatus).forEach(([key, value]) => {
       if (
-        value === DEPLOYMENT_STATUS.SUCCESS
-        || value === DEPLOYMENT_STATUS.ERROR
+        value === DEPLOYMENT_STATUS.SUCCESS ||
+        value === DEPLOYMENT_STATUS.ERROR
       ) {
         this.lambdasDeploymentStatus[key] = undefined;
       }
@@ -564,20 +602,20 @@ class Main {
 
   updateLambdaTableRows() {
     const lambdaFunctionsWithDeploymentIndicator = JSON.parse(
-      JSON.stringify(this.lambdasTable.data),
+      JSON.stringify(this.lambdasTable.data)
     );
     let deploymentIndicator;
     for (let i = 0; i < this.lambdasTable.data.length; i++) {
       deploymentIndicator = null;
       switch (this.lambdasDeploymentStatus[this.lambdasTable.data[i][0]]) {
         case DEPLOYMENT_STATUS.PENDING:
-          deploymentIndicator = emoji.get('coffee');
+          deploymentIndicator = emoji.get("coffee");
           break;
         case DEPLOYMENT_STATUS.SUCCESS:
-          deploymentIndicator = emoji.get('sparkles');
+          deploymentIndicator = emoji.get("sparkles");
           break;
         case DEPLOYMENT_STATUS.ERROR:
-          deploymentIndicator = emoji.get('x');
+          deploymentIndicator = emoji.get("x");
           break;
         default:
           break;
@@ -590,7 +628,7 @@ class Main {
     }
 
     this.lambdasTable.setData({
-      headers: ['logical', 'updated', 'runtime'],
+      headers: ["logical", "updated", "runtime"],
       data: lambdaFunctionsWithDeploymentIndicator,
     });
 
@@ -610,35 +648,35 @@ class Main {
         splits.push(matches[i].split(/\t|\s\s\s\s/));
       }
       this.lambdaInfoBar.setData({
-        titles: ['1', '2', '3', '4', '5'],
+        titles: ["1", "2", "3", "4", "5"],
         // Extract numerical value from field by splitting on spaces, and taking second value
-        data: splits.map((s) => s[1].split(' ')[1]).slice(-5),
+        data: splits.map((s) => s[1].split(" ")[1]).slice(-5),
       });
     }
   }
 
   setLineGraphData() {
     const dateFormat = moment(this.data.MetricDataResults[0]).isAfter(
-      moment().subtract(3, 'days'),
+      moment().subtract(3, "days")
     )
       ? dateFormats.graphDisplayTime
       : dateFormats.graphDisplayDate;
 
     const functionError = {
-      title: 'errors',
-      style: { line: 'red' },
-      x: this.data.MetricDataResults[1].Timestamps.map((d) => moment(d).format(dateFormat)),
+      title: "errors",
+      style: { line: "red" },
+      x: this.data.MetricDataResults[1].Timestamps.map((d) =>
+        moment(d).format(dateFormat)
+      ),
       y: this.data.MetricDataResults[0].Values,
     };
 
     const functionInvocations = {
-      title: 'invocations',
-      style: { line: 'green' },
+      title: "invocations",
+      style: { line: "green" },
       x: this.data.MetricDataResults[1].Timestamps.map((d) => {
         const start = moment(d).format(dateFormat);
-        const end = moment(d)
-          .add(this.interval, 'seconds')
-          .format(dateFormat);
+        const end = moment(d).add(this.interval, "seconds").format(dateFormat);
         return `${start}-${end}`;
       }),
       y: this.data.MetricDataResults[1].Values,
@@ -671,7 +709,7 @@ class Main {
       logGroupName,
       descending: true,
       limit: 5,
-      orderBy: 'LastEventTime',
+      orderBy: "LastEventTime",
     };
     return cloudwatchLogs
       .describeLogStreams(params, (err, data) => {
@@ -680,7 +718,7 @@ class Main {
         } else {
           this.getLogEvents(
             logGroupName,
-            data.logStreams.map((stream) => stream.logStreamName),
+            data.logStreams.map((stream) => stream.logStreamName)
           );
         }
       })
@@ -690,7 +728,7 @@ class Main {
   getLogEvents(logGroupName, logStreamNames) {
     if (logStreamNames.length === 0) {
       this.lambdaLog.setContent(
-        'ERROR: No log streams found for this function.',
+        "ERROR: No log streams found for this function."
       );
       return;
     }
@@ -704,14 +742,14 @@ class Main {
       .then(
         (data) => {
           const { events } = data;
-          this.lambdaLog.setContent('');
+          this.lambdaLog.setContent("");
           events.forEach((event) => {
             this.lambdaLog.log(event.message);
           });
         },
         (err) => {
           console.log(err, err.stack);
-        },
+        }
       );
   }
 
@@ -720,7 +758,9 @@ class Main {
       const latest = datum.Timestamps.map((timestamp, index) => ({
         timestamp: moment(timestamp),
         value: datum.Values[index],
-      })).sort((first, second) => (moment(first.timestamp) > moment(second.timestamp) ? 1 : -1));
+      })).sort((first, second) =>
+        moment(first.timestamp) > moment(second.timestamp) ? 1 : -1
+      );
       const returnData = datum;
       returnData.Timestamps = latest.map((it) => it.timestamp);
       returnData.Values = latest.map((it) => it.value);
@@ -735,46 +775,46 @@ class Main {
       EndTime: this.endTime,
       MetricDataQueries: [
         {
-          Id: 'errors',
+          Id: "errors",
           MetricStat: {
             Metric: {
               Dimensions: [
                 {
-                  Name: 'FunctionName',
+                  Name: "FunctionName",
                   Value: functionName,
                 },
                 {
-                  Name: 'Resource',
+                  Name: "Resource",
                   Value: functionName,
                 },
               ],
-              MetricName: 'Errors',
-              Namespace: 'AWS/Lambda',
+              MetricName: "Errors",
+              Namespace: "AWS/Lambda",
             },
             Period: this.interval,
-            Stat: 'Sum',
+            Stat: "Sum",
           },
           ReturnData: true,
         },
         {
-          Id: 'invocations',
+          Id: "invocations",
           MetricStat: {
             Metric: {
               Dimensions: [
                 {
-                  Name: 'FunctionName',
+                  Name: "FunctionName",
                   Value: functionName,
                 },
                 {
-                  Name: 'Resource',
+                  Name: "Resource",
                   Value: functionName,
                 },
               ],
-              MetricName: 'Invocations',
-              Namespace: 'AWS/Lambda',
+              MetricName: "Invocations",
+              Namespace: "AWS/Lambda",
             },
             Period: this.interval,
-            Stat: 'Sum',
+            Stat: "Sum",
           },
           ReturnData: true,
         },

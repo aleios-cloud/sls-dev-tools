@@ -4,6 +4,7 @@ const helpModal = (screen, blessed, application) => {
     ["-----------", "-----------"],
     ["Enter", "Displays function data when focused on Functions table"],
     ["o", "Opens the AWS console for a selected lambda function"],
+    ["o", "Opens the AWS console for a selected event bus"],
     ["q", "Close the application"],
     ["d", "Deploys the selected lambda function"],
     ["s", "Deploys all the lambda functions within the stack"],

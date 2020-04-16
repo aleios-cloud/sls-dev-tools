@@ -49,7 +49,8 @@ const createDynamicForm = async (
   api,
   parent,
   closeModal,
-  modalState
+  modalState,
+  updatePageText
 ) => {
   const fields = await getProperties(
     api,
@@ -96,6 +97,8 @@ const createDynamicForm = async (
         modalState.titles[i].hide();
       }
     }
+    // Update page text
+    updatePageText();
   }
 };
 
@@ -128,7 +131,7 @@ const eventModal = (
     top: "center",
     left: "center",
     width: 112,
-    height: 34,
+    height: 35,
     border: "line",
     style: { border: { fg: "green" } },
     keys: true,
@@ -229,6 +232,20 @@ const eventModal = (
     content: `Event Injection - ${schema}`,
   });
 
+  const currentPageText = blessed.box({
+    parent: eventLayout,
+    width: 110,
+    left: "right",
+    top: "center",
+    align: "center",
+    padding: { left: 2, right: 2 },
+    style: { fg: "green" },
+  });
+
+  const updateCurrentPageText = () => {
+    currentPageText.content = `Page ${modalState.currentPage} of ${modalState.numPages}`;
+  };
+
   const fieldLayout = blessed.layout({
     parent: eventLayout,
     top: "center",
@@ -257,7 +274,14 @@ const eventModal = (
   // Push submit to front of textboxes array to avoid race conditions
   modalState.buttons.push(submit);
 
-  createDynamicForm(blessed, api, fieldLayout, closeModal, modalState);
+  createDynamicForm(
+    blessed,
+    api,
+    fieldLayout,
+    closeModal,
+    modalState,
+    updateCurrentPageText
+  );
 
   blessed.box({
     parent: eventLayout,
@@ -270,20 +294,22 @@ const eventModal = (
     border: "line",
     style: { fg: "green", border: { fg: "green" } },
     content:
-      "Arrow keys to select field | ENTER to toggle edit mode \nn to view next page | p to view previous page\nENTER on Submit to inject event | ESC to close",
+      "Up/Down Arrow keys to select field\n Left/Right arrows keys to change page\nENTER to toggle edit mode | ENTER on Submit to inject event | ESC to close",
   });
 
   fieldLayout.focus();
 
-  fieldLayout.key(["n"], () => {
+  fieldLayout.key(["right"], () => {
     if (modalState.currentPage < modalState.numPages) {
       nextPage();
+      updateCurrentPageText();
     }
   });
 
-  fieldLayout.key(["p"], () => {
+  fieldLayout.key(["left"], () => {
     if (modalState.currentPage > 1) {
       prevPage();
+      updateCurrentPageText();
     }
   });
 

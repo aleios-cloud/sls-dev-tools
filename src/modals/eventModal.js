@@ -313,18 +313,34 @@ const eventModal = (
     }
   });
   fieldLayout.key(["up"], () => {
+    // Indices of fields at the top and bottom of page
+    const top = (modalState.currentPage - 1) * 5 + 1;
+    const bottom = Math.min(modalState.textboxes.length - 1, top + 4);
     unselectTextbox(modalState.currentTextbox);
-    modalState.currentTextbox -= 1;
-    if (modalState.currentTextbox === -1) {
-      modalState.currentTextbox = modalState.textboxes.length - 1;
+    // If submit selected, go to bottom
+    if (modalState.currentTextbox === 0) {
+      modalState.currentTextbox = bottom;
+    } else {
+      modalState.currentTextbox -= 1;
+      if (modalState.currentTextbox < top) {
+        modalState.currentTextbox = 0;
+      }
     }
     selectTextbox(modalState.currentTextbox);
   });
   fieldLayout.key(["down"], () => {
+    // Indices of fields at the top and bottom of page
+    const top = (modalState.currentPage - 1) * 5 + 1;
+    const bottom = Math.min(modalState.textboxes.length - 1, top + 4);
     unselectTextbox(modalState.currentTextbox);
-    modalState.currentTextbox += 1;
-    if (modalState.currentTextbox === modalState.textboxes.length) {
-      modalState.currentTextbox = 0;
+    // If submit selected, go to top
+    if (modalState.currentTextbox === 0) {
+      modalState.currentTextbox = top;
+    } else {
+      modalState.currentTextbox += 1;
+      if (modalState.currentTextbox > bottom) {
+        modalState.currentTextbox = 0;
+      }
     }
     selectTextbox(modalState.currentTextbox);
   });

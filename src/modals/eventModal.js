@@ -20,18 +20,17 @@ function handleAWSEvent(schemas, event) {
   const schemaName = reference.substring(reference.lastIndexOf("/") + 1);
   const eventSchema = schemas[schemaName];
 
-  if (Object.prototype.hasOwnProperty.call(eventSchema, "required")) {
-    return eventSchema.required;
+  if (Object.prototype.hasOwnProperty.call(eventSchema, "properties")) {
+    return eventSchema.properties;
   }
-  return [];
+  return {};
 }
 
 function handleCustomEvent(schemas) {
-  if (Object.prototype.hasOwnProperty.call(schemas.Event, "required")) {
-    return schemas.Event.required;
+  if (Object.prototype.hasOwnProperty.call(schemas.Event, "properties")) {
+    return schemas.Event.properties;
   }
-  const { properties } = schemas.Event;
-  return Object.keys(properties);
+  return {};
 }
 
 async function getProperties(api, registry, schema, event) {
@@ -52,15 +51,16 @@ const createDynamicForm = async (
   closeModal,
   modalState
 ) => {
-  let fieldList = [];
-  fieldList = await getProperties(
+  const fields = await getProperties(
     api,
     modalState.registry,
     modalState.schema,
     modalState.event
   );
 
-  if (fieldList.length > 5) {
+  const fieldNames = Object.keys(fields);
+
+  if (fieldNames.length > 5) {
     blessed.box({
       parent,
       width: 106,
@@ -74,29 +74,36 @@ const createDynamicForm = async (
       content:
         "The tool currently can't display more than 5 fields.\nComing in the next version!",
     });
-  } else if (fieldList !== []) {
-    fieldList.forEach((field) => {
+  } else if (fieldNames !== []) {
+    fieldNames.forEach((field) => {
       const textbox = generateFieldWithTitle(blessed, parent, field, "", 106);
       textbox.on("cancel", () => {
         closeModal();
       });
       modalState.textboxes.push(textbox);
       modalState.fieldNames.push(field);
+      modalState.fieldTypes.push(fields[field].type);
       // Change focus to first field instead of submit button
     });
-    modalState.currentTextbox = 1;
-    modalState.textboxes[0].style.border.fg = "green";
-    modalState.textboxes[0].style.fg = "green";
-    modalState.textboxes[1].style.border.fg = "yellow";
+    if (modalState.textboxes.length > 1) {
+      modalState.currentTextbox = 1;
+      modalState.textboxes[0].style.border.fg = "green";
+      modalState.textboxes[0].style.fg = "green";
+      modalState.textboxes[1].style.border.fg = "yellow";
+    }
   }
 };
 
-const createDetail = (keys, textboxes) => {
+const createDetail = (keys, types, textboxes) => {
   const values = [];
   textboxes.forEach((textbox) => values.push(textbox.getValue()));
   const detail = {};
   for (let i = 0; i < keys.length; i += 1) {
-    detail[keys[i]] = values[i];
+    if (types[i] === "number") {
+      detail[keys[i]] = Number(values[i]);
+    } else {
+      detail[keys[i]] = values[i];
+    }
   }
   return detail;
 };
@@ -134,6 +141,7 @@ const eventModal = (
     currentTextbox: 0,
     textboxes: [],
     fieldNames: [],
+    fieldTypes: [],
     registry,
     schema,
     event: {
@@ -223,7 +231,11 @@ const eventModal = (
       if (modalState.currentTextbox === 0) {
         // Slice textboxes to ignore submit button
         const detail = JSON.stringify(
-          createDetail(modalState.fieldNames, modalState.textboxes.slice(1))
+          createDetail(
+            modalState.fieldNames,
+            modalState.fieldTypes,
+            modalState.textboxes.slice(1)
+          )
         );
         modalState.event.Detail = detail;
         eventLayout.destroy();

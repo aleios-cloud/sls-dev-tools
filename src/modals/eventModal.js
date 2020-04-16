@@ -7,47 +7,72 @@ function updateEvent(api, registry, schema) {
     .promise();
 }
 
-async function getProperties(api, registry, schema, event) {
-  const data = await updateEvent(api, registry, schema);
-  let parsedEvent = JSON.parse(data.Content);
+function handleAWSEvent(eventJson, event) {
   // Update detailType and source fields from schema
   const detailType =
-    parsedEvent.components.schemas.AWSEvent["x-amazon-events-detail-type"];
+    eventJson.components.schemas.AWSEvent["x-amazon-events-detail-type"];
   const source =
-    parsedEvent.components.schemas.AWSEvent["x-amazon-events-source"];
+    eventJson.components.schemas.AWSEvent["x-amazon-events-source"];
   event.DetailType = detailType;
   event.Source = source;
+
   // "detail" is contained in the AWSEvent schema as a reference,
   // typically of the form #/components/schemas/TestEvent
   const eventDetail =
-    parsedEvent.components.schemas.AWSEvent.properties.detail.$ref;
+    eventJson.components.schemas.AWSEvent.properties.detail.$ref;
   //  Convert reference to an array of properties, to create a path to "detail"
   const pathToDetail = eventDetail.replace("#/", "").split("/");
-  // Updated parsedEvent to the "detail" field stored at the end of the path
-  pathToDetail.forEach((parsed) => (parsedEvent = parsedEvent[parsed]));
-  if (Object.prototype.hasOwnProperty.call(parsedEvent, "required")) {
-    return parsedEvent.required;
+  // Updated eventJson to the "detail" field stored at the end of the path
+  pathToDetail.forEach((parsed) => (eventJson = eventJson[parsed]));
+
+  if (Object.prototype.hasOwnProperty.call(eventJson, "required")) {
+    return eventJson.required;
   }
   return [];
+}
+
+function handleCustomEvent(eventJson) {
+  if (
+    Object.prototype.hasOwnProperty.call(
+      eventJson.components.schemas.Event,
+      "required"
+    )
+  ) {
+    return eventJson.components.schemas.Event.required;
+  }
+  const { properties } = eventJson.components.schemas.Event;
+  return Object.keys(properties);
+}
+
+async function getProperties(api, registry, schema, event) {
+  const data = await updateEvent(api, registry, schema);
+  const parsedEvent = JSON.parse(data.Content);
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      parsedEvent.components.schemas,
+      "AWSEvent"
+    )
+  ) {
+    return handleAWSEvent(parsedEvent, event);
+  }
+  return handleCustomEvent(parsedEvent);
 }
 
 const createDynamicForm = async (
   blessed,
   api,
-  registry,
-  schema,
   parent,
-  textboxes,
-  fieldNames,
   closeModal,
-  event
+  modalState
 ) => {
   let fieldList = [];
-  try {
-    fieldList = await getProperties(api, registry, schema, event);
-  } catch (e) {
-    console.error(e);
-  }
+  fieldList = await getProperties(
+    api,
+    modalState.registry,
+    modalState.schema,
+    modalState.event
+  );
 
   if (fieldList.length > 5) {
     blessed.box({
@@ -69,8 +94,8 @@ const createDynamicForm = async (
       textbox.on("cancel", () => {
         closeModal();
       });
-      textboxes.push(textbox);
-      fieldNames.push(field);
+      modalState.textboxes.push(textbox);
+      modalState.fieldNames.push(field);
     });
   }
 };
@@ -118,32 +143,33 @@ const eventModal = (
     eventLayout.destroy();
   };
 
-  let currentTextbox = 0;
-
-  const textboxes = [];
-
-  const fieldNames = [];
-
-  const event = {
-    EventBusName: eventBridge,
-    DetailType: "",
-    Source: "",
-    Detail: "{}",
+  const modalState = {
+    currentTextbox: 0,
+    textboxes: [],
+    fieldNames: [],
+    registry,
+    schema,
+    event: {
+      EventBusName: eventBridge,
+      DetailType: "",
+      Source: "",
+      Detail: "{}",
+    },
   };
 
   const unselectTextbox = (index) => {
-    textboxes[index].style.border.fg = "green";
+    modalState.textboxes[index].style.border.fg = "green";
     // If textbox is the submit button
     if (index === 0) {
-      textboxes[index].style.fg = "green";
+      modalState.textboxes[index].style.fg = "green";
     }
   };
 
   const selectTextbox = (index) => {
-    textboxes[index].style.border.fg = "yellow";
+    modalState.textboxes[index].style.border.fg = "yellow";
     // If textbox is the submit button
     if (index === 0) {
-      textboxes[index].style.fg = "yellow";
+      modalState.textboxes[index].style.fg = "yellow";
     }
   };
 
@@ -184,19 +210,9 @@ const eventModal = (
   });
 
   // Push submit to front of textboxes array to avoid race conditions
-  textboxes.push(submit);
+  modalState.textboxes.push(submit);
 
-  createDynamicForm(
-    blessed,
-    api,
-    registry,
-    schema,
-    fieldLayout,
-    textboxes,
-    fieldNames,
-    closeModal,
-    event
-  );
+  createDynamicForm(blessed, api, fieldLayout, closeModal, modalState);
 
   blessed.box({
     parent: eventLayout,
@@ -217,12 +233,12 @@ const eventModal = (
   fieldLayout.key(["enter"], () => {
     // If submit button is in focus
     try {
-      if (currentTextbox === 0) {
+      if (modalState.currentTextbox === 0) {
         // Slice textboxes to ignore submit button
         const detail = JSON.stringify(
-          createDetail(fieldNames, textboxes.slice(1))
+          createDetail(modalState.fieldNames, modalState.textboxes.slice(1))
         );
-        event.Detail = detail;
+        modalState.event.Detail = detail;
         eventLayout.destroy();
         eventInjectionModal(
           screen,
@@ -230,31 +246,31 @@ const eventModal = (
           eventBridge,
           application,
           injectEvent,
-          event
+          modalState.event
         );
       } else {
         // Edit field
-        textboxes[currentTextbox].focus();
+        modalState.textboxes[modalState.currentTextbox].focus();
       }
     } catch (e) {
       console.log(e);
     }
   });
   fieldLayout.key(["up"], () => {
-    unselectTextbox(currentTextbox);
-    currentTextbox -= 1;
-    if (currentTextbox === -1) {
-      currentTextbox = textboxes.length - 1;
+    unselectTextbox(modalState.currentTextbox);
+    modalState.currentTextbox -= 1;
+    if (modalState.currentTextbox === -1) {
+      modalState.currentTextbox = modalState.textboxes.length - 1;
     }
-    selectTextbox(currentTextbox);
+    selectTextbox(modalState.currentTextbox);
   });
   fieldLayout.key(["down"], () => {
-    unselectTextbox(currentTextbox);
-    currentTextbox += 1;
-    if (currentTextbox === textboxes.length) {
-      currentTextbox = 0;
+    unselectTextbox(modalState.currentTextbox);
+    modalState.currentTextbox += 1;
+    if (modalState.currentTextbox === modalState.textboxes.length) {
+      modalState.currentTextbox = 0;
     }
-    selectTextbox(currentTextbox);
+    selectTextbox(modalState.currentTextbox);
   });
 
   fieldLayout.key(["escape"], () => {

@@ -60,36 +60,40 @@ const createDynamicForm = async (
 
   const fieldNames = Object.keys(fields);
 
-  if (fieldNames.length > 5) {
-    blessed.box({
-      parent,
-      width: 106,
-      height: 4,
-      left: "right",
-      top: "center",
-      align: "center",
-      padding: { left: 2, right: 2 },
-      border: "line",
-      style: { fg: "green", border: { fg: "green" } },
-      content:
-        "The tool currently can't display more than 5 fields.\nComing in the next version!",
-    });
-  } else if (fieldNames !== []) {
+  if (fieldNames !== []) {
     fieldNames.forEach((field) => {
-      const textbox = generateFieldWithTitle(blessed, parent, field, "", 106);
+      const textboxWithTitle = generateFieldWithTitle(
+        blessed,
+        parent,
+        field,
+        "",
+        106
+      );
+      const { textbox } = textboxWithTitle;
+      const { titleBox } = textboxWithTitle;
       textbox.on("cancel", () => {
         closeModal();
       });
       modalState.textboxes.push(textbox);
+      modalState.titles.push(titleBox);
       modalState.fieldNames.push(field);
       modalState.fieldTypes.push(fields[field].type);
-      // Change focus to first field instead of submit button
     });
-    if (modalState.textboxes.length > 1) {
+    if (fieldNames.length > 0) {
+      // Change focus to first field instead of submit button
       modalState.currentTextbox = 1;
       modalState.textboxes[0].style.border.fg = "green";
       modalState.textboxes[0].style.fg = "green";
       modalState.textboxes[1].style.border.fg = "yellow";
+      // Calculate total number of pages
+      modalState.numPages = Math.ceil(fieldNames.length / 5);
+    }
+    // Hide fields after the 5th
+    if (fieldNames.length > 5) {
+      for (let i = 6; i < modalState.textboxes.length; i += 1) {
+        modalState.textboxes[i].hide();
+        modalState.titles[i - 1].hide();
+      }
     }
   }
 };
@@ -123,7 +127,7 @@ const eventModal = (
     top: "center",
     left: "center",
     width: 112,
-    height: 33,
+    height: 34,
     border: "line",
     style: { border: { fg: "green" } },
     keys: true,
@@ -139,7 +143,10 @@ const eventModal = (
 
   const modalState = {
     currentTextbox: 0,
+    currentPage: 1,
+    numPages: 1,
     textboxes: [],
+    titles: [],
     fieldNames: [],
     fieldTypes: [],
     registry,
@@ -166,6 +173,44 @@ const eventModal = (
     if (index === 0) {
       modalState.textboxes[index].style.fg = "yellow";
     }
+  };
+
+  const hidePage = (pageNum) => {
+    const lowerBound = (pageNum - 1) * 5 + 1;
+    const upperBound = Math.min(lowerBound + 5, modalState.textboxes.length);
+    console.log(`lower bound:${lowerBound} upperBound:${upperBound}`);
+    for (let i = lowerBound; i < upperBound; i += 1) {
+      modalState.textboxes[i].hide();
+      modalState.titles[i - 1].hide();
+    }
+  };
+
+  const showPage = (pageNum) => {
+    const lowerBound = (pageNum - 1) * 5 + 1;
+    const upperBound = Math.min(lowerBound + 5, modalState.textboxes.length);
+    console.log(`lower bound:${lowerBound} upperBound:${upperBound}`);
+    for (let i = lowerBound; i < upperBound; i += 1) {
+      modalState.textboxes[i].show();
+      modalState.titles[i - 1].show();
+    }
+  };
+
+  const nextPage = () => {
+    unselectTextbox(modalState.currentTextbox);
+    hidePage(modalState.currentPage);
+    modalState.currentPage += 1;
+    showPage(modalState.currentPage);
+    modalState.currentTextbox = (modalState.currentPage - 1) * 5 + 1;
+    selectTextbox(modalState.currentTextbox);
+  };
+
+  const prevPage = () => {
+    unselectTextbox(modalState.currentTextbox);
+    hidePage(modalState.currentPage);
+    modalState.currentPage -= 1;
+    showPage(modalState.currentPage);
+    modalState.currentTextbox = (modalState.currentPage - 1) * 5 + 1;
+    selectTextbox(modalState.currentTextbox);
   };
 
   blessed.box({
@@ -212,7 +257,7 @@ const eventModal = (
   blessed.box({
     parent: eventLayout,
     width: 110,
-    height: 4,
+    height: 5,
     left: "right",
     top: "center",
     align: "center",
@@ -220,10 +265,22 @@ const eventModal = (
     border: "line",
     style: { fg: "green", border: { fg: "green" } },
     content:
-      "Arrow keys to select field | ENTER to toggle edit mode \nENTER on Submit to inject event | ESC to close",
+      "Arrow keys to select field | ENTER to toggle edit mode \nn to view next page | p to view previous page\nENTER on Submit to inject event | ESC to close",
   });
 
   fieldLayout.focus();
+
+  fieldLayout.key(["n"], () => {
+    if (modalState.currentPage < modalState.numPages) {
+      nextPage();
+    }
+  });
+
+  fieldLayout.key(["p"], () => {
+    if (modalState.currentPage > 1) {
+      prevPage();
+    }
+  });
 
   fieldLayout.key(["enter"], () => {
     // If submit button is in focus

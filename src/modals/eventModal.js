@@ -82,7 +82,12 @@ const createDynamicForm = async (
       });
       modalState.textboxes.push(textbox);
       modalState.fieldNames.push(field);
+      // Change focus to first field instead of submit button
     });
+    modalState.currentTextbox = 1;
+    modalState.textboxes[0].style.border.fg = "green";
+    modalState.textboxes[0].style.fg = "green";
+    modalState.textboxes[1].style.border.fg = "yellow";
   }
 };
 

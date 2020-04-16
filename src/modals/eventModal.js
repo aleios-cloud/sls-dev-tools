@@ -1,48 +1,12 @@
 import { eventInjectionModal } from "./eventInjectionModal";
-import { generateFieldWithTitle } from "../components/fieldWithTitle";
-
-function updateEvent(api, registry, schema) {
-  return api
-    .describeSchema({ RegistryName: registry, SchemaName: schema })
-    .promise();
-}
-
-function handleAWSEvent(schemas, event) {
-  // Update detailType and source fields from schema
-  const detailType = schemas.AWSEvent["x-amazon-events-detail-type"];
-  const source = schemas.AWSEvent["x-amazon-events-source"];
-  event.DetailType = detailType;
-  event.Source = source;
-
-  // "detail" is contained in the AWSEvent schema as a reference,
-  // typically of the form #/components/schemas/[EventName]
-  const reference = schemas.AWSEvent.properties.detail.$ref;
-  const schemaName = reference.substring(reference.lastIndexOf("/") + 1);
-  const eventSchema = schemas[schemaName];
-
-  if (Object.prototype.hasOwnProperty.call(eventSchema, "properties")) {
-    return eventSchema.properties;
-  }
-  return {};
-}
-
-function handleCustomEvent(schemas) {
-  if (Object.prototype.hasOwnProperty.call(schemas.Event, "properties")) {
-    return schemas.Event.properties;
-  }
-  return {};
-}
-
-async function getProperties(api, registry, schema, event) {
-  const data = await updateEvent(api, registry, schema);
-  const parsedEvent = JSON.parse(data.Content);
-  const parsedSchemas = parsedEvent.components.schemas;
-
-  if (Object.prototype.hasOwnProperty.call(parsedSchemas, "AWSEvent")) {
-    return handleAWSEvent(parsedSchemas, event);
-  }
-  return handleCustomEvent(parsedSchemas);
-}
+import {
+  modalTitle,
+  modalHelpText,
+  modalLayout,
+  submitButton,
+  generateFieldWithTitle,
+} from "../components";
+import { getProperties } from "../services/awsSchema";
 
 const createDynamicForm = async (
   blessed,
@@ -52,15 +16,18 @@ const createDynamicForm = async (
   modalState,
   updatePageText
 ) => {
-  const fields = await getProperties(
-    api,
-    modalState.registry,
-    modalState.schema,
-    modalState.event
-  );
+  let properties = {};
+  properties = await getProperties(api, modalState.registry, modalState.schema);
 
+  if (Object.prototype.hasOwnProperty.call(properties, "type")) {
+    modalState.event.DetailType = properties.type;
+  }
+  if (Object.prototype.hasOwnProperty.call(properties, "source")) {
+    modalState.event.Source = properties.source;
+  }
+
+  const fields = properties.properties;
   const fieldNames = Object.keys(fields);
-
   if (fieldNames !== []) {
     fieldNames.forEach((field) => {
       const textboxWithTitle = generateFieldWithTitle(
@@ -122,17 +89,7 @@ const eventModal = (
   schema,
   injectEvent
 ) => {
-  const eventLayout = blessed.layout({
-    parent: screen,
-    top: "center",
-    left: "center",
-    width: 112,
-    height: 35,
-    border: "line",
-    style: { border: { fg: "green" } },
-    keys: true,
-    grabKeys: true,
-  });
+  const eventLayout = modalLayout(blessed, screen, 112, 35, true);
 
   const closeModal = () => {
     // Store all text to populate modal when next opened
@@ -169,74 +126,42 @@ const eventModal = (
     modalState.textboxes[index].style.border.fg = "yellow";
   };
 
-  const selectButton = () => {
-    modalState.buttonSelected = true;
-    modalState.buttons[0].style.border.fg = "yellow";
-    modalState.buttons[0].style.fg = "yellow";
+  const setButtonSelected = (value) => {
+    const color = value === true ? "yellow" : "green";
+    modalState.buttonSelected = value;
+    modalState.buttons[0].style.border.fg = color;
+    modalState.buttons[0].style.fg = color;
   };
 
-  const unSelectButton = () => {
-    modalState.buttonSelected = false;
-    modalState.buttons[0].style.border.fg = "green";
-    modalState.buttons[0].style.fg = "green";
-  };
-
-  const hidePage = (pageNum) => {
+  const togglePage = (pageNum) => {
     const lowerBound = (pageNum - 1) * 5;
     const upperBound = Math.min(lowerBound + 5, modalState.textboxes.length);
     for (let i = lowerBound; i < upperBound; i += 1) {
-      modalState.textboxes[i].hide();
-      modalState.titles[i].hide();
-    }
-  };
-
-  const showPage = (pageNum) => {
-    const lowerBound = (pageNum - 1) * 5;
-    const upperBound = Math.min(lowerBound + 5, modalState.textboxes.length);
-    for (let i = lowerBound; i < upperBound; i += 1) {
-      modalState.textboxes[i].show();
-      modalState.titles[i].show();
+      modalState.textboxes[i].toggle();
+      modalState.titles[i].toggle();
     }
   };
 
   const nextPage = () => {
     unselectTextbox(modalState.currentTextbox);
-    hidePage(modalState.currentPage);
+    togglePage(modalState.currentPage);
     modalState.currentPage += 1;
-    showPage(modalState.currentPage);
+    togglePage(modalState.currentPage);
     modalState.currentTextbox = (modalState.currentPage - 1) * 5 + 1;
     selectTextbox(modalState.currentTextbox);
   };
 
   const prevPage = () => {
     unselectTextbox(modalState.currentTextbox);
-    hidePage(modalState.currentPage);
+    togglePage(modalState.currentPage);
     modalState.currentPage -= 1;
-    showPage(modalState.currentPage);
+    togglePage(modalState.currentPage);
     modalState.currentTextbox = (modalState.currentPage - 1) * 5 + 1;
     selectTextbox(modalState.currentTextbox);
   };
 
-  blessed.box({
-    parent: eventLayout,
-    width: 110,
-    left: "right",
-    top: "center",
-    align: "center",
-    padding: { left: 2, right: 2 },
-    style: { fg: "green" },
-    content: `Event Injection - ${schema}`,
-  });
-
-  const currentPageText = blessed.box({
-    parent: eventLayout,
-    width: 110,
-    left: "right",
-    top: "center",
-    align: "center",
-    padding: { left: 2, right: 2 },
-    style: { fg: "green" },
-  });
+  modalTitle(blessed, eventLayout, 110, `Event Injection - ${schema}`);
+  const currentPageText = modalTitle(blessed, eventLayout, 110, "");
 
   const updateCurrentPageText = () => {
     currentPageText.content = `Page ${modalState.currentPage} of ${modalState.numPages}`;
@@ -254,21 +179,11 @@ const eventModal = (
     grabKeys: true,
   });
 
-  const submit = blessed.box({
-    parent: eventLayout,
-    width: 110,
-    height: 4,
-    left: "right",
-    top: "center",
-    align: "center",
-    padding: { left: 2, right: 2 },
-    border: "line",
-    style: { fg: "yellow", border: { fg: "yellow" } },
-    content: "Submit",
-  });
+  const submit = submitButton(blessed, eventLayout, 110);
 
   // Push submit to front of textboxes array to avoid race conditions
   modalState.buttons.push(submit);
+  setButtonSelected(true);
 
   createDynamicForm(
     blessed,
@@ -279,19 +194,13 @@ const eventModal = (
     updateCurrentPageText
   );
 
-  blessed.box({
-    parent: eventLayout,
-    width: 110,
-    height: 5,
-    left: "right",
-    top: "center",
-    align: "center",
-    padding: { left: 2, right: 2 },
-    border: "line",
-    style: { fg: "green", border: { fg: "green" } },
-    content:
-      "Up/Down Arrow keys to select field\n Left/Right arrows keys to change page\nENTER to toggle edit mode | ENTER on Submit to inject event | ESC to close",
-  });
+  modalHelpText(
+    blessed,
+    eventLayout,
+    110,
+    5,
+    "Up/Down Arrow keys to select field\n Left/Right arrows keys to change page\nENTER to toggle edit mode | ENTER on Submit to inject event | ESC to close"
+  );
 
   fieldLayout.focus();
 
@@ -334,13 +243,12 @@ const eventModal = (
   });
   fieldLayout.key(["up", "down"], (_, key) => {
     // Indices of fields at the top and bottom of page
-    console.log(key);
     const top = (modalState.currentPage - 1) * 5;
     const bottom = Math.min(modalState.textboxes.length - 1, top + 4);
     // If submit selected, go to bottom
     if (modalState.buttonSelected) {
       if (modalState.textboxes.length > 0) {
-        unSelectButton();
+        setButtonSelected(false);
         modalState.currentTextbox = key.name === "down" ? top : bottom;
         selectTextbox(modalState.currentTextbox);
       }
@@ -351,7 +259,7 @@ const eventModal = (
         modalState.currentTextbox < top ||
         modalState.currentTextbox > bottom
       ) {
-        selectButton();
+        setButtonSelected(true);
       } else {
         selectTextbox(modalState.currentTextbox);
       }

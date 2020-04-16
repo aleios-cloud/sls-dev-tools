@@ -7,56 +7,42 @@ function updateEvent(api, registry, schema) {
     .promise();
 }
 
-function handleAWSEvent(eventJson, event) {
+function handleAWSEvent(schemas, event) {
   // Update detailType and source fields from schema
-  const detailType =
-    eventJson.components.schemas.AWSEvent["x-amazon-events-detail-type"];
-  const source =
-    eventJson.components.schemas.AWSEvent["x-amazon-events-source"];
+  const detailType = schemas.AWSEvent["x-amazon-events-detail-type"];
+  const source = schemas.AWSEvent["x-amazon-events-source"];
   event.DetailType = detailType;
   event.Source = source;
 
   // "detail" is contained in the AWSEvent schema as a reference,
-  // typically of the form #/components/schemas/TestEvent
-  const eventDetail =
-    eventJson.components.schemas.AWSEvent.properties.detail.$ref;
-  //  Convert reference to an array of properties, to create a path to "detail"
-  const pathToDetail = eventDetail.replace("#/", "").split("/");
-  // Updated eventJson to the "detail" field stored at the end of the path
-  pathToDetail.forEach((parsed) => (eventJson = eventJson[parsed]));
+  // typically of the form #/components/schemas/[EventName]
+  const reference = schemas.AWSEvent.properties.detail.$ref;
+  const schemaName = reference.substring(reference.lastIndexOf("/") + 1);
+  const eventSchema = schemas[schemaName];
 
-  if (Object.prototype.hasOwnProperty.call(eventJson, "required")) {
-    return eventJson.required;
+  if (Object.prototype.hasOwnProperty.call(eventSchema, "required")) {
+    return eventSchema.required;
   }
   return [];
 }
 
-function handleCustomEvent(eventJson) {
-  if (
-    Object.prototype.hasOwnProperty.call(
-      eventJson.components.schemas.Event,
-      "required"
-    )
-  ) {
-    return eventJson.components.schemas.Event.required;
+function handleCustomEvent(schemas) {
+  if (Object.prototype.hasOwnProperty.call(schemas.Event, "required")) {
+    return schemas.Event.required;
   }
-  const { properties } = eventJson.components.schemas.Event;
+  const { properties } = schemas.Event;
   return Object.keys(properties);
 }
 
 async function getProperties(api, registry, schema, event) {
   const data = await updateEvent(api, registry, schema);
   const parsedEvent = JSON.parse(data.Content);
+  const parsedSchemas = parsedEvent.components.schemas;
 
-  if (
-    Object.prototype.hasOwnProperty.call(
-      parsedEvent.components.schemas,
-      "AWSEvent"
-    )
-  ) {
-    return handleAWSEvent(parsedEvent, event);
+  if (Object.prototype.hasOwnProperty.call(parsedSchemas, "AWSEvent")) {
+    return handleAWSEvent(parsedSchemas, event);
   }
-  return handleCustomEvent(parsedEvent);
+  return handleCustomEvent(parsedSchemas);
 }
 
 const createDynamicForm = async (
@@ -96,22 +82,23 @@ const createDynamicForm = async (
       });
       modalState.textboxes.push(textbox);
       modalState.fieldNames.push(field);
+      // Change focus to first field instead of submit button
     });
+    modalState.currentTextbox = 1;
+    modalState.textboxes[0].style.border.fg = "green";
+    modalState.textboxes[0].style.fg = "green";
+    modalState.textboxes[1].style.border.fg = "yellow";
   }
 };
 
 const createDetail = (keys, textboxes) => {
-  try {
-    const values = [];
-    textboxes.forEach((textbox) => values.push(textbox.getValue()));
-    const detail = {};
-    for (let i = 0; i < keys.length; i += 1) {
-      detail[keys[i]] = values[i];
-    }
-    return detail;
-  } catch (e) {
-    console.log(e);
+  const values = [];
+  textboxes.forEach((textbox) => values.push(textbox.getValue()));
+  const detail = {};
+  for (let i = 0; i < keys.length; i += 1) {
+    detail[keys[i]] = values[i];
   }
+  return detail;
 };
 
 const eventModal = (

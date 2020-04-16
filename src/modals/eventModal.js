@@ -17,9 +17,7 @@ function handleAWSEvent(schemas, event) {
   // "detail" is contained in the AWSEvent schema as a reference,
   // typically of the form #/components/schemas/[EventName]
   const reference = schemas.AWSEvent.properties.detail.$ref;
-  //  Split reference to create a path to "detail"
-  const pathToDetail = reference.replace("#/", "").split("/");
-  const schemaName = pathToDetail[pathToDetail.length - 1];
+  const schemaName = reference.substring(reference.lastIndexOf("/") + 1);
   const eventSchema = schemas[schemaName];
 
   if (Object.prototype.hasOwnProperty.call(eventSchema, "required")) {

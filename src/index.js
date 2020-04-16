@@ -231,6 +231,10 @@ class Main {
 
     // Dictionary to store previous submissions for each event bus
     this.previousSubmittedEvent = {};
+    this.lambdasTable.rows.on("select", (item) => {
+      [this.funcName] = item.data;
+      this.fullFuncName = `${program.stackName}-${this.funcName}`;
+    });
   }
 
   setKeypresses() {
@@ -322,20 +326,89 @@ class Main {
   }
 
   async render() {
-    await this.lambdasTable.rows.on("select", (item) => {
-      [this.funcName] = item.data;
-      this.fullFuncName = `${program.stackName}-${this.funcName}`;
-      this.updateGraphs();
-    });
-
+    this.mapInit();
     setInterval(() => {
       this.updateMap();
+      this.updateResourcesInformation();
+      this.updateGraphs();
       screen.render();
     }, 1000);
+  }
 
-    setInterval(() => {
-      this.updateResourcesInformation();
-    }, 3000);
+  async updateGraphs() {
+    if (this.fullFuncName) {
+      this.data = await this.getLambdaMetrics(this.fullFuncName);
+      this.getLogStreams(`/aws/lambda/${this.fullFuncName}`);
+    }
+
+    this.padInvocationsAndErrorsWithZeros();
+    this.sortMetricDataResultsByTimestamp();
+    this.setBarChartData();
+    this.setLineGraphData();
+  }
+
+  async updateResourcesInformation() {
+    const stackResources = await getStackResources(
+      program.stackName,
+      this.setData
+    );
+    this.data = stackResources;
+
+    let latestLastUpdatedTimestamp = -1;
+    const lambdaFunctionResources = stackResources.StackResourceSummaries.filter(
+      (res) => {
+        const isLambdaFunction = res.ResourceType === "AWS::Lambda::Function";
+        if (isLambdaFunction) {
+          const lastUpdatedTimestampMilliseconds = moment(
+            res.LastUpdatedTimestamp
+          ).valueOf();
+          if (lastUpdatedTimestampMilliseconds > latestLastUpdatedTimestamp) {
+            latestLastUpdatedTimestamp = lastUpdatedTimestampMilliseconds;
+          }
+        }
+        return isLambdaFunction;
+      }
+    );
+    if (latestLastUpdatedTimestamp > latestLambdaFunctionsUpdateTimestamp) {
+      // In case of update in the Lambda function resources,
+      // instead of getting updated function configurations one by one individually,
+      // we are getting all the functions' configurations in batch
+      // even though there will be unrelated ones with the stack.
+      // Because this should result with less API calls in most cases.
+      await refreshLambdaFunctions();
+      latestLambdaFunctionsUpdateTimestamp = latestLastUpdatedTimestamp;
+    }
+
+    this.lambdasTable.data = lambdaFunctionResources.map((lam) => {
+      const funcName = lam.PhysicalResourceId;
+      const func = lambdaFunctions[funcName];
+      let funcRuntime = "?";
+      if (func) {
+        funcRuntime = func.Runtime;
+      }
+      return [
+        lam.PhysicalResourceId.replace(`${program.stackName}-`, ""),
+        moment(lam.LastUpdatedTimestamp).format("MMMM Do YYYY, h:mm:ss a"),
+        funcRuntime,
+      ];
+    });
+
+    this.updateLambdaTableRows();
+    this.updateLambdaDeploymentStatus();
+
+    const eventBridgeResources = await getEventBuses();
+    const busNames = eventBridgeResources.EventBuses.map((o) => o.Name).reduce(
+      (eventBridges, bus) => {
+        eventBridges[bus] = {};
+        return eventBridges;
+      },
+      {}
+    );
+
+    this.eventBridgeTree.setData({
+      extended: true,
+      children: busNames,
+    });
   }
 
   changeFocus() {
@@ -349,6 +422,16 @@ class Main {
     this.focusList[this.focusIndex].focus();
   }
 
+  mapInit() {
+    Object.keys(awsRegionLocations).forEach((key) => {
+      this.map.addMarker({
+        ...awsRegionLocations[key],
+        color: "yellow",
+        char: "X",
+      });
+    });
+  }
+
   updateMap() {
     if (this.marker) {
       this.map.addMarker({
@@ -357,19 +440,13 @@ class Main {
         char: "X",
       });
     } else {
-      this.map.clearMarkers();
-      Object.keys(awsRegionLocations).forEach((key) => {
-        if (key !== program.region) {
-          this.map.addMarker({
-            ...awsRegionLocations[key],
-            color: "yellow",
-            char: "X",
-          });
-        }
+      this.map.addMarker({
+        ...awsRegionLocations[program.region],
+        color: "green",
+        char: ".",
       });
     }
     this.marker = !this.marker;
-    screen.render();
   }
 
   deployStack() {
@@ -483,76 +560,6 @@ class Main {
     this.updateLambdaTableRows();
   }
 
-  async updateResourcesInformation() {
-    const stackResources = await getStackResources(
-      program.stackName,
-      this.setData
-    );
-    this.data = stackResources;
-
-    let latestLastUpdatedTimestamp = -1;
-    const lambdaFunctionResources = stackResources.StackResourceSummaries.filter(
-      (res) => {
-        const isLambdaFunction = res.ResourceType === "AWS::Lambda::Function";
-        if (isLambdaFunction) {
-          const lastUpdatedTimestampMilliseconds = moment(
-            res.LastUpdatedTimestamp
-          ).valueOf();
-          if (lastUpdatedTimestampMilliseconds > latestLastUpdatedTimestamp) {
-            latestLastUpdatedTimestamp = lastUpdatedTimestampMilliseconds;
-          }
-        }
-        return isLambdaFunction;
-      }
-    );
-    if (latestLastUpdatedTimestamp > latestLambdaFunctionsUpdateTimestamp) {
-      // In case of update in the Lambda function resources,
-      // instead of getting updated function configurations one by one individually,
-      // we are getting all the functions' configurations in batch
-      // even though there will be unrelated ones with the stack.
-      // Because this should result with less API calls in most cases.
-      await refreshLambdaFunctions();
-      latestLambdaFunctionsUpdateTimestamp = latestLastUpdatedTimestamp;
-    }
-
-    this.lambdasTable.data = lambdaFunctionResources.map((lam) => {
-      const funcName = lam.PhysicalResourceId;
-      const func = lambdaFunctions[funcName];
-      let funcRuntime = "?";
-      if (func) {
-        funcRuntime = func.Runtime;
-      }
-      return [
-        lam.PhysicalResourceId.replace(`${program.stackName}-`, ""),
-        moment(lam.LastUpdatedTimestamp).format("MMMM Do YYYY, h:mm:ss a"),
-        funcRuntime,
-      ];
-    });
-
-    this.updateLambdaTableRows();
-    this.updateLambdaDeploymentStatus();
-
-    const eventBridgeResources = await getEventBuses();
-    const busNames = eventBridgeResources.EventBuses.map((o) => o.Name).reduce(
-      (eventBridges, bus) => {
-        eventBridges[bus] = {};
-        return eventBridges;
-      },
-      {}
-    );
-
-    this.eventBridgeTree.setData({
-      extended: true,
-      children: busNames,
-    });
-
-    if (this.funcName) {
-      this.updateGraphs();
-    }
-
-    screen.render();
-  }
-
   flashLambdaTableRow(rowIndex) {
     this.lambdasTable.rows.items[rowIndex].style.fg = "blue";
     this.lambdasTable.rows.items[rowIndex].style.bg = "green";
@@ -569,21 +576,23 @@ class Main {
     /* For the invocations and errors data in this.data.MetricDataResults, we will add '0' for each
      * timestamp that doesn't have an entry. This is to make the graph more readable.
      */
-    for (let index = 0; index <= 1; index++) {
-      for (
-        let timestamp = moment(this.startTime).valueOf();
-        timestamp < moment(this.endTime).valueOf();
-        timestamp = moment(timestamp).add(this.interval, "seconds").valueOf()
-      ) {
-        if (
-          this.data.MetricDataResults[index].Timestamps.every(
-            (it) => it.valueOf() !== timestamp
-          )
+    if (this.data && this.data.MetricDataResults) {
+      for (let index = 0; index <= 1; index++) {
+        for (
+          let timestamp = moment(this.startTime).valueOf();
+          timestamp < moment(this.endTime).valueOf();
+          timestamp = moment(timestamp).add(this.interval, "seconds").valueOf()
         ) {
-          this.data.MetricDataResults[index].Timestamps.push(
-            new Date(timestamp)
-          );
-          this.data.MetricDataResults[index].Values.push(0);
+          if (
+            this.data.MetricDataResults[index].Timestamps.every(
+              (it) => it.valueOf() !== timestamp
+            )
+          ) {
+            this.data.MetricDataResults[index].Timestamps.push(
+              new Date(timestamp)
+            );
+            this.data.MetricDataResults[index].Values.push(0);
+          }
         }
       }
     }
@@ -656,52 +665,41 @@ class Main {
   }
 
   setLineGraphData() {
-    const dateFormat = moment(this.data.MetricDataResults[0]).isAfter(
-      moment().subtract(3, "days")
-    )
-      ? dateFormats.graphDisplayTime
-      : dateFormats.graphDisplayDate;
+    if (this.data && this.data.MetricDataResults) {
+      const dateFormat = moment(this.data.MetricDataResults[0]).isAfter(
+        moment().subtract(3, "days")
+      )
+        ? dateFormats.graphDisplayTime
+        : dateFormats.graphDisplayDate;
 
-    const functionError = {
-      title: "errors",
-      style: { line: "red" },
-      x: this.data.MetricDataResults[1].Timestamps.map((d) =>
-        moment(d).format(dateFormat)
-      ),
-      y: this.data.MetricDataResults[0].Values,
-    };
+      const functionError = {
+        title: "errors",
+        style: { line: "red" },
+        x: this.data.MetricDataResults[1].Timestamps.map((d) =>
+          moment(d).format(dateFormat)
+        ),
+        y: this.data.MetricDataResults[0].Values,
+      };
 
-    const functionInvocations = {
-      title: "invocations",
-      style: { line: "green" },
-      x: this.data.MetricDataResults[1].Timestamps.map((d) => {
-        const start = moment(d).format(dateFormat);
-        const end = moment(d).add(this.interval, "seconds").format(dateFormat);
-        return `${start}-${end}`;
-      }),
-      y: this.data.MetricDataResults[1].Values,
-    };
+      const functionInvocations = {
+        title: "invocations",
+        style: { line: "green" },
+        x: this.data.MetricDataResults[1].Timestamps.map((d) => {
+          const start = moment(d).format(dateFormat);
+          const end = moment(d)
+            .add(this.interval, "seconds")
+            .format(dateFormat);
+          return `${start}-${end}`;
+        }),
+        y: this.data.MetricDataResults[1].Values,
+      };
 
-    this.invocationsLineGraph.options.maxY = Math.max([
-      ...functionInvocations.y,
-      ...functionError.y,
-    ]);
-    this.invocationsLineGraph.setData([functionError, functionInvocations]);
-  }
-
-  async updateGraphs() {
-    const data = await this.getLambdaMetrics(this.fullFuncName);
-    this.data = data;
-
-    this.padInvocationsAndErrorsWithZeros();
-    this.sortMetricDataResultsByTimestamp();
-
-    this.getLogStreams(`/aws/lambda/${this.fullFuncName}`).then(() => {
-      screen.render();
-    });
-
-    this.setBarChartData();
-    this.setLineGraphData();
+      this.invocationsLineGraph.options.maxY = Math.max([
+        ...functionInvocations.y,
+        ...functionError.y,
+      ]);
+      this.invocationsLineGraph.setData([functionError, functionInvocations]);
+    }
   }
 
   getLogStreams(logGroupName) {
@@ -754,18 +752,20 @@ class Main {
   }
 
   sortMetricDataResultsByTimestamp() {
-    this.data.MetricDataResults = this.data.MetricDataResults.map((datum) => {
-      const latest = datum.Timestamps.map((timestamp, index) => ({
-        timestamp: moment(timestamp),
-        value: datum.Values[index],
-      })).sort((first, second) =>
-        moment(first.timestamp) > moment(second.timestamp) ? 1 : -1
-      );
-      const returnData = datum;
-      returnData.Timestamps = latest.map((it) => it.timestamp);
-      returnData.Values = latest.map((it) => it.value);
-      return returnData;
-    });
+    if (this.data && this.data.MetricDataResults) {
+      this.data.MetricDataResults = this.data.MetricDataResults.map((datum) => {
+        const latest = datum.Timestamps.map((timestamp, index) => ({
+          timestamp: moment(timestamp),
+          value: datum.Values[index],
+        })).sort((first, second) =>
+          moment(first.timestamp) > moment(second.timestamp) ? 1 : -1
+        );
+        const returnData = datum;
+        returnData.Timestamps = latest.map((it) => it.timestamp);
+        returnData.Values = latest.map((it) => it.value);
+        return returnData;
+      });
+    }
   }
 
   getLambdaMetrics(functionName) {

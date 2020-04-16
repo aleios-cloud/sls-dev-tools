@@ -86,13 +86,14 @@ const eventInjectionModal = (
   });
 
   for (let i = 0; i < numTextboxes; i += 1) {
-    const textbox = generateFieldWithTitle(
+    const textboxWithTitle = generateFieldWithTitle(
       blessed,
       eventInjectLayout,
       fields[i],
       preset[i],
       110
     );
+    const { textbox } = textboxWithTitle;
     textbox.on("cancel", () => {
       updateEventValues();
       closeModal();

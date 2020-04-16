@@ -81,18 +81,19 @@ const createDynamicForm = async (
     });
     if (fieldNames.length > 0) {
       // Change focus to first field instead of submit button
-      modalState.currentTextbox = 1;
-      modalState.textboxes[0].style.border.fg = "green";
-      modalState.textboxes[0].style.fg = "green";
-      modalState.textboxes[1].style.border.fg = "yellow";
+      modalState.currentTextbox = 0;
+      modalState.buttons[0].style.border.fg = "green";
+      modalState.buttons[0].style.fg = "green";
+      modalState.buttonSelected = false;
+      modalState.textboxes[0].style.border.fg = "yellow";
       // Calculate total number of pages
       modalState.numPages = Math.ceil(fieldNames.length / 5);
     }
     // Hide fields after the 5th
     if (fieldNames.length > 5) {
-      for (let i = 6; i < modalState.textboxes.length; i += 1) {
+      for (let i = 5; i < modalState.textboxes.length; i += 1) {
         modalState.textboxes[i].hide();
-        modalState.titles[i - 1].hide();
+        modalState.titles[i].hide();
       }
     }
   }
@@ -147,6 +148,8 @@ const eventModal = (
     numPages: 1,
     textboxes: [],
     titles: [],
+    buttons: [],
+    buttonSelected: true,
     fieldNames: [],
     fieldTypes: [],
     registry,
@@ -161,37 +164,39 @@ const eventModal = (
 
   const unselectTextbox = (index) => {
     modalState.textboxes[index].style.border.fg = "green";
-    // If textbox is the submit button
-    if (index === 0) {
-      modalState.textboxes[index].style.fg = "green";
-    }
   };
 
   const selectTextbox = (index) => {
     modalState.textboxes[index].style.border.fg = "yellow";
-    // If textbox is the submit button
-    if (index === 0) {
-      modalState.textboxes[index].style.fg = "yellow";
-    }
+  };
+
+  const selectButton = () => {
+    modalState.buttonSelected = true;
+    modalState.buttons[0].style.border.fg = "yellow";
+    modalState.buttons[0].style.fg = "yellow";
+  };
+
+  const unSelectButton = () => {
+    modalState.buttonSelected = false;
+    modalState.buttons[0].style.border.fg = "green";
+    modalState.buttons[0].style.fg = "green";
   };
 
   const hidePage = (pageNum) => {
-    const lowerBound = (pageNum - 1) * 5 + 1;
+    const lowerBound = (pageNum - 1) * 5;
     const upperBound = Math.min(lowerBound + 5, modalState.textboxes.length);
-    console.log(`lower bound:${lowerBound} upperBound:${upperBound}`);
     for (let i = lowerBound; i < upperBound; i += 1) {
       modalState.textboxes[i].hide();
-      modalState.titles[i - 1].hide();
+      modalState.titles[i].hide();
     }
   };
 
   const showPage = (pageNum) => {
-    const lowerBound = (pageNum - 1) * 5 + 1;
+    const lowerBound = (pageNum - 1) * 5;
     const upperBound = Math.min(lowerBound + 5, modalState.textboxes.length);
-    console.log(`lower bound:${lowerBound} upperBound:${upperBound}`);
     for (let i = lowerBound; i < upperBound; i += 1) {
       modalState.textboxes[i].show();
-      modalState.titles[i - 1].show();
+      modalState.titles[i].show();
     }
   };
 
@@ -250,7 +255,7 @@ const eventModal = (
   });
 
   // Push submit to front of textboxes array to avoid race conditions
-  modalState.textboxes.push(submit);
+  modalState.buttons.push(submit);
 
   createDynamicForm(blessed, api, fieldLayout, closeModal, modalState);
 
@@ -284,65 +289,70 @@ const eventModal = (
 
   fieldLayout.key(["enter"], () => {
     // If submit button is in focus
-    try {
-      if (modalState.currentTextbox === 0) {
-        // Slice textboxes to ignore submit button
-        const detail = JSON.stringify(
-          createDetail(
-            modalState.fieldNames,
-            modalState.fieldTypes,
-            modalState.textboxes.slice(1)
-          )
-        );
-        modalState.event.Detail = detail;
-        eventLayout.destroy();
-        eventInjectionModal(
-          screen,
-          blessed,
-          eventBridge,
-          application,
-          injectEvent,
-          modalState.event
-        );
-      } else {
-        // Edit field
-        modalState.textboxes[modalState.currentTextbox].focus();
-      }
-    } catch (e) {
-      console.log(e);
+    if (modalState.buttonSelected === true) {
+      const detail = JSON.stringify(
+        createDetail(
+          modalState.fieldNames,
+          modalState.fieldTypes,
+          modalState.textboxes
+        )
+      );
+      modalState.event.Detail = detail;
+      eventLayout.destroy();
+      eventInjectionModal(
+        screen,
+        blessed,
+        eventBridge,
+        application,
+        injectEvent,
+        modalState.event
+      );
+    } else {
+      // Edit field
+      modalState.textboxes[modalState.currentTextbox].focus();
     }
   });
   fieldLayout.key(["up"], () => {
     // Indices of fields at the top and bottom of page
-    const top = (modalState.currentPage - 1) * 5 + 1;
+    const top = (modalState.currentPage - 1) * 5;
     const bottom = Math.min(modalState.textboxes.length - 1, top + 4);
-    unselectTextbox(modalState.currentTextbox);
     // If submit selected, go to bottom
-    if (modalState.currentTextbox === 0) {
-      modalState.currentTextbox = bottom;
+    if (modalState.buttonSelected) {
+      if (modalState.textboxes.length > 0) {
+        unSelectButton();
+        modalState.currentTextbox = bottom;
+        selectTextbox(modalState.currentTextbox);
+      }
     } else {
+      unselectTextbox(modalState.currentTextbox);
       modalState.currentTextbox -= 1;
       if (modalState.currentTextbox < top) {
-        modalState.currentTextbox = 0;
+        selectButton();
+      } else {
+        selectTextbox(modalState.currentTextbox);
       }
     }
-    selectTextbox(modalState.currentTextbox);
   });
   fieldLayout.key(["down"], () => {
     // Indices of fields at the top and bottom of page
-    const top = (modalState.currentPage - 1) * 5 + 1;
+    const top = (modalState.currentPage - 1) * 5;
     const bottom = Math.min(modalState.textboxes.length - 1, top + 4);
-    unselectTextbox(modalState.currentTextbox);
     // If submit selected, go to top
-    if (modalState.currentTextbox === 0) {
-      modalState.currentTextbox = top;
+    if (modalState.buttonSelected) {
+      if (modalState.textboxes.length > 0) {
+        unSelectButton();
+        modalState.currentTextbox = top;
+        selectTextbox(modalState.currentTextbox);
+      }
     } else {
+      unselectTextbox(modalState.currentTextbox);
       modalState.currentTextbox += 1;
       if (modalState.currentTextbox > bottom) {
-        modalState.currentTextbox = 0;
+        selectButton();
+      } else {
+        selectTextbox(modalState.currentTextbox);
       }
     }
-    selectTextbox(modalState.currentTextbox);
   });
 
   fieldLayout.key(["escape"], () => {

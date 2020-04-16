@@ -80,16 +80,14 @@ const createDynamicForm = async (
       modalState.fieldNames.push(field);
       modalState.fieldTypes.push(fields[field].type);
     });
-    if (fieldNames.length > 0) {
-      // Change focus to first field instead of submit button
-      modalState.currentTextbox = 0;
-      modalState.buttons[0].style.border.fg = "green";
-      modalState.buttons[0].style.fg = "green";
-      modalState.buttonSelected = false;
-      modalState.textboxes[0].style.border.fg = "yellow";
-      // Calculate total number of pages
-      modalState.numPages = Math.ceil(fieldNames.length / 5);
-    }
+    // Change focus to first field instead of submit button
+    modalState.currentTextbox = 0;
+    modalState.buttons[0].style.border.fg = "green";
+    modalState.buttons[0].style.fg = "green";
+    modalState.buttonSelected = false;
+    modalState.textboxes[0].style.border.fg = "yellow";
+    // Calculate total number of pages
+    modalState.numPages = Math.ceil(fieldNames.length / 5);
     // Hide fields after the 5th
     if (fieldNames.length > 5) {
       for (let i = 5; i < modalState.textboxes.length; i += 1) {
@@ -102,9 +100,7 @@ const createDynamicForm = async (
   }
 };
 
-const createDetail = (keys, types, textboxes) => {
-  const values = [];
-  textboxes.forEach((textbox) => values.push(textbox.getValue()));
+const createDetail = (keys, types, values) => {
   const detail = {};
   for (let i = 0; i < keys.length; i += 1) {
     if (types[i] === "number") {
@@ -316,12 +312,10 @@ const eventModal = (
   fieldLayout.key(["enter"], () => {
     // If submit button is in focus
     if (modalState.buttonSelected === true) {
+      const values = [];
+      modalState.textboxes.forEach((t) => values.push(t.getValue()));
       const detail = JSON.stringify(
-        createDetail(
-          modalState.fieldNames,
-          modalState.fieldTypes,
-          modalState.textboxes
-        )
+        createDetail(modalState.fieldNames, modalState.fieldTypes, values)
       );
       modalState.event.Detail = detail;
       eventLayout.destroy();
@@ -338,42 +332,25 @@ const eventModal = (
       modalState.textboxes[modalState.currentTextbox].focus();
     }
   });
-  fieldLayout.key(["up"], () => {
+  fieldLayout.key(["up", "down"], (_, key) => {
     // Indices of fields at the top and bottom of page
+    console.log(key);
     const top = (modalState.currentPage - 1) * 5;
     const bottom = Math.min(modalState.textboxes.length - 1, top + 4);
     // If submit selected, go to bottom
     if (modalState.buttonSelected) {
       if (modalState.textboxes.length > 0) {
         unSelectButton();
-        modalState.currentTextbox = bottom;
+        modalState.currentTextbox = key.name === "down" ? top : bottom;
         selectTextbox(modalState.currentTextbox);
       }
     } else {
       unselectTextbox(modalState.currentTextbox);
-      modalState.currentTextbox -= 1;
-      if (modalState.currentTextbox < top) {
-        selectButton();
-      } else {
-        selectTextbox(modalState.currentTextbox);
-      }
-    }
-  });
-  fieldLayout.key(["down"], () => {
-    // Indices of fields at the top and bottom of page
-    const top = (modalState.currentPage - 1) * 5;
-    const bottom = Math.min(modalState.textboxes.length - 1, top + 4);
-    // If submit selected, go to top
-    if (modalState.buttonSelected) {
-      if (modalState.textboxes.length > 0) {
-        unSelectButton();
-        modalState.currentTextbox = top;
-        selectTextbox(modalState.currentTextbox);
-      }
-    } else {
-      unselectTextbox(modalState.currentTextbox);
-      modalState.currentTextbox += 1;
-      if (modalState.currentTextbox > bottom) {
+      modalState.currentTextbox += key.name === "down" ? 1 : -1;
+      if (
+        modalState.currentTextbox < top ||
+        modalState.currentTextbox > bottom
+      ) {
         selectButton();
       } else {
         selectTextbox(modalState.currentTextbox);

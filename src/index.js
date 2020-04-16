@@ -9,6 +9,8 @@ import {
 import { helpModal } from "./modals/helpModal";
 import { eventRegistryModal } from "./modals/eventRegistryModal";
 import { eventInjectionModal } from "./modals/eventInjectionModal";
+import { lambdaStatisticsModal } from './modals/lambdaStatisticsModal';
+import { durationBarChartOptions, updateBarChartData } from './components/durationBarChart';
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -126,13 +128,7 @@ class Main {
   constructor() {
     this.lambdasDeploymentStatus = {};
     this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
-    this.lambdaInfoBar = this.layoutGrid.set(4, 6, 4, 3, contrib.bar, {
-      label: "Lambda Duration (ms) (most recent)",
-      barWidth: 6,
-      barSpacing: 6,
-      xOffset: 2,
-      maxHeight: 9,
-    });
+    this.lambdaInfoBar = this.layoutGrid.set(4, 6, 4, 3, contrib.bar, durationBarChartOptions);
     this.lambdasTable = this.layoutGrid.set(0, 6, 4, 6, contrib.table, {
       keys: true,
       fg: "green",
@@ -214,7 +210,7 @@ class Main {
       // Round to closest interval to make query faster.
       this.startTime = new Date(
         Math.round(new Date().getTime() / this.interval) * this.interval -
-          dateOffset
+        dateOffset
       );
     }
 
@@ -245,7 +241,7 @@ class Main {
       }
       return 0;
     });
-    screen.key(["s"], () => {
+    screen.key(['D'], () => {
       if (this.isModalOpen === false) {
         return this.deployStack();
       }
@@ -330,6 +326,17 @@ class Main {
       }
       return 0;
     });
+    screen.key(['s'], () => {
+      if (this.focusIndex === 0 && this.isModalOpen === false) {
+        this.isModalOpen = true;
+        const selectedRow = this.lambdasTable.rows.selected;
+        const [selectedLambdaName] = this.lambdasTable.rows.items[selectedRow].data;
+        const fullFunctionName = `${program.stackName}-${selectedLambdaName}`;
+        // await this.getLogStreams(`/aws/lambda/${fullFunctionName}`);
+        return lambdaStatisticsModal(screen, contrib, blessed, this, fullFunctionName);
+      }
+      return 0;
+    });
   }
 
   setIsModalOpen(value) {
@@ -349,7 +356,44 @@ class Main {
   async updateGraphs() {
     if (this.fullFuncName) {
       this.data = await this.getLambdaMetrics(this.fullFuncName);
-      this.getLogStreams(`/aws/lambda/${this.fullFuncName}`);
+      this.getLogStreams(`/aws/lambda/${this.fullFuncName}`).then((err, data) => {
+        let logs;
+        if (err) {
+          console.log(err, err.stack);
+          // an error occurred
+        } else {
+          const logStreamNames = data.logStreams.map((stream) => stream.logStreamName);
+          if (logStreamNames.length === 0) {
+            this.lambdaLog.setContent(
+              'ERROR: No log streams found for this function.',
+            );
+            return;
+          }
+          const params = {
+            logGroupName,
+            logStreamNames,
+          };
+          cloudwatchLogs
+            .filterLogEvents(params)
+            .promise()
+            .then(
+              (data2) => {
+                const { events } = data2;
+                this.lambdaLog.setContent('');
+                events.forEach((event) => {
+                  this.lambdaLog.log(event.message);
+                });
+                updateBarChartData(this.lambdaInfoBar, this.lamdbaLog);
+              },
+              (err2) => {
+                console.log("err2 update data")
+                // console.log(err2, err2.stack);
+              },
+            );
+        }
+        screen.render();
+
+      });
     }
 
     this.padInvocationsAndErrorsWithZeros();
@@ -464,7 +508,7 @@ class Main {
     if (provider === "serverlessFramework") {
       exec(
         `serverless deploy -r ${program.region} --aws-profile ${profile} ${
-          slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
+        slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
         }`,
         { cwd: location },
         (error, stdout) => this.handleStackDeployment(error, stdout)
@@ -482,9 +526,9 @@ class Main {
         } else {
           exec(
             `sam deploy --region ${
-              program.region
+            program.region
             } --profile ${profile} --stack-name ${program.stackName} ${
-              slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
+            slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
             }`,
             { cwd: location },
             (deployError, stdout) =>
@@ -533,9 +577,9 @@ class Main {
       if (provider === "serverlessFramework") {
         exec(
           `serverless deploy -f ${selectedLambdaFunctionName} -r ${
-            program.region
+          program.region
           } --aws-profile ${profile} ${
-            slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
+          slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
           }`,
           { cwd: location },
           (error, stdout) =>
@@ -713,13 +757,16 @@ class Main {
     }
   }
 
-  getLogStreams(logGroupName) {
+
+
+  async getLogStreams(logGroupName) {
     const params = {
       logGroupName,
       descending: true,
       limit: 5,
       orderBy: "LastEventTime",
     };
+    let logs;
     return cloudwatchLogs
       .describeLogStreams(params, (err, data) => {
         if (err) {
@@ -731,7 +778,7 @@ class Main {
           );
         }
       })
-      .promise();
+      .promise()
   }
 
   getLogEvents(logGroupName, logStreamNames) {

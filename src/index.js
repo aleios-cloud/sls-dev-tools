@@ -1,14 +1,10 @@
 #!/usr/bin/env node
 import AWS from "aws-sdk";
-import {
-  awsRegionLocations,
-  logo,
-  dateFormats,
-  DEPLOYMENT_STATUS,
-} from "./constants";
+import { logo, dateFormats, DEPLOYMENT_STATUS } from "./constants";
 import { helpModal } from "./modals/helpModal";
 import { eventRegistryModal } from "./modals/eventRegistryModal";
 import { eventInjectionModal } from "./modals/eventInjectionModal";
+import { Map } from "./components";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -149,9 +145,7 @@ class Main {
       wholeNumbersOnly: true,
       legend: { width: 50 },
     });
-    this.map = this.layoutGrid.set(4, 9, 4, 3, contrib.map, {
-      label: `Servers Location (${program.region})`,
-    });
+    this.map = new Map(this.layoutGrid, program);
     this.eventBridgeTree = this.layoutGrid.set(8, 9, 4, 3, contrib.tree, {
       label: "Event Bridges",
       style: {
@@ -202,7 +196,6 @@ class Main {
       this.consoleLogs.emit("attach");
     });
     screen.title = "sls-dev-tools";
-    this.marker = false;
     this.funcName = null;
     this.interval = program.interval || 3600; // 1 hour
     this.endTime = new Date();
@@ -337,9 +330,8 @@ class Main {
   }
 
   async render() {
-    this.mapInit();
     setInterval(() => {
-      this.updateMap();
+      this.map.updateMap();
       this.updateResourcesInformation();
       this.updateGraphs();
       screen.render();
@@ -431,33 +423,6 @@ class Main {
 
   returnFocus() {
     this.focusList[this.focusIndex].focus();
-  }
-
-  mapInit() {
-    Object.keys(awsRegionLocations).forEach((key) => {
-      this.map.addMarker({
-        ...awsRegionLocations[key],
-        color: "yellow",
-        char: "X",
-      });
-    });
-  }
-
-  updateMap() {
-    if (this.marker) {
-      this.map.addMarker({
-        ...awsRegionLocations[program.region],
-        color: "red",
-        char: "X",
-      });
-    } else {
-      this.map.addMarker({
-        ...awsRegionLocations[program.region],
-        color: "green",
-        char: ".",
-      });
-    }
-    this.marker = !this.marker;
   }
 
   deployStack() {

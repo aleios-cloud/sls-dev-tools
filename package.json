@@ -58,7 +58,16 @@
     "serverless",
     "sls",
     "dev",
-    "tools"
+    "tools",
+    "SAM",
+    "lambda",
+    "faas",
+    "EventBridge",
+    "aws",
+    "event registry",
+    "terminal",
+    "gui",
+    "theodo"
   ],
   "author": "Ben Ellerby",
   "license": "MIT",

@@ -12,6 +12,7 @@ const helpModal = (screen, blessed, application) => {
     ["i", "Open an event injection window for the selected event bus"],
     ["i", "Invoke lambda function with empty body for the selected function"],
     ["r", "Open the EventBridge Registry window for the selected event bus"],
+    ["l", "Open the Lambda Statistics window for the selected lambda"],
   ];
   const cliOptionsData = [
     ["---------", "----------"],

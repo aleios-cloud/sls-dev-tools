@@ -22,7 +22,8 @@
     "eslint-config-prettier": "^6.10.1",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-prettier": "^3.1.3",
-    "prettier": "^2.0.4"
+    "prettier": "^2.0.4",
+    "release-it": "^13.5.4"
   },
   "scripts": {
     "build": "babel ./src --out-dir lib",
@@ -30,7 +31,8 @@
     "start": "node ./lib/index.js",
     "lint": "eslint ./src",
     "fix": "yarn lint --fix",
-    "test": "yarn lint"
+    "test": "yarn lint",
+    "release": "release-it"
   },
   "babel": {
     "presets": [
@@ -41,8 +43,8 @@
             "node": true
           }
         }
+      ]
     ]
-  ]
   },
   "description": "The Dev Tools for the Serverless World",
   "version": "0.2.3",

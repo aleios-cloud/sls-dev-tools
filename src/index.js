@@ -17,6 +17,7 @@ const program = require("commander");
 const open = require("open");
 const { exec } = require("child_process");
 const emoji = require("node-emoji");
+const packageJson = require("../package.json");
 
 let slsDevToolsConfig;
 try {
@@ -26,7 +27,7 @@ try {
   // No config provided
 }
 
-program.version("0.2.3");
+program.version(packageJson.version);
 program
   .requiredOption("-n, --stack-name <stackName>", "AWS stack name")
   .requiredOption("-r, --region <region>", "AWS region")

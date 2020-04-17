@@ -120,6 +120,7 @@ function injectEvent(event) {
 
 class Main {
   constructor() {
+    this.focusIndex = 0;
     this.lambdasDeploymentStatus = {};
     this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.lambdaInfoBar = this.layoutGrid.set(4, 6, 4, 3, contrib.bar, {
@@ -135,6 +136,11 @@ class Main {
       label: "Lambda Functions",
       columnSpacing: 1,
       columnWidth: [45, 30, 15],
+      style: {
+        border: {
+          fg: "green",
+        },
+      },
     });
     this.invocationsLineGraph = this.layoutGrid.set(2, 0, 6, 6, contrib.line, {
       maxY: 0,
@@ -217,8 +223,7 @@ class Main {
     };
 
     // Curent element of focusList in focus
-    this.focusIndex = 0;
-    this.focusList = [this.lambdasTable, this.eventBridgeTree];
+    this.focusList = [this.lambdasTable, this.eventBridgeTree, this.map.map];
     this.returnFocus();
     this.isModalOpen = false;
 
@@ -415,9 +420,15 @@ class Main {
   }
 
   changeFocus() {
-    this.focusList[this.focusIndex].rows.interactive = false;
+    if (this.focusList[this.focusIndex].rows) {
+      this.focusList[this.focusIndex].rows.interactive = false;
+    }
+    this.focusList[this.focusIndex].style.border.fg = "cyan";
     this.focusIndex = (this.focusIndex + 1) % this.focusList.length;
-    this.focusList[this.focusIndex].rows.interactive = true;
+    if (this.focusList[this.focusIndex].rows) {
+      this.focusList[this.focusIndex].rows.interactive = true;
+    }
+    this.focusList[this.focusIndex].style.border.fg = "green";
     this.returnFocus();
   }
 

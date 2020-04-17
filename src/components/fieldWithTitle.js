@@ -1,5 +1,5 @@
 function generateFieldWithTitle(blessed, parent, title, value, width) {
-  blessed.box({
+  const titleBox = blessed.box({
     parent,
     width,
     left: "right",
@@ -8,7 +8,7 @@ function generateFieldWithTitle(blessed, parent, title, value, width) {
     padding: { left: 1, right: 1 },
     content: title,
   });
-  return blessed.textbox({
+  const textbox = blessed.textbox({
     parent,
     top: "center",
     left: "center",
@@ -25,6 +25,7 @@ function generateFieldWithTitle(blessed, parent, title, value, width) {
     censor: false,
     value,
   });
+  return { titleBox, textbox };
 }
 
 module.exports = {

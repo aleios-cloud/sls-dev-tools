@@ -54,6 +54,14 @@ class HomeSplash extends React.Component {
       </div>
     );
 
+    const Video = props => (
+      <div className="videoWrapper">
+        <video width={props.width} height={props.height} controls>
+          <source src={props.source}  type="video/mp4"/>
+        </video>
+      </div>
+    );
+
     return (
       <SplashContainer>
         <Logo img_src={`${baseUrl}img/undraw_monitor.svg`} />
@@ -63,6 +71,7 @@ class HomeSplash extends React.Component {
             <Button href="https://github.com/Theodo-UK/sls-dev-tools">Try It Out</Button>
             <Button href={docUrl('README.html')}>Documentation</Button>
           </PromoSection>
+          <Video width={720} height={405} source={`${baseUrl}img/demo.mp4`}/>
         </div>
       </SplashContainer>
     );
@@ -93,7 +102,10 @@ class Index extends React.Component {
         style={{textAlign: 'center'}}>
         <h2>All your serverless statistics, right in your terminal!</h2>
         <p>Log your lambdas without logging onto AWS.</p>
-        <img width="50%" src={`${baseUrl}img/demo.png`} />
+        <p>Deploy lambdas in a single keypress</p>
+        <p>View all your event buses, and inject events</p>
+        <p>Integration with <a href="https://aws.amazon.com/eventbridge/">AWS EventBridge</a> and the <a href="https://docs.aws.amazon.com/eventbridge/latest/userguide/eventbridge-schemas.html">EventBridge Schema Registry</a>.</p>
+        <img width="50%" src={`${baseUrl}img/demo.png`} alt="Serverless Dev Tool UI" />
       </div>
     );
 

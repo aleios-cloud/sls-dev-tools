@@ -276,6 +276,17 @@ class Main {
           `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`
         );
       }
+      // If focus is currently on this.eventBridgeTree
+      if (this.focusIndex === 1 && this.isModalOpen === false) {
+        const selectedRow = this.eventBridgeTree.rows.selected;
+        // take substring to remove leading characters displayed in tree
+        const selectedEventBridge = this.eventBridgeTree.rows.ritems[
+          selectedRow
+        ].substring(2);
+        return open(
+          `https://${program.region}.console.aws.amazon.com/events/home?region=${program.region}#/eventbus/${selectedEventBridge}`
+        );
+      }
       return 0;
     });
     screen.key(["i"], () => {

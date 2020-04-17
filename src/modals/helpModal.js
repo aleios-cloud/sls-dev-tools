@@ -11,6 +11,7 @@ const helpModal = (screen, blessed, application) => {
     ["Tab", "Used to change focus between selected windows"],
     ["i", "Open an event injection window for the selected event bus"],
     ["r", "Open the EventBridge Registry window for the selected event bus"],
+    ["l", "Open the Lambda Statistics window for the selected lambda"],
   ];
   const cliOptionsData = [
     ["---------", "----------"],

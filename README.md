@@ -8,7 +8,7 @@ The Dev Tools for the Serverless World
 
 [Docs Site](https://theodo-uk.github.io/sls-dev-tools)
 
-![demo](./demo.mp4)
+![demo](./demo.png)
 
 [Documentation](https://theodo-uk.github.io/sls-dev-tools)
 

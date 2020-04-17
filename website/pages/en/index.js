@@ -54,14 +54,6 @@ class HomeSplash extends React.Component {
       </div>
     );
 
-    const Video = props => (
-      <div className="videoWrapper">
-        <video width={props.width} height={props.height} controls>
-          <source src={props.source}  type="video/mp4"/>
-        </video>
-      </div>
-    );
-
     return (
       <SplashContainer>
         <Logo img_src={`${baseUrl}img/undraw_monitor.svg`} />
@@ -71,7 +63,6 @@ class HomeSplash extends React.Component {
             <Button href="https://github.com/Theodo-UK/sls-dev-tools">Try It Out</Button>
             <Button href={docUrl('README.html')}>Documentation</Button>
           </PromoSection>
-          <Video width={720} height={405} source={`${baseUrl}img/demo.mp4`}/>
         </div>
       </SplashContainer>
     );
@@ -121,6 +112,7 @@ class Index extends React.Component {
                 <li>Logs</li>
               </ul>`,
             image: `${baseUrl}img/undraw_predictive_analytics.svg`,
+            imageAlt: "sls-dev-tools analytics",
             imageAlign: 'left',
             title: 'Visibility on',
           },
@@ -135,6 +127,7 @@ class Index extends React.Component {
             content:
               'Serverless-Dev-Tools is an open source tool. We need help improving it. Issues, PRs, Ideas and Feedback are all welcome!',
             image: `${baseUrl}img/undraw_pair_programming_njlp.svg`,
+            imageAlt: "Contribute to this open sls-dev-tools!",
             imageAlign: 'right',
             title: 'We need you!',
           },
@@ -150,6 +143,7 @@ class Index extends React.Component {
               `Serverless-Dev-Tools provides a quick overview of your stack as you code, providing feedback and visibility without the need to log into the AWS Console and load the right metrics.
               This is not a logging platform, alerting system or online dashboard. It\'s a developer tool in the terminal to keep you connected to key metrics as you code.`,
             image: `${baseUrl}img/undraw_programmer_imem.svg`,
+            imageAlt: "sls-dev-tools gives you fast feedback while you develop",
             imageAlign: 'right',
             title: 'Backend development shouldn\'t need a browser in the dev feedback loop',
           },
@@ -162,16 +156,19 @@ class Index extends React.Component {
         {[
           {
             image: `${baseUrl}img/undraw_programmer_imem.svg`,
+            imageAlt: "Serverless Devlopement",
             imageAlign: 'bottom',
             title: 'In-Terminal Feedback',
           },
           {
             image: `${baseUrl}img/undraw_predictive_analytics.svg`,
+            imageAlt: "Easy to use tool",
             imageAlign: 'bottom',
             title: 'Simple Visibility',
           },
           {
             image: `${baseUrl}img/undraw_dashboard.svg`,
+            imageAlt: "Serverless analysis",
             imageAlign: 'bottom',
             title: 'Targeted Metrics',
           },
@@ -208,10 +205,19 @@ class Index extends React.Component {
       );
     };
 
+    const Video = props => (
+      <div className="videoWrapper" style={{textAlign: 'center'}}>
+        <video width={props.width} height={props.height} controls>
+          <source src={props.source}  type="video/mp4"/>
+        </video>
+      </div>
+    );
+
     return (
       <div>
         <HomeSplash siteConfig={siteConfig} language={language} />
         <div className="mainContainer">
+          <Video width={720} height={405} source={`${baseUrl}img/demo.mp4`}/>
           <Features />
           <FeatureCallout />
           <LearnHow />

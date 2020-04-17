@@ -147,7 +147,7 @@ const eventModal = (
     togglePage(modalState.currentPage);
     modalState.currentPage += 1;
     togglePage(modalState.currentPage);
-    modalState.currentTextbox = (modalState.currentPage - 1) * 5 + 1;
+    modalState.currentTextbox = (modalState.currentPage - 1) * 5;
     selectTextbox(modalState.currentTextbox);
   };
 
@@ -156,7 +156,7 @@ const eventModal = (
     togglePage(modalState.currentPage);
     modalState.currentPage -= 1;
     togglePage(modalState.currentPage);
-    modalState.currentTextbox = (modalState.currentPage - 1) * 5 + 1;
+    modalState.currentTextbox = (modalState.currentPage - 1) * 5;
     selectTextbox(modalState.currentTextbox);
   };
 

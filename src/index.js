@@ -67,12 +67,12 @@ if (program.sam) {
 }
 AWS.config.credentials = getAWSCredentials();
 AWS.config.region = program.region;
-const cloudformation = new AWS.CloudFormation();
-const cloudwatch = new AWS.CloudWatch();
-const cloudwatchLogs = new AWS.CloudWatchLogs();
-const eventBridge = new AWS.EventBridge();
-const schemas = new AWS.Schemas();
-const lambda = new AWS.Lambda();
+let cloudformation = new AWS.CloudFormation();
+let cloudwatch = new AWS.CloudWatch();
+let cloudwatchLogs = new AWS.CloudWatchLogs();
+let eventBridge = new AWS.EventBridge();
+let schemas = new AWS.Schemas();
+let lambda = new AWS.Lambda();
 
 function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
@@ -151,7 +151,7 @@ class Main {
       wholeNumbersOnly: true,
       legend: { width: 50 },
     });
-    this.map = new Map(this.layoutGrid, program);
+    this.map = new Map(this.layoutGrid, program, this.updateRegion);
     this.eventBridgeTree = this.layoutGrid.set(8, 9, 4, 3, contrib.tree, {
       label: "Event Bridges",
       style: {
@@ -809,6 +809,17 @@ class Main {
     };
 
     return cloudwatch.getMetricData(params).promise();
+  }
+
+  updateRegion(region) {
+    this.program.region = region;
+    AWS.config.region = region;
+    cloudformation = new AWS.CloudFormation();
+    cloudwatch = new AWS.CloudWatch();
+    cloudwatchLogs = new AWS.CloudWatchLogs();
+    eventBridge = new AWS.EventBridge();
+    schemas = new AWS.Schemas();
+    lambda = new AWS.Lambda();
   }
 }
 

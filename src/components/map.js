@@ -3,13 +3,14 @@ import { awsRegionLocations } from "../constants";
 const contrib = require("blessed-contrib");
 
 class Map {
-  constructor(layoutGrid, program) {
+  constructor(layoutGrid, program, updateRegion) {
     this.layoutGrid = layoutGrid;
     this.program = program;
     this.map = this.generateMap();
     this.flashMarker = false;
     this.markerLocation = program.region;
     this.selectedLocation = undefined;
+    this.updateRegion = updateRegion;
     this.map.key(["up"], () => {
       this.updateSelectedPosition(false);
     });
@@ -21,6 +22,31 @@ class Map {
     });
     this.map.key(["right"], () => {
       this.updateSelectedPosition(true);
+    });
+    this.map.key(["tab"], () => {
+      this.resetMap();
+    });
+    this.map.key(["enter"], () => {
+      if (
+        this.selectedLocation !== undefined &&
+        this.selectedLocation !== this.currentLocation
+      ) {
+        this.map.addMarker({
+          ...awsRegionLocations[this.currentLocation].coords,
+          color: "yellow",
+          char: "X",
+        });
+        this.currentLocation = this.selectedLocation;
+        // eslint-disable-next-line no-underscore-dangle
+        this.map._label.content = `Servers Location (${
+          awsRegionLocations[this.currentLocation].label
+        })`;
+        this.selectedLocation = undefined;
+        this.updateRegion(awsRegionLocations[this.currentLocation].label);
+        console.log(
+          `Welcome to ${awsRegionLocations[this.currentLocation].label}`
+        );
+      }
     });
   }
 
@@ -48,10 +74,10 @@ class Map {
         color: "red",
         char: "X",
       });
-      if (this.selectedLocation) {
+      if (this.selectedLocation !== undefined) {
         this.map.addMarker({
           ...awsRegionLocations[this.selectedLocation].coords,
-          color: "red",
+          color: [255, 130, 0],
           char: "X",
         });
       }
@@ -61,7 +87,7 @@ class Map {
         color: "green",
         char: ".",
       });
-      if (this.selectedLocation) {
+      if (this.selectedLocation !== undefined) {
         this.map.addMarker({
           ...awsRegionLocations[this.selectedLocation].coords,
           color: "green",
@@ -73,19 +99,26 @@ class Map {
   }
 
   updateSelectedPosition(positive) {
+    if (this.selectedLocation !== undefined) {
+      this.map.addMarker({
+        ...awsRegionLocations[this.selectedLocation].coords,
+        color: "yellow",
+        char: "X",
+      });
+    }
     if (positive) {
-      if (this.selectedLocation) {
+      if (this.selectedLocation !== undefined) {
         this.selectedLocation =
-          this.selectedLocation === awsRegionLocations.length
+          this.selectedLocation === awsRegionLocations.length - 1
             ? 0
             : this.selectedLocation + 1;
       } else {
         this.selectedLocation =
-          this.currentLocation === awsRegionLocations.length
+          this.currentLocation === awsRegionLocations.length - 1
             ? 0
             : this.currentLocation + 1;
       }
-    } else if (this.selectedLocation) {
+    } else if (this.selectedLocation !== undefined) {
       this.selectedLocation =
         this.selectedLocation === 0
           ? awsRegionLocations.length - 1
@@ -96,6 +129,28 @@ class Map {
           ? awsRegionLocations.length - 1
           : this.currentLocation - 1;
     }
+    // eslint-disable-next-line no-underscore-dangle
+    this.map._label.content = `Servers Location (${
+      this.program.region
+    })\nSelected Region: ${awsRegionLocations[this.selectedLocation].label}`;
+  }
+
+  resetMap() {
+    // eslint-disable-next-line no-underscore-dangle
+    this.map._label.content = `Servers Location (${
+      awsRegionLocations[this.selectedLocation].label
+    })`;
+    if (
+      this.selectedLocation !== undefined &&
+      this.selectedLocation !== this.currentLocation
+    ) {
+      this.map.addMarker({
+        ...awsRegionLocations[this.selectedLocation].coords,
+        color: "yellow",
+        char: "X",
+      });
+    }
+    this.selectedLocation = undefined;
   }
 }
 

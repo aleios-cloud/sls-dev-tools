@@ -38,7 +38,7 @@ class Map {
         });
         this.currentLocation = this.selectedLocation;
         // eslint-disable-next-line no-underscore-dangle
-        this.map._label.content = `Servers Location (${
+        this.map._label.content = `Location (${
           awsRegionLocations[this.currentLocation].label
         })`;
         this.selectedLocation = undefined;
@@ -52,7 +52,7 @@ class Map {
 
   generateMap() {
     const map = this.layoutGrid.set(4, 9, 4, 3, contrib.map, {
-      label: `Servers Location (${this.program.region})`,
+      label: `Location (${this.program.region})`,
     });
     awsRegionLocations.forEach((region, index) => {
       map.addMarker({
@@ -130,14 +130,14 @@ class Map {
           : this.currentLocation - 1;
     }
     // eslint-disable-next-line no-underscore-dangle
-    this.map._label.content = `Servers Location (${
+    this.map._label.content = `Location (${
       this.program.region
     })\nSelected Region: ${awsRegionLocations[this.selectedLocation].label}`;
   }
 
   resetMap() {
     // eslint-disable-next-line no-underscore-dangle
-    this.map._label.content = `Servers Location (${
+    this.map._label.content = `Location (${
       awsRegionLocations[this.selectedLocation].label
     })`;
     if (

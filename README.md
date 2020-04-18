@@ -6,7 +6,8 @@
 
 The Dev Tools for the Serverless World
 
-[Docs Site](https://theodo-uk.github.io/sls-dev-tools)
+- [Docs Site](https://theodo-uk.github.io/sls-dev-tools)
+- [📹YouTube Demo Video](https://youtu.be/bBA6upK5Ugk)
 
 ![demo](./demo.png)
 

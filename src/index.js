@@ -71,7 +71,7 @@ if (program.sam) {
   provider = "SAM";
 } else {
   provider = "serverlessFramework";
-  const SLS = new Serverless();
+  const SLS = new Serverless(location);
   if (!program.stackName) {
     program.stackName = SLS.getStackName(program.stage);
   }

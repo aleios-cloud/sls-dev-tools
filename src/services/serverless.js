@@ -1,10 +1,11 @@
 const fs = require("fs");
+const path = require("path");
 const YAML = require("js-yaml");
 
 class Serverless {
-  constructor() {
-    const ymlPath = "./serverless.yml";
-    const yamlPath = "./serverless.yaml";
+  constructor(location) {
+    const ymlPath = path.join(location, "serverless.yml");
+    const yamlPath = path.join(location, "serverless.yaml");
 
     if (fs.existsSync(ymlPath)) {
       this.config = YAML.load(fs.readFileSync(ymlPath).toString("utf8"));

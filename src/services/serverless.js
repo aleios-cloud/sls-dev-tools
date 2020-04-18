@@ -6,6 +6,7 @@ class Serverless {
   constructor(location) {
     const ymlPath = path.join(location, "serverless.yml");
     const yamlPath = path.join(location, "serverless.yaml");
+    const jsonPath = path.join(location, "serverless.json");
 
     if (fs.existsSync(ymlPath)) {
       this.config = YAML.load(fs.readFileSync(ymlPath).toString("utf8"));
@@ -13,6 +14,9 @@ class Serverless {
     }
     if (fs.existsSync(yamlPath)) {
       this.config = YAML.load(fs.readFileSync(yamlPath).toString("utf8"));
+    }
+    if (fs.existsSync(jsonPath)) {
+      this.config = JSON.parse(fs.readFileSync(jsonPath).toString("utf8"));
     }
   }
 

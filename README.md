@@ -3,11 +3,17 @@
 [![npm](https://img.shields.io/npm/v/sls-dev-tools)](https://www.npmjs.com/package/sls-dev-tools)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Theodo-UK/sls-dev-tools/blob/master/LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Theodo-UK/sls-dev-tools)
+[![Follow](https://img.shields.io/twitter/follow/SlsDevTools?style=social)](https://twitter.com/SlsDevTools)
 
-The Dev Tools for the Serverless World
+The Developer Tools for the Serverless World - think Chrome Dev Tools but for Serverless.
+- 💻Rapid In-Terminal Feedback (no more jumping to the AWS Console)
+- 📊Targeted metrics to empower you to build fast and efficient applications
+- ⌨️ Powerful keybindings to deploy, inject, open and manipulate stack resources without the clicks
+- 🛠Works with **any** IaC, from the Serverless Framework to SAM
 
-- [Docs Site](https://theodo-uk.github.io/sls-dev-tools)
-- [📹YouTube Demo Video](https://youtu.be/bBA6upK5Ugk)
+[Docs Site](https://theodo-uk.github.io/sls-dev-tools)
+
+[📹YouTube Demo Video](https://youtu.be/bBA6upK5Ugk)
 
 ![demo](./demo.png)
 

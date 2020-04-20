@@ -1,6 +1,6 @@
-import { durationBarChartOptions, updateDurationBarChart } from '../components/durationBarChart';
+import { DurationBarChart } from '../components/durationBarChart';
 
-const lambdaStatisticsModal = (screen, contrib, blessed, application, lambdaName, cloudwatchLogs) => {
+const lambdaStatisticsModal = (screen, blessed, application, lambdaName, cloudwatchLogs) => {
     const lambdaStatisticsLayout = blessed.layout({
         parent: screen,
         top: 'center',
@@ -25,7 +25,7 @@ const lambdaStatisticsModal = (screen, contrib, blessed, application, lambdaName
     });
     const durationChartBox = blessed.box({
         parent: lambdaStatisticsLayout,
-        width: 54,
+        width: 55,
         height: 22,
         left: 'right',
         top: 'center',
@@ -34,9 +34,9 @@ const lambdaStatisticsModal = (screen, contrib, blessed, application, lambdaName
         border: 'line',
         style: { fg: 'green', border: { fg: 'green' } },
     });
-    var durationChart = contrib.bar(durationBarChartOptions);
-    durationChartBox.append(durationChart);
-    updateDurationBarChart(lambdaName, durationChart, application, cloudwatchLogs);
+    const durationChart = new DurationBarChart(application, cloudwatchLogs)
+    durationChartBox.append(durationChart.chart);
+    durationChart.updateBarChart(lambdaName);
     lambdaStatisticsLayout.focus();
     lambdaStatisticsLayout.key(['escape'], () => {
         application.setIsModalOpen(false);

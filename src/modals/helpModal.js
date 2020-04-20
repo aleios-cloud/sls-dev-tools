@@ -8,7 +8,7 @@ const helpModal = (screen, blessed, application) => {
     ["d", "Deploys the selected lambda function"],
     ["s", "Deploys all the lambda functions within the stack"],
     ["Arrows", "Used to select from list, by default the function list"],
-    ["Tab", "Used to switch focus between lambda functions and event buses"],
+    ["Tab", "Used to change focus between selected windows"],
     ["i", "Open an event injection window for the selected event bus"],
     ["r", "Open the EventBridge Registry window for the selected event bus"],
   ];

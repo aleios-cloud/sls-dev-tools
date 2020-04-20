@@ -36,9 +36,12 @@ The Developer Tools for the Serverless World - think Chrome Dev Tools but for Se
   - If you're not seeing any data in the graphs, try changing your start date to make sure you have had invocations since then.
 - The EventBridge pane allows you to view event buses in your region, and send events to each bus from a template editor.
 - View the Event Registry, find schemas for all your events, and enter event properties using a simple form, without needing to write JSON boilerplate.
-- Switch focus between lambda functions and event buses by pressing tab.
+- Switch focus between the selected window by pressing tab.
 - The line graph shows the number of invocations and errors that occurred within the time interval.
 - The bar chart shows the response time of 5 most recent invocations.
+- Change regions using the map (tab to select it)
+  - Navigate the map using the arrow keys to select a region
+  - Press enter to select a region, the lambda functions and and event buses will be shown for stacks in your selected region
 
 ```
 Options:

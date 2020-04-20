@@ -25,8 +25,8 @@ try {
 
 program.version(packageJson.version);
 program
-  .requiredOption("-n, --stack-name <stackName>", "AWS stack name")
-  .requiredOption("-r, --region <region>", "AWS region")
+  .option("-n, --stack-name <stackName>", "AWS stack name")
+  .option("-r, --region <region>", "AWS region")
   .option(
     "-t, --start-time <startTime>",
     "when to start from, date string with form '30 March 2020 09:00 GMT'"
@@ -34,6 +34,7 @@ program
   .option("-i, --interval <interval>", "interval of graphs, in seconds")
   .option("-p, --profile <profile>", "aws profile name to use")
   .option("-l, --location <location>", "location of your serverless project")
+  .option("-s, --stage <stage>", "If sls option is set, use this stage", "dev")
   .option("--sls", "use the serverless framework to execute commands")
   .option("--sam", "use the SAM framework to execute commands")
   .parse(process.argv);
@@ -65,7 +66,27 @@ if (program.sam) {
   provider = "SAM";
 } else {
   provider = "serverlessFramework";
+  const SLS = new Serverless(location);
+  if (!program.stackName) {
+    program.stackName = SLS.getStackName(program.stage);
+  }
+
+  if (!program.region) {
+    program.region = SLS.getRegion();
+  }
 }
+
+if (!program.stackName) {
+  console.error(
+    "error: required option '-n, --stack-name <stackName>' not specified"
+  );
+  process.exit(1);
+}
+if (!program.region) {
+  console.error("error: required option '-r, --region <region>' not specified");
+  process.exit(1);
+}
+
 AWS.config.credentials = getAWSCredentials();
 AWS.config.region = program.region;
 let cloudformation = new AWS.CloudFormation();

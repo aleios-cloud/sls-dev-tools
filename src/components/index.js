@@ -3,3 +3,4 @@ export { modalLayout } from "./modalLayout";
 export { modalTitle } from "./modalTitle";
 export { submitButton } from "./submitButton";
 export { modalHelpText } from "./modalHelpText";
+export { Map } from "./map";

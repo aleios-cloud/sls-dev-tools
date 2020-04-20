@@ -1,14 +1,10 @@
 #!/usr/bin/env node
 import AWS from "aws-sdk";
-import {
-  awsRegionLocations,
-  logo,
-  dateFormats,
-  DEPLOYMENT_STATUS,
-} from "./constants";
+import { logo, dateFormats, DEPLOYMENT_STATUS } from "./constants";
 import { helpModal } from "./modals/helpModal";
 import { eventRegistryModal } from "./modals/eventRegistryModal";
 import { eventInjectionModal } from "./modals/eventInjectionModal";
+import { Map } from "./components";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -72,12 +68,12 @@ if (program.sam) {
 }
 AWS.config.credentials = getAWSCredentials();
 AWS.config.region = program.region;
-const cloudformation = new AWS.CloudFormation();
-const cloudwatch = new AWS.CloudWatch();
-const cloudwatchLogs = new AWS.CloudWatchLogs();
-const eventBridge = new AWS.EventBridge();
-const schemas = new AWS.Schemas();
-const lambda = new AWS.Lambda();
+let cloudformation = new AWS.CloudFormation();
+let cloudwatch = new AWS.CloudWatch();
+let cloudwatchLogs = new AWS.CloudWatchLogs();
+let eventBridge = new AWS.EventBridge();
+let schemas = new AWS.Schemas();
+let lambda = new AWS.Lambda();
 
 function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
@@ -125,6 +121,7 @@ function injectEvent(event) {
 
 class Main {
   constructor() {
+    this.focusIndex = 0;
     this.lambdasDeploymentStatus = {};
     this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.lambdaInfoBar = this.layoutGrid.set(4, 6, 4, 3, contrib.bar, {
@@ -140,6 +137,11 @@ class Main {
       label: "Lambda Functions",
       columnSpacing: 1,
       columnWidth: [45, 30, 15],
+      style: {
+        border: {
+          fg: "green",
+        },
+      },
     });
     this.invocationsLineGraph = this.layoutGrid.set(2, 0, 6, 6, contrib.line, {
       maxY: 0,
@@ -150,9 +152,7 @@ class Main {
       wholeNumbersOnly: true,
       legend: { width: 50 },
     });
-    this.map = this.layoutGrid.set(4, 9, 4, 3, contrib.map, {
-      label: `Servers Location (${program.region})`,
-    });
+    this.map = new Map(this.layoutGrid, program, this.updateRegion);
     this.eventBridgeTree = this.layoutGrid.set(8, 9, 4, 3, contrib.tree, {
       label: "Event Bridges",
       style: {
@@ -203,7 +203,6 @@ class Main {
       this.consoleLogs.emit("attach");
     });
     screen.title = "sls-dev-tools";
-    this.marker = false;
     this.funcName = null;
     this.interval = program.interval || 3600; // 1 hour
     this.endTime = new Date();
@@ -225,8 +224,7 @@ class Main {
     };
 
     // Curent element of focusList in focus
-    this.focusIndex = 0;
-    this.focusList = [this.lambdasTable, this.eventBridgeTree];
+    this.focusList = [this.lambdasTable, this.eventBridgeTree, this.map.map];
     this.returnFocus();
     this.isModalOpen = false;
 
@@ -338,9 +336,8 @@ class Main {
   }
 
   async render() {
-    this.mapInit();
     setInterval(() => {
-      this.updateMap();
+      this.map.updateMap();
       this.updateResourcesInformation();
       this.updateGraphs();
       screen.render();
@@ -424,41 +421,20 @@ class Main {
   }
 
   changeFocus() {
-    this.focusList[this.focusIndex].rows.interactive = false;
+    if (this.focusList[this.focusIndex].rows) {
+      this.focusList[this.focusIndex].rows.interactive = false;
+    }
+    this.focusList[this.focusIndex].style.border.fg = "cyan";
     this.focusIndex = (this.focusIndex + 1) % this.focusList.length;
-    this.focusList[this.focusIndex].rows.interactive = true;
+    if (this.focusList[this.focusIndex].rows) {
+      this.focusList[this.focusIndex].rows.interactive = true;
+    }
+    this.focusList[this.focusIndex].style.border.fg = "green";
     this.returnFocus();
   }
 
   returnFocus() {
     this.focusList[this.focusIndex].focus();
-  }
-
-  mapInit() {
-    Object.keys(awsRegionLocations).forEach((key) => {
-      this.map.addMarker({
-        ...awsRegionLocations[key],
-        color: "yellow",
-        char: "X",
-      });
-    });
-  }
-
-  updateMap() {
-    if (this.marker) {
-      this.map.addMarker({
-        ...awsRegionLocations[program.region],
-        color: "red",
-        char: "X",
-      });
-    } else {
-      this.map.addMarker({
-        ...awsRegionLocations[program.region],
-        color: "green",
-        char: ".",
-      });
-    }
-    this.marker = !this.marker;
   }
 
   deployStack() {
@@ -834,6 +810,17 @@ class Main {
     };
 
     return cloudwatch.getMetricData(params).promise();
+  }
+
+  updateRegion(region) {
+    this.program.region = region;
+    AWS.config.region = region;
+    cloudformation = new AWS.CloudFormation();
+    cloudwatch = new AWS.CloudWatch();
+    cloudwatchLogs = new AWS.CloudWatchLogs();
+    eventBridge = new AWS.EventBridge();
+    schemas = new AWS.Schemas();
+    lambda = new AWS.Lambda();
   }
 }
 

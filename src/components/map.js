@@ -138,7 +138,7 @@ class Map {
   resetMap() {
     // eslint-disable-next-line no-underscore-dangle
     this.map._label.content = `Location (${
-      awsRegionLocations[this.selectedLocation].label
+      awsRegionLocations[this.currentLocation].label
     })`;
     if (
       this.selectedLocation !== undefined &&

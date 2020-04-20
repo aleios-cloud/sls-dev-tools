@@ -5,7 +5,7 @@ import { helpModal } from "./modals/helpModal";
 import { eventRegistryModal } from "./modals/eventRegistryModal";
 import { eventInjectionModal } from "./modals/eventInjectionModal";
 import { Map } from "./components";
-import { durationBarChartOptions, updateDurationBarChart } from './components/durationBarChart';
+import { DurationBarChart } from './components/durationBarChart';
 import { lambdaStatisticsModal } from './modals/lambdaStatisticsModal';
 
 const blessed = require("blessed");
@@ -126,7 +126,7 @@ class Main {
     this.focusIndex = 0;
     this.lambdasDeploymentStatus = {};
     this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
-    this.lambdaInfoBar = this.layoutGrid.set(4, 6, 4, 3, contrib.bar, durationBarChartOptions);
+    this.durationBarChart = new DurationBarChart(this, cloudwatchLogs, true);
     this.lambdasTable = this.layoutGrid.set(0, 6, 4, 6, contrib.table, {
       keys: true,
       fg: "green",
@@ -189,7 +189,7 @@ class Main {
     });
     this.setKeypresses();
     screen.on("resize", () => {
-      this.lambdaInfoBar.emit("attach");
+      this.durationBarChart.chart("attach");
       this.lambdasTable.emit("attach");
       // errorsLine.emit('attach');
       this.titleBox.emit("attach");
@@ -311,7 +311,7 @@ class Main {
         const selectedRow = this.lambdasTable.rows.selected;
         const [selectedLambdaName] = this.lambdasTable.rows.items[selectedRow].data;
         const fullFunctionName = `${program.stackName}-${selectedLambdaName}`;
-        return lambdaStatisticsModal(screen, contrib, blessed, this, fullFunctionName, cloudwatchLogs);
+        return lambdaStatisticsModal(screen, blessed, this, fullFunctionName, cloudwatchLogs);
       }
       return 0;
     });
@@ -353,7 +353,7 @@ class Main {
   async updateGraphs() {
     if (this.fullFuncName) {
       this.data = await this.getLambdaMetrics(this.fullFuncName);
-      updateDurationBarChart(this.fullFuncName, this.lambdaInfoBar, this, cloudwatchLogs);
+      this.durationBarChart.updateBarChart(this.fullFuncName);
     }
 
     this.padInvocationsAndErrorsWithZeros();
@@ -636,24 +636,6 @@ class Main {
 
     for (let i = 0; i < this.lambdasTable.data.length; i++) {
       this.lambdasTable.rows.items[i].data = this.lambdasTable.data[i];
-    }
-  }
-
-  setBarChartData() {
-    const regex = /RequestId:(\s)*(\w|-)*(\s)*Duration:(\s)*(\d|\.)*(\s)*ms/gm;
-    // Extract reports from the server logs
-    const matches = this.lambdaLog.content.match(regex);
-    const splits = [];
-    if (matches !== null) {
-      for (let i = 0; i < matches.length; i++) {
-        // Split report into fields using tabs (or 4 spaces)
-        splits.push(matches[i].split(/\t|\s\s\s\s/));
-      }
-      this.lambdaInfoBar.setData({
-        titles: ["1", "2", "3", "4", "5"],
-        // Extract numerical value from field by splitting on spaces, and taking second value
-        data: splits.map((s) => s[1].split(" ")[1]).slice(-5),
-      });
     }
   }
 

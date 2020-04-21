@@ -7,6 +7,7 @@
 [![Follow](https://img.shields.io/twitter/follow/SlsDevTools?style=social)](https://twitter.com/SlsDevTools)
 
 The Developer Tools for the Serverless World - think Chrome Dev Tools but for Serverless.
+
 - 💻Rapid In-Terminal Feedback (no more jumping to the AWS Console)
 - 📊Targeted metrics to empower you to build fast and efficient applications
 - ⌨️ Powerful keybindings to deploy, inject, open and manipulate stack resources without the clicks
@@ -20,29 +21,16 @@ The Developer Tools for the Serverless World - think Chrome Dev Tools but for Se
 
 [Documentation](https://theodo-uk.github.io/sls-dev-tools)
 
-# To Run
+<!-- TOC -->autoauto- [sls-dev-tools](#sls-dev-tools)auto    - [Installation](#installation)auto    - [Usage](#usage)auto    - [Frameworks](#frameworks)auto        - [Serverless framework](#serverless-framework)auto        - [SAM framework](#sam-framework)auto    - [Features](#features)auto        - [Navigating the tool](#navigating-the-tool)auto        - [Viewing statistics and recent calls](#viewing-statistics-and-recent-calls)auto        - [Deploying lambdas](#deploying-lambdas)auto            - [Single lambda deploy](#single-lambda-deploy)auto            - [Full stack deploy](#full-stack-deploy)auto        - [EventBridge](#eventbridge)auto            - [Injecting events](#injecting-events)auto            - [EventBridge Schema Registry](#eventbridge-schema-registry)auto        - [Shortcuts to AWS Console](#shortcuts-to-aws-console)auto        - [Changing region using the map](#changing-region-using-the-map)auto    - [Shortcuts](#shortcuts)auto- [A note on AWS API calls and pricing](#a-note-on-aws-api-calls-and-pricing)auto- [Libs](#libs)auto    - [Core Team](#core-team)autoauto<!-- /TOC -->
 
-- `npm install -g sls-dev-tools`
+## Installation
+
+- Run `npm install -D sls-dev-tools` or `yarn add -D sls-dev-tools` to add the tool to your project
+- Alternatively run `npm install -g sls-dev-tools` to install the tool globally
+
+## Usage
+
 - Run `sls-dev-tools -n {YOUR_STACK_NAME} -r {YOUR_REGION} [-t {START_TIME}] [-i {INTERVAL}] [-p {PROFILE}] [-l {YOUR_PROJECT_LOCATION}]`
-  - The start time defines when you want your graphs to start from. The format for the start time is as follows: `'30 March 2020 09:00 GMT'`
-  - The interval defines the size of the buckets in seconds. This means if you give a interval of 3600, the line graph will group the invocations and errors into 1h chunks, and the bar chart will show the average response time over the hour for the last 6 hours during which invocations were made.
-  - The profile option allows you to pass in an alternative aws profile to connect with if none is provided the default aws profile is used
-  - Run sls-dev-tools within your serverless project or specify its location in the command to enable the deployment features.
-  - To get the stack name, log on to AWS cloudformation and it is shown in the overview section of stack info. It may not be what you expected e.g. it might have `-dev` on the end, so worth checking if the dev tools are not working.
-  - The region is the AWS region, for example, us-east-1.
-  - Use --sls or --sam to specify the framework used to execute commands (the serverless framework is used by default if no option is provided)
-  - For deployments using the sam framework extra arguments for capabilites and s3 bucket must be added in the slsdevtools.config.js e.g. `--capabilities CAPABILITY_IAM --s3-bucket deployment-bucket-name` [Example SLS Dev Tools Config](slsdevtools.config.js.dist)
-- Choose a function with the arrow keys, and press enter to see the metrics for that function.
-  - If you get an `AccessDenied` error in which case you must add the `GetMetricData` permission from CloudWatch in the IAM console on AWS.
-  - If you're not seeing any data in the graphs, try changing your start date to make sure you have had invocations since then.
-- The EventBridge pane allows you to view event buses in your region, and send events to each bus from a template editor.
-- View the Event Registry, find schemas for all your events, and enter event properties using a simple form, without needing to write JSON boilerplate.
-- Switch focus between the selected window by pressing tab.
-- The line graph shows the number of invocations and errors that occurred within the time interval.
-- The bar chart shows the response time of 5 most recent invocations.
-- Change regions using the map (tab to select it)
-  - Navigate the map using the arrow keys to select a region
-  - Press enter to select a region, the lambda functions and and event buses will be shown for stacks in your selected region
 
 ```
 Options:
@@ -57,6 +45,71 @@ Options:
   --sls                         use the serverless framework to execute commands
   --sam                         use the SAM framework to execute commands
 ```
+
+- The start time defines when you want your graphs to start from. The format for the start time is as follows: `'30 March 2020 09:00 GMT'`
+- The interval defines the size of the buckets in seconds. This means if you give a interval of 3600, the line graph will group the invocations and errors into 1h chunks, and the bar chart will show the average response time over the hour for the last 6 hours during which invocations were made.
+- The profile option allows you to pass in an alternative aws profile to connect with if none is provided the default aws profile is used
+- Run sls-dev-tools within your serverless project or specify its location in the command to enable the deployment features.
+- To get the stack name, log on to AWS cloudformation and it is shown in the overview section of stack info. It may not be what you expected e.g. it might have `-dev` on the end, so worth checking if the dev tools are not working.
+- The region is the AWS region, for example, us-east-1.
+
+## Frameworks
+
+### Serverless framework
+
+sls-dev-tools works with the serverless framework by default, and can be used by passing the `--sls` option when running the tool. If no option is passed, the serverless framework is used by default.
+
+### SAM framework
+
+To use the SAM framework, pass the `--sam` option when running the tool.
+
+When using the sam framework extra arguments for capabilites and s3 bucket must be added in the slsdevtools.config.js e.g. `--capabilities CAPABILITY_IAM --s3-bucket deployment-bucket-name` [Example SLS Dev Tools Config](slsdevtools.config.js.dist)
+
+## Features
+
+### Navigating the tool
+
+Use the arrow keys to move around each pane. Use tab to switch between different panes.
+
+### Viewing statistics and recent calls
+
+Select a lambda function and press enter to display statistics for the function. The line graph shows the number of invocations and errors for that lambda within the time interval. The bar chart shows the response time of the 5 most recent invocations. The logs for that function will also appear in the Server Logs pane.
+
+If you get an `AccessDenied` error in which case you must add the `GetMetricData` permission from CloudWatch in the IAM console on AWS.
+
+If you're not seeing any data in the graphs, try changing your start date to make sure you have had invocations since then.
+
+### Deploying lambdas
+
+#### Single lambda deploy
+
+Select a lambda and press 'd' to deploy it.
+
+#### Full stack deploy
+
+You can also press 's' to deploy your entire stack.
+
+### EventBridge
+
+On opening the tool, the EventBridge pane will display all the event buses currently available to you.
+
+#### Injecting events
+
+Navigate to the EventBridge pane using tab. Select an event bus and press 'i' to open the Event Injection modal. Navigate the fields using the arrow keys, and press enter to toggle edit mode. Navigate to the submit button and press enter to inject the event directly onto the event bus from within the tool.
+
+#### EventBridge Schema Registry
+
+Navigate to the EventBridge pane using tab. Select an event bus and press 'r' to open the Event Registry modal. This modal allows you to explore the EventBridge Schema Registry, and displays your custom registries, as well as the discovered-schemas registry. Selecting a registry will show you the schemas it contains. Upon selecting a schema, the tool will automatically detect the required properties for that event and generate a form for submitting these properties. If your event has more than 5 properties, you can use the right and left arrow keys to view each page of properties. Pressing submit will take you to the Event Injection modal, prefilling the detail field for you.
+
+### Shortcuts to AWS Console
+
+Select an event bus or lambda and press 'o' to open the AWS console page for that resource in your browser.
+
+### Changing region using the map
+
+Navigate to the map pane using tab. Use the arrow keys to select a different region and press enter to change to that region, updating your lambdas and event buses without needing to restart the tool.
+
+## Shortcuts
 
 ```
 Shortcuts

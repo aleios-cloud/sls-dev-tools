@@ -2,6 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/sls-dev-tools)](https://www.npmjs.com/package/sls-dev-tools)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Theodo-UK/sls-dev-tools/blob/master/LICENSE)
+[![Gitter](https://img.shields.io/gitter/room/sls-dev-tools/community.svg)](https://gitter.im/sls-dev-tools)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Theodo-UK/sls-dev-tools)
 [![Follow](https://img.shields.io/twitter/follow/SlsDevTools?style=social)](https://twitter.com/SlsDevTools)
 

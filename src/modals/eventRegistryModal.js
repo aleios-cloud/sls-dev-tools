@@ -1,4 +1,7 @@
 import { eventSchemaModal } from "./eventSchemaModal";
+import { Box } from "../components/box";
+import { ModalLayout } from "../components/modalLayout";
+import { ModalTitle } from "../components/modalTitle";
 
 function updateRegistryTable(api, table) {
   api.listRegistries({ Scope: "LOCAL" }, (err, data) => {
@@ -20,17 +23,7 @@ const eventRegistryModal = (
   api,
   injectEvent
 ) => {
-  const eventRegistryLayout = blessed.layout({
-    parent: screen,
-    top: "center",
-    left: "center",
-    width: 112,
-    height: 27,
-    border: "line",
-    style: { border: { fg: "green" } },
-    keys: true,
-    grabKeys: true,
-  });
+  const eventRegistryLayout = new ModalLayout(screen, 112, 27, true);
 
   const closeModal = () => {
     // Store all text to populate modal when next opened
@@ -39,16 +32,7 @@ const eventRegistryModal = (
     eventRegistryLayout.destroy();
   };
 
-  blessed.box({
-    parent: eventRegistryLayout,
-    width: 110,
-    left: "right",
-    top: "center",
-    align: "center",
-    padding: { left: 2, right: 2 },
-    style: { fg: "green" },
-    content: "Event Registry",
-  });
+  new ModalTitle(eventRegistryLayout, 110, "Event Registry");
 
   const registryTable = blessed.list({
     parent: eventRegistryLayout,
@@ -66,18 +50,12 @@ const eventRegistryModal = (
     label: "Registries",
   });
 
-  blessed.box({
-    parent: eventRegistryLayout,
-    width: 110,
-    height: 4,
-    left: "right",
-    top: "center",
-    align: "center",
-    padding: { left: 2, right: 2 },
-    border: "line",
-    style: { fg: "green", border: { fg: "green" } },
-    content: "Arrow keys to navigate | ENTER to select \nESC to close        ",
-  });
+  new Box(
+    eventRegistryLayout,
+    110,
+    4,
+    "Arrow keys to navigate | ENTER to select \nESC to close"
+  );
 
   updateRegistryTable(api, registryTable);
   registryTable.focus();

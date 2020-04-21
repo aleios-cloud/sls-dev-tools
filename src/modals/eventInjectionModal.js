@@ -1,4 +1,7 @@
 import { generateFieldWithTitle } from "../components/fieldWithTitle";
+import { Box } from "../components/box";
+import { ModalLayout } from "../components/modalLayout";
+import { ModalTitle } from "../components/modalTitle";
 
 const eventInjectionModal = (
   screen,
@@ -8,17 +11,7 @@ const eventInjectionModal = (
   injectEvent,
   prefilledEvent
 ) => {
-  const eventInjectLayout = blessed.layout({
-    parent: screen,
-    top: "center",
-    left: "center",
-    width: 112,
-    height: 27,
-    border: "line",
-    style: { border: { fg: "green" } },
-    keys: true,
-    grabKeys: true,
-  });
+  const eventInjectLayout = new ModalLayout(screen, 112, 27, true);
 
   // Prefill textbox with previous submission if there is one
   const event = prefilledEvent || {
@@ -74,16 +67,7 @@ const eventInjectionModal = (
     eventInjectLayout.destroy();
   };
 
-  blessed.box({
-    parent: eventInjectLayout,
-    width: 110,
-    left: "right",
-    top: "center",
-    align: "center",
-    padding: { left: 2, right: 2 },
-    style: { fg: "green" },
-    content: "Event Injection",
-  });
+  new ModalTitle(eventInjectLayout, 110, "Event Injection");
 
   for (let i = 0; i < numTextboxes; i += 1) {
     const textboxWithTitle = generateFieldWithTitle(
@@ -101,34 +85,16 @@ const eventInjectionModal = (
     textboxes.push(textbox);
   }
 
-  const submit = blessed.box({
-    parent: eventInjectLayout,
-    width: 110,
-    height: 4,
-    left: "right",
-    top: "center",
-    align: "center",
-    padding: { left: 2, right: 2 },
-    border: "line",
-    style: { fg: "green", border: { fg: "green" } },
-    content: "Submit",
-  });
+  const submit = new Box(eventInjectLayout, 110, 4, "Submit");
 
   textboxes.push(submit);
 
-  blessed.box({
-    parent: eventInjectLayout,
-    width: 110,
-    height: 4,
-    left: "right",
-    top: "center",
-    align: "center",
-    padding: { left: 2, right: 2 },
-    border: "line",
-    style: { fg: "green", border: { fg: "green" } },
-    content:
-      "Arrow keys to select field | ENTER to toggle edit mode \nENTER on Submit to inject event | ESC to close",
-  });
+  new Box(
+    eventInjectLayout,
+    110,
+    4,
+    "Arrow keys to select field | ENTER to toggle edit mode \nENTER on Submit to inject event | ESC to close"
+  );
 
   eventInjectLayout.focus();
 

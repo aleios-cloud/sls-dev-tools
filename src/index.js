@@ -6,6 +6,7 @@ import { eventRegistryModal } from "./modals/eventRegistryModal";
 import { eventInjectionModal } from "./modals/eventInjectionModal";
 import { Map } from "./components";
 import { invokeLambda } from "./services/invoke";
+import Serverless from "./services/serverless";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -26,8 +27,8 @@ try {
 
 program.version(packageJson.version);
 program
-  .requiredOption("-n, --stack-name <stackName>", "AWS stack name")
-  .requiredOption("-r, --region <region>", "AWS region")
+  .option("-n, --stack-name <stackName>", "AWS stack name")
+  .option("-r, --region <region>", "AWS region")
   .option(
     "-t, --start-time <startTime>",
     "when to start from, date string with form '30 March 2020 09:00 GMT'"
@@ -35,6 +36,7 @@ program
   .option("-i, --interval <interval>", "interval of graphs, in seconds")
   .option("-p, --profile <profile>", "aws profile name to use")
   .option("-l, --location <location>", "location of your serverless project")
+  .option("-s, --stage <stage>", "If sls option is set, use this stage", "dev")
   .option("--sls", "use the serverless framework to execute commands")
   .option("--sam", "use the SAM framework to execute commands")
   .parse(process.argv);
@@ -66,7 +68,27 @@ if (program.sam) {
   provider = "SAM";
 } else {
   provider = "serverlessFramework";
+  const SLS = new Serverless(location);
+  if (!program.stackName) {
+    program.stackName = SLS.getStackName(program.stage);
+  }
+
+  if (!program.region) {
+    program.region = SLS.getRegion();
+  }
 }
+
+if (!program.stackName) {
+  console.error(
+    "error: required option '-n, --stack-name <stackName>' not specified"
+  );
+  process.exit(1);
+}
+if (!program.region) {
+  console.error("error: required option '-r, --region <region>' not specified");
+  process.exit(1);
+}
+
 AWS.config.credentials = getAWSCredentials();
 AWS.config.region = program.region;
 let cloudformation = new AWS.CloudFormation();
@@ -140,7 +162,7 @@ class Main {
       columnWidth: [45, 30, 15],
       style: {
         border: {
-          fg: "green",
+          fg: "yellow",
         },
       },
     });
@@ -199,7 +221,7 @@ class Main {
       // errorsLine.emit('attach');
       this.titleBox.emit("attach");
       this.invocationsLineGraph.emit("attach");
-      this.map.emit("attach");
+      this.map.map = this.map.generateMap();
       this.lambdaLog.emit("attach");
       this.consoleLogs.emit("attach");
     });
@@ -434,7 +456,7 @@ class Main {
     if (this.focusList[this.focusIndex].rows) {
       this.focusList[this.focusIndex].rows.interactive = true;
     }
-    this.focusList[this.focusIndex].style.border.fg = "green";
+    this.focusList[this.focusIndex].style.border.fg = "yellow";
     this.returnFocus();
   }
 

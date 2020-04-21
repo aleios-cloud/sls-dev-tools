@@ -198,7 +198,7 @@ class Main {
       // errorsLine.emit('attach');
       this.titleBox.emit("attach");
       this.invocationsLineGraph.emit("attach");
-      this.map.emit("attach");
+      this.map.map = this.map.generateMap();
       this.lambdaLog.emit("attach");
       this.consoleLogs.emit("attach");
     });

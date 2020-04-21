@@ -21,7 +21,27 @@ The Developer Tools for the Serverless World - think Chrome Dev Tools but for Se
 
 [Documentation](https://theodo-uk.github.io/sls-dev-tools)
 
-<!-- TOC -->autoauto- [sls-dev-tools](#sls-dev-tools)auto    - [Installation](#installation)auto    - [Usage](#usage)auto    - [Frameworks](#frameworks)auto        - [Serverless framework](#serverless-framework)auto        - [SAM framework](#sam-framework)auto    - [Features](#features)auto        - [Navigating the tool](#navigating-the-tool)auto        - [Viewing statistics and recent calls](#viewing-statistics-and-recent-calls)auto        - [Deploying lambdas](#deploying-lambdas)auto            - [Single lambda deploy](#single-lambda-deploy)auto            - [Full stack deploy](#full-stack-deploy)auto        - [EventBridge](#eventbridge)auto            - [Injecting events](#injecting-events)auto            - [EventBridge Schema Registry](#eventbridge-schema-registry)auto        - [Shortcuts to AWS Console](#shortcuts-to-aws-console)auto        - [Changing region using the map](#changing-region-using-the-map)auto    - [Shortcuts](#shortcuts)auto- [A note on AWS API calls and pricing](#a-note-on-aws-api-calls-and-pricing)auto- [Libs](#libs)auto    - [Core Team](#core-team)autoauto<!-- /TOC -->
+- [sls-dev-tools](#sls-dev-tools)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Frameworks](#frameworks)
+    - [Serverless framework](#serverless-framework)
+    - [SAM framework](#sam-framework)
+  - [Features](#features)
+    - [Navigating the tool](#navigating-the-tool)
+    - [Viewing statistics and recent calls](#viewing-statistics-and-recent-calls)
+    - [Deploying lambdas](#deploying-lambdas)
+      - [Single lambda deploy](#single-lambda-deploy)
+      - [Full stack deploy](#full-stack-deploy)
+    - [EventBridge](#eventbridge)
+      - [Injecting events](#injecting-events)
+      - [EventBridge Schema Registry](#eventbridge-schema-registry)
+    - [Shortcuts to AWS Console](#shortcuts-to-aws-console)
+    - [Changing region using the map](#changing-region-using-the-map)
+  - [Shortcuts](#shortcuts)
+- [A note on AWS API calls and pricing](#a-note-on-aws-api-calls-and-pricing)
+- [Libs](#libs)
+  - [Core Team](#core-team)
 
 ## Installation
 

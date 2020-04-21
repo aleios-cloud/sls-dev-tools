@@ -19,11 +19,9 @@ The Developer Tools for the Serverless World - think Chrome Dev Tools but for Se
 
 ![demo](./demo.png)
 
-[Documentation](https://theodo-uk.github.io/sls-dev-tools)
-
-[Installation](#installation)
-[Usage](#usage)
-[Frameworks](#frameworks)
+[Installation](#installation)\
+[Usage](#usage)\
+[Frameworks](#frameworks)\
 
 - [Serverless framework](#serverless-framework)
 - [SAM framework](#sam-framework)
@@ -42,7 +40,9 @@ The Developer Tools for the Serverless World - think Chrome Dev Tools but for Se
 - [Changing region using the map](#changing-region-using-the-map)
 - [Shortcuts](#shortcuts)
 
-[A note on AWS API calls and pricing](#a-note-on-aws-api-calls-and-pricing)
+[A note on AWS API calls and pricing](#a-note-on-aws-api-calls-and-pricing)\
+[Libs](#libs)\
+[Core Team](#core-team)\
 
 ## Installation
 

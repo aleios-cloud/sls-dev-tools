@@ -4,6 +4,8 @@
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Theodo-UK/sls-dev-tools/blob/master/LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Theodo-UK/sls-dev-tools)
 [![Follow](https://img.shields.io/twitter/follow/SlsDevTools?style=social)](https://twitter.com/SlsDevTools)
+![Maintained](https://img.shields.io/maintenance/yes/2020.svg)]
+[![Tweet](https://twitter.com/intent/tweet?status=%40SlsDevTools)](https://twitter.com/intent/tweet?text=@SlsDevTools)
 
 The Developer Tools for the Serverless World - think Chrome Dev Tools but for Serverless.
 
@@ -11,6 +13,12 @@ The Developer Tools for the Serverless World - think Chrome Dev Tools but for Se
 - 📊Targeted metrics to empower you to build fast and efficient applications
 - ⌨️ Powerful keybindings to deploy, inject, open and manipulate stack resources without the clicks
 - 🛠Works with **any** IaC, from the Serverless Framework to SAM
+
+sls-dev-tools is an open source project, and we welcome and encourage all issues and PRs. A number of our features have come directly from user suggestions and additions so if you have an idea, send it our way!
+
+## Maintenance
+
+sls-dev-tools is currently being actively maintained. If you find a problem with the tool, let us know and we'll solve it as quickly as possible.
 
 [Docs Site](https://theodo-uk.github.io/sls-dev-tools)
 
@@ -111,7 +119,7 @@ Select a lambda and press 'd' to deploy it.
 
 You can also press 's' to deploy your entire stack.
 
-![deployFunctions](./img/deployFuinctions.jpeg)
+![deployFunctions](./img/deployFunctions.jpeg)
 
 ### EventBridge
 

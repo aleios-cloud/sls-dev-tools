@@ -31,7 +31,7 @@ class Serverless {
     ) {
       return `${this.config.provider.stackName}`;
     }
-    return `${this.config.service}-${stage}`;
+    return `${this.config.service.name}-${stage}`;
   }
 
   getRegion() {

@@ -5,6 +5,7 @@ import { helpModal } from "./modals/helpModal";
 import { eventRegistryModal } from "./modals/eventRegistryModal";
 import { eventInjectionModal } from "./modals/eventInjectionModal";
 import { Map } from "./components";
+import Serverless from "./services/serverless";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");

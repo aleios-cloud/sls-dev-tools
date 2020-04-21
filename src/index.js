@@ -312,7 +312,7 @@ class Main {
         const selectedRow = this.lambdasTable.rows.selected;
         const [selectedLambdaName] = this.lambdasTable.rows.items[selectedRow].data;
         const fullFunctionName = `${program.stackName}-${selectedLambdaName}`;
-        return lambdaStatisticsModal(screen, blessed, this, fullFunctionName, cloudwatchLogs, cloudwatch);
+        return lambdaStatisticsModal(screen, this, fullFunctionName, cloudwatchLogs, cloudwatch);
       }
       return 0;
     });
@@ -354,7 +354,7 @@ class Main {
   async updateGraphs() {
     if (this.fullFuncName) {
       this.data = await getLambdaMetrics(this, this.fullFuncName, cloudwatch);
-      this.durationBarChart.updateBarChart(this.fullFuncName);
+      this.durationBarChart.updateData(this.fullFuncName);
     }
 
     this.padInvocationsAndErrorsWithZeros();

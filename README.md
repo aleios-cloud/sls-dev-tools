@@ -21,27 +21,28 @@ The Developer Tools for the Serverless World - think Chrome Dev Tools but for Se
 
 [Documentation](https://theodo-uk.github.io/sls-dev-tools)
 
-- [sls-dev-tools](#sls-dev-tools)
-  - [Installation](#installation)
-  - [Usage](#usage)
-  - [Frameworks](#frameworks)
-    - [Serverless framework](#serverless-framework)
-    - [SAM framework](#sam-framework)
-  - [Features](#features)
-    - [Navigating the tool](#navigating-the-tool)
-    - [Viewing statistics and recent calls](#viewing-statistics-and-recent-calls)
-    - [Deploying lambdas](#deploying-lambdas)
-      - [Single lambda deploy](#single-lambda-deploy)
-      - [Full stack deploy](#full-stack-deploy)
-    - [EventBridge](#eventbridge)
-      - [Injecting events](#injecting-events)
-      - [EventBridge Schema Registry](#eventbridge-schema-registry)
-    - [Shortcuts to AWS Console](#shortcuts-to-aws-console)
-    - [Changing region using the map](#changing-region-using-the-map)
-  - [Shortcuts](#shortcuts)
-- [A note on AWS API calls and pricing](#a-note-on-aws-api-calls-and-pricing)
-- [Libs](#libs)
-  - [Core Team](#core-team)
+[Installation](#installation)
+[Usage](#usage)
+[Frameworks](#frameworks)
+
+- [Serverless framework](#serverless-framework)
+- [SAM framework](#sam-framework)
+
+[Features](#features)
+
+- [Navigating the tool](#navigating-the-tool)
+- [Viewing statistics and recent calls](#viewing-statistics-and-recent-calls)
+- [Deploying lambdas](#deploying-lambdas)
+  - [Single lambda deploy](#single-lambda-deploy)
+  - [Full stack deploy](#full-stack-deploy)
+- [EventBridge](#eventbridge)
+  - [Injecting events](#injecting-events)
+  - [EventBridge Schema Registry](#eventbridge-schema-registry)
+- [Shortcuts to AWS Console](#shortcuts-to-aws-console)
+- [Changing region using the map](#changing-region-using-the-map)
+- [Shortcuts](#shortcuts)
+
+[A note on AWS API calls and pricing](#a-note-on-aws-api-calls-and-pricing)
 
 ## Installation
 

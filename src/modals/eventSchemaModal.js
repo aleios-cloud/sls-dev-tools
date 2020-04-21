@@ -2,6 +2,7 @@ import { eventModal } from "./eventModal";
 import { Box } from "../components/box";
 import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
+import { InteractiveList } from "../components/interactiveList";
 
 function updateSchemaTable(api, registry, table) {
   api.listSchemas({ RegistryName: registry }, (err, data) => {
@@ -35,21 +36,12 @@ const eventSchemaModal = (
 
   new ModalTitle(eventSchemaLayout, 110, "Event Schemas");
 
-  const schemaTable = blessed.list({
-    parent: eventSchemaLayout,
-    width: 110,
-    height: 20,
-    border: "line",
-    style: { fg: "green", border: { fg: "green" } },
-    padding: { left: 2, right: 2 },
-    left: "right",
-    top: "center",
-    keys: true,
-    interactive: true,
-    items: ["loading"],
-    invertSelected: true,
-    label: "Schemas",
-  });
+  const schemaTable = new InteractiveList(
+    eventSchemaLayout,
+    110,
+    20,
+    "Schemas"
+  );
 
   new Box(
     eventSchemaLayout,

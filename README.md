@@ -100,7 +100,7 @@ If you get an `AccessDenied` error in which case you must add the `GetMetricData
 
 If you're not seeing any data in the graphs, try changing your start date to make sure you have had invocations since then.
 
-![getStatistics](./img/getStats.gif)
+![getStatistics](./img/stats.png)
 
 ### Deploying lambdas
 

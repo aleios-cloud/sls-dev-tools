@@ -139,7 +139,7 @@ class Main {
       columnWidth: [45, 30, 15],
       style: {
         border: {
-          fg: "green",
+          fg: "yellow",
         },
       },
     });
@@ -198,7 +198,7 @@ class Main {
       // errorsLine.emit('attach');
       this.titleBox.emit("attach");
       this.invocationsLineGraph.emit("attach");
-      this.map.emit("attach");
+      this.map.map = this.map.generateMap();
       this.lambdaLog.emit("attach");
       this.consoleLogs.emit("attach");
     });
@@ -429,7 +429,7 @@ class Main {
     if (this.focusList[this.focusIndex].rows) {
       this.focusList[this.focusIndex].rows.interactive = true;
     }
-    this.focusList[this.focusIndex].style.border.fg = "green";
+    this.focusList[this.focusIndex].style.border.fg = "yellow";
     this.returnFocus();
   }
 

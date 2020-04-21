@@ -1,3 +1,6 @@
+import { Box } from "../components/box";
+import { ModalLayout } from "../components/modalLayout";
+
 const helpModal = (screen, blessed, application) => {
   const helpMenuData = [
     ["Keybinding", "Action"],
@@ -25,16 +28,8 @@ const helpModal = (screen, blessed, application) => {
     ["-p, --profile <profile>", "aws profile name to use"],
     ["-h, --help", "output usage information"],
   ];
-  const helpLayout = blessed.layout({
-    parent: screen,
-    top: "center",
-    left: "center",
-    width: 112,
-    height: 27,
-    border: "line",
-    style: { border: { fg: "green" } },
-    keys: true,
-  });
+  const helpLayout = new ModalLayout(screen, 112, 27, true);
+
   blessed.listtable({
     parent: helpLayout,
     interactive: false,
@@ -51,18 +46,14 @@ const helpModal = (screen, blessed, application) => {
       cell: { fg: "yellow" },
     },
   });
-  blessed.box({
-    parent: helpLayout,
-    width: 110,
-    height: 4,
-    left: "right",
-    top: "center",
-    align: "center",
-    padding: { left: 2, right: 2 },
-    border: "line",
-    style: { fg: "green", border: { fg: "green" } },
-    content: "Please give feedback via GitHub Issues \n ESC to close",
-  });
+
+  new Box(
+    helpLayout,
+    110,
+    4,
+    "Please give feedback via GitHub Issues \n ESC to close"
+  );
+
   helpLayout.focus();
   helpLayout.key(["escape"], () => {
     application.setIsModalOpen(false);

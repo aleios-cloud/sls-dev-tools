@@ -9,6 +9,7 @@ import { invokeLambda } from "./services/invoke";
 import Serverless from "./services/serverless";
 import { DurationBarChart } from './components/durationBarChart';
 import { lambdaStatisticsModal } from './modals/lambdaStatisticsModal';
+import { getLambdaMetrics } from './services/lambdaMetrics';
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -337,7 +338,7 @@ class Main {
         const selectedRow = this.lambdasTable.rows.selected;
         const [selectedLambdaName] = this.lambdasTable.rows.items[selectedRow].data;
         const fullFunctionName = `${program.stackName}-${selectedLambdaName}`;
-        return lambdaStatisticsModal(screen, blessed, this, fullFunctionName, cloudwatchLogs);
+        return lambdaStatisticsModal(screen, blessed, this, fullFunctionName, cloudwatchLogs, cloudwatch);
       }
       return 0;
     });
@@ -378,8 +379,8 @@ class Main {
 
   async updateGraphs() {
     if (this.fullFuncName) {
-      this.data = await this.getLambdaMetrics(this.fullFuncName);
-      this.durationBarChart.updateData(this.fullFuncName);
+      this.data = await getLambdaMetrics(this, this.fullFuncName, cloudwatch);
+      this.durationBarChart.updateBarChart(this.fullFuncName);
     }
 
     this.padInvocationsAndErrorsWithZeros();
@@ -718,62 +719,6 @@ class Main {
         return returnData;
       });
     }
-  }
-
-  getLambdaMetrics(functionName) {
-    this.endTime = new Date();
-    const params = {
-      StartTime: this.startTime,
-      EndTime: this.endTime,
-      MetricDataQueries: [
-        {
-          Id: "errors",
-          MetricStat: {
-            Metric: {
-              Dimensions: [
-                {
-                  Name: "FunctionName",
-                  Value: functionName,
-                },
-                {
-                  Name: "Resource",
-                  Value: functionName,
-                },
-              ],
-              MetricName: "Errors",
-              Namespace: "AWS/Lambda",
-            },
-            Period: this.interval,
-            Stat: "Sum",
-          },
-          ReturnData: true,
-        },
-        {
-          Id: "invocations",
-          MetricStat: {
-            Metric: {
-              Dimensions: [
-                {
-                  Name: "FunctionName",
-                  Value: functionName,
-                },
-                {
-                  Name: "Resource",
-                  Value: functionName,
-                },
-              ],
-              MetricName: "Invocations",
-              Namespace: "AWS/Lambda",
-            },
-            Period: this.interval,
-            Stat: "Sum",
-          },
-          ReturnData: true,
-        },
-      ],
-    };
-
-    return cloudwatch.getMetricData(params).promise();
   }
 
   updateRegion(region) {

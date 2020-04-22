@@ -7,9 +7,9 @@ import { eventInjectionModal } from "./modals/eventInjectionModal";
 import { Map } from "./components";
 import { invokeLambda } from "./services/invoke";
 import Serverless from "./services/serverless";
-import { DurationBarChart } from './components/durationBarChart';
-import { lambdaStatisticsModal } from './modals/lambdaStatisticsModal';
-import { getLambdaMetrics } from './services/lambdaMetrics';
+import { DurationBarChart } from "./components/durationBarChart";
+import { lambdaStatisticsModal } from "./modals/lambdaStatisticsModal";
+import { getLambdaMetrics } from "./services/lambdaMetrics";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -234,7 +234,7 @@ class Main {
       // Round to closest interval to make query faster.
       this.startTime = new Date(
         Math.round(new Date().getTime() / this.interval) * this.interval -
-        dateOffset
+          dateOffset
       );
     }
 
@@ -482,7 +482,7 @@ class Main {
     if (provider === "serverlessFramework") {
       exec(
         `serverless deploy -r ${program.region} --aws-profile ${profile} ${
-        slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
+          slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
         }`,
         { cwd: location },
         (error, stdout) => this.handleStackDeployment(error, stdout)
@@ -500,9 +500,9 @@ class Main {
         } else {
           exec(
             `sam deploy --region ${
-            program.region
+              program.region
             } --profile ${profile} --stack-name ${program.stackName} ${
-            slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
+              slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
             }`,
             { cwd: location },
             (deployError, stdout) =>
@@ -551,9 +551,9 @@ class Main {
       if (provider === "serverlessFramework") {
         exec(
           `serverless deploy -f ${selectedLambdaFunctionName} -r ${
-          program.region
+            program.region
           } --aws-profile ${profile} ${
-          slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
+            slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
           }`,
           { cwd: location },
           (error, stdout) =>

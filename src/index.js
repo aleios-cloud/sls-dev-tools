@@ -345,7 +345,8 @@ class Main {
           this,
           fullFunctionName,
           cloudwatchLogs,
-          cloudwatch
+          cloudwatch,
+          lambda
         );
       }
       return 0;

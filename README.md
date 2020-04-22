@@ -5,7 +5,7 @@
 [![Gitter](https://img.shields.io/gitter/room/sls-dev-tools/community.svg)](https://gitter.im/sls-dev-tools)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Theodo-UK/sls-dev-tools)
 [![Follow](https://img.shields.io/twitter/follow/SlsDevTools?style=social)](https://twitter.com/SlsDevTools)
-![Maintained](https://img.shields.io/maintenance/yes/2020.svg)]
+![Maintained](https://img.shields.io/maintenance/yes/2020.svg)
 [![Tweet](./img/tweetBadge.svg)](https://twitter.com/intent/tweet?text=@SlsDevTools)
 
 The Developer Tools for the Serverless World - think Chrome Dev Tools but for Serverless.

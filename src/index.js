@@ -747,6 +747,7 @@ class Main {
     const params = {
       logGroupName,
       logStreamNames,
+      limit: 50,
     };
     cloudwatchLogs
       .filterLogEvents(params)

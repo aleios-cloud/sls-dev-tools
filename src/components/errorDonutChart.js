@@ -1,5 +1,4 @@
 const contrib = require("blessed-contrib");
-import { getLambdaMetrics } from '../services/lambdaMetrics';
 
 class ErrorDonutChart {
     constructor(application, layout, cloudwatch) {
@@ -10,16 +9,16 @@ class ErrorDonutChart {
     }
     generateChart() {
         const donutChart = contrib.donut({
-            label: 'Error/Invocation ratio',
-            radius: 25,
+            label: 'Errors/Invocations ratio',
+            radius: 20,
             arcWidth: 10,
+            spacing: 4,
             remainColor: 'green',
         });
         this.layout.append(donutChart);
         return donutChart;
     }
-    async updateData(lambdaName) {
-        const metrics = await getLambdaMetrics(this.application, lambdaName, this.cloudwatch);
+    updateData(metrics) {
         const invocationCount = metrics.MetricDataResults[1].Values.reduce(
             (count, numberOfInvocationsOnPeriod) => count + numberOfInvocationsOnPeriod, 0
         );

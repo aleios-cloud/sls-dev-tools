@@ -1,7 +1,8 @@
-function invokeLambda(awsLambdaApi, functionName) {
+function invokeLambda(awsLambdaApi, functionName, payload) {
   const params = {
     FunctionName: functionName,
     Qualifier: "$LATEST",
+    Payload: payload,
   };
   awsLambdaApi.invoke(params, (err, data) => {
     if (err) console.log(err, err.stack);

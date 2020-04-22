@@ -25,7 +25,7 @@ sls-dev-tools is currently being actively maintained. If you find a problem with
 
 [📹YouTube Demo Video](https://youtu.be/bBA6upK5Ugk)
 
-![demo](./img/demo.png)
+![demo](./img/demo.gif)
 
 [Installation](#installation)\
 [Usage](#usage)\
@@ -58,6 +58,8 @@ sls-dev-tools is currently being actively maintained. If you find a problem with
 - Alternatively run `npm install -g sls-dev-tools` to install the tool globally
 
 ## Usage
+
+![installTool](./img/startTool.gif)
 
 Run `sls-dev-tools` in the directory with your serverless.yml\
 Run `sls-dev-tools -l {YOUR_PROJECT_LOCATION}` to run the tool from anywhere\

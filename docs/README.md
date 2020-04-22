@@ -63,7 +63,7 @@ If you get an `AccessDenied` error in which case you must add the `GetMetricData
 
 If you're not seeing any data in the graphs, try changing your start date to make sure you have had invocations since then.
 
-![getStatistics](/img/stats.png)
+![getStatistics](./assets/stats.png)
 
 ### Deploying lambdas
 
@@ -77,7 +77,7 @@ Select a lambda and press 'd' to deploy it.
 
 You can also press 's' to deploy your entire stack.
 
-![deployFunctions](/img/deployFunctions.jpeg)
+![deployFunctions](./assets/deployFunctions.jpeg)
 
 ### EventBridge
 
@@ -91,7 +91,7 @@ Navigate to the EventBridge pane using tab. Select an event bus and press 'i' to
 
 Navigate to the EventBridge pane using tab. Select an event bus and press 'r' to open the Event Registry modal. This modal allows you to explore the EventBridge Schema Registry, and displays your custom registries, as well as the discovered-schemas registry. Selecting a registry will show you the schemas it contains. Upon selecting a schema, the tool will automatically detect the required properties for that event and generate a form for submitting these properties. If your event has more than 5 properties, you can use the right and left arrow keys to view each page of properties. Pressing submit will take you to the Event Injection modal, prefilling the detail field for you.
 
-![eventRegistry](/img/eventRegistryInjection.gif)
+![eventRegistry](./assets/eventRegistryInjection.gif)
 
 ### Shortcuts to AWS Console
 
@@ -101,11 +101,11 @@ Select an event bus or lambda and press 'o' to open the AWS console page for tha
 
 Navigate to the map pane using tab. Use the arrow keys to select a different region and press enter to change to that region, updating your lambdas and event buses without needing to restart the tool.
 
-![regionChange](/img/regionMap.gif)
+![regionChange](./assets/regionMap.gif)
 
 ## Shortcuts
 
-![helpModal](/img/helpModal.png)
+![helpModal](./assets/helpModal.png)
 
 ```
 Shortcuts

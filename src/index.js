@@ -5,6 +5,11 @@ import { helpModal } from "./modals/helpModal";
 import { eventRegistryModal } from "./modals/eventRegistryModal";
 import { eventInjectionModal } from "./modals/eventInjectionModal";
 import { Map } from "./components";
+import { invokeLambda } from "./services/invoke";
+import Serverless from "./services/serverless";
+import { DurationBarChart } from "./components/durationBarChart";
+import { lambdaStatisticsModal } from "./modals/lambdaStatisticsModal";
+import { getLambdaMetrics } from "./services/lambdaMetrics";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -25,8 +30,8 @@ try {
 
 program.version(packageJson.version);
 program
-  .requiredOption("-n, --stack-name <stackName>", "AWS stack name")
-  .requiredOption("-r, --region <region>", "AWS region")
+  .option("-n, --stack-name <stackName>", "AWS stack name")
+  .option("-r, --region <region>", "AWS region")
   .option(
     "-t, --start-time <startTime>",
     "when to start from, date string with form '30 March 2020 09:00 GMT'"
@@ -34,12 +39,14 @@ program
   .option("-i, --interval <interval>", "interval of graphs, in seconds")
   .option("-p, --profile <profile>", "aws profile name to use")
   .option("-l, --location <location>", "location of your serverless project")
+  .option("-s, --stage <stage>", "If sls option is set, use this stage", "dev")
   .option("--sls", "use the serverless framework to execute commands")
   .option("--sam", "use the SAM framework to execute commands")
   .parse(process.argv);
 
 function getAWSCredentials() {
   if (program.profile) {
+    process.env.AWS_SDK_LOAD_CONFIG = 1;
     return new AWS.SharedIniFileCredentials({ profile: program.profile });
   }
   if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
@@ -65,7 +72,27 @@ if (program.sam) {
   provider = "SAM";
 } else {
   provider = "serverlessFramework";
+  const SLS = new Serverless(location);
+  if (!program.stackName) {
+    program.stackName = SLS.getStackName(program.stage);
+  }
+
+  if (!program.region) {
+    program.region = SLS.getRegion();
+  }
 }
+
+if (!program.stackName) {
+  console.error(
+    "error: required option '-n, --stack-name <stackName>' not specified"
+  );
+  process.exit(1);
+}
+if (!program.region) {
+  console.error("error: required option '-r, --region <region>' not specified");
+  process.exit(1);
+}
+
 AWS.config.credentials = getAWSCredentials();
 AWS.config.region = program.region;
 let cloudformation = new AWS.CloudFormation();
@@ -124,13 +151,7 @@ class Main {
     this.focusIndex = 0;
     this.lambdasDeploymentStatus = {};
     this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
-    this.lambdaInfoBar = this.layoutGrid.set(4, 6, 4, 3, contrib.bar, {
-      label: "Lambda Duration (ms) (most recent)",
-      barWidth: 6,
-      barSpacing: 6,
-      xOffset: 2,
-      maxHeight: 9,
-    });
+    this.durationBarChart = new DurationBarChart(this, cloudwatchLogs, true);
     this.lambdasTable = this.layoutGrid.set(0, 6, 4, 6, contrib.table, {
       keys: true,
       fg: "green",
@@ -139,7 +160,7 @@ class Main {
       columnWidth: [45, 30, 15],
       style: {
         border: {
-          fg: "green",
+          fg: "yellow",
         },
       },
     });
@@ -193,12 +214,12 @@ class Main {
     });
     this.setKeypresses();
     screen.on("resize", () => {
-      this.lambdaInfoBar.emit("attach");
+      this.durationBarChart.chart("attach");
       this.lambdasTable.emit("attach");
       // errorsLine.emit('attach');
       this.titleBox.emit("attach");
       this.invocationsLineGraph.emit("attach");
-      this.map.emit("attach");
+      this.map.map = this.map.generateMap();
       this.lambdaLog.emit("attach");
       this.consoleLogs.emit("attach");
     });
@@ -250,7 +271,7 @@ class Main {
       }
       return 0;
     });
-    screen.key(["h", "H"], () => {
+    screen.key(["h"], () => {
       if (this.isModalOpen === false) {
         this.isModalOpen = true;
         return helpModal(screen, blessed, this);
@@ -265,7 +286,7 @@ class Main {
     });
     screen.key(["q", "C-c"], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
-    screen.key(["o", "O"], () => {
+    screen.key(["o"], () => {
       // If focus is currently on this.lambdasTable
       if (this.focusIndex === 0 && this.isModalOpen === false) {
         const selectedLambdaFunctionName = this.lambdasTable.rows.items[
@@ -307,6 +328,28 @@ class Main {
           previousEvent
         );
       }
+      if (this.focusIndex === 0 && this.isModalOpen === false) {
+        invokeLambda(lambda, this.fullFuncName);
+      }
+      return 0;
+    });
+    screen.key(["l"], () => {
+      if (this.focusIndex === 0 && this.isModalOpen === false) {
+        this.isModalOpen = true;
+        const selectedRow = this.lambdasTable.rows.selected;
+        const [selectedLambdaName] = this.lambdasTable.rows.items[
+          selectedRow
+        ].data;
+        const fullFunctionName = `${program.stackName}-${selectedLambdaName}`;
+        return lambdaStatisticsModal(
+          screen,
+          this,
+          fullFunctionName,
+          cloudwatchLogs,
+          cloudwatch,
+          lambda
+        );
+      }
       return 0;
     });
     screen.key(["r"], () => {
@@ -346,13 +389,12 @@ class Main {
 
   async updateGraphs() {
     if (this.fullFuncName) {
-      this.data = await this.getLambdaMetrics(this.fullFuncName);
-      this.getLogStreams(`/aws/lambda/${this.fullFuncName}`);
+      this.data = await getLambdaMetrics(this, this.fullFuncName, cloudwatch);
+      this.durationBarChart.updateData(this.fullFuncName);
     }
 
     this.padInvocationsAndErrorsWithZeros();
     this.sortMetricDataResultsByTimestamp();
-    this.setBarChartData();
     this.setLineGraphData();
   }
 
@@ -429,7 +471,7 @@ class Main {
     if (this.focusList[this.focusIndex].rows) {
       this.focusList[this.focusIndex].rows.interactive = true;
     }
-    this.focusList[this.focusIndex].style.border.fg = "green";
+    this.focusList[this.focusIndex].style.border.fg = "yellow";
     this.returnFocus();
   }
 
@@ -634,24 +676,6 @@ class Main {
     }
   }
 
-  setBarChartData() {
-    const regex = /RequestId:(\s)*(\w|-)*(\s)*Duration:(\s)*(\d|\.)*(\s)*ms/gm;
-    // Extract reports from the server logs
-    const matches = this.lambdaLog.content.match(regex);
-    const splits = [];
-    if (matches !== null) {
-      for (let i = 0; i < matches.length; i++) {
-        // Split report into fields using tabs (or 4 spaces)
-        splits.push(matches[i].split(/\t|\s\s\s\s/));
-      }
-      this.lambdaInfoBar.setData({
-        titles: ["1", "2", "3", "4", "5"],
-        // Extract numerical value from field by splitting on spaces, and taking second value
-        data: splits.map((s) => s[1].split(" ")[1]).slice(-5),
-      });
-    }
-  }
-
   setLineGraphData() {
     if (this.data && this.data.MetricDataResults) {
       const dateFormat = moment(this.data.MetricDataResults[0]).isAfter(
@@ -690,55 +714,6 @@ class Main {
     }
   }
 
-  getLogStreams(logGroupName) {
-    const params = {
-      logGroupName,
-      descending: true,
-      limit: 5,
-      orderBy: "LastEventTime",
-    };
-    return cloudwatchLogs
-      .describeLogStreams(params, (err, data) => {
-        if (err) {
-          console.log(err, err.stack); // an error occurred
-        } else {
-          this.getLogEvents(
-            logGroupName,
-            data.logStreams.map((stream) => stream.logStreamName)
-          );
-        }
-      })
-      .promise();
-  }
-
-  getLogEvents(logGroupName, logStreamNames) {
-    if (logStreamNames.length === 0) {
-      this.lambdaLog.setContent(
-        "ERROR: No log streams found for this function."
-      );
-      return;
-    }
-    const params = {
-      logGroupName,
-      logStreamNames,
-    };
-    cloudwatchLogs
-      .filterLogEvents(params)
-      .promise()
-      .then(
-        (data) => {
-          const { events } = data;
-          this.lambdaLog.setContent("");
-          events.forEach((event) => {
-            this.lambdaLog.log(event.message);
-          });
-        },
-        (err) => {
-          console.log(err, err.stack);
-        }
-      );
-  }
-
   sortMetricDataResultsByTimestamp() {
     if (this.data && this.data.MetricDataResults) {
       this.data.MetricDataResults = this.data.MetricDataResults.map((datum) => {
@@ -754,62 +729,6 @@ class Main {
         return returnData;
       });
     }
-  }
-
-  getLambdaMetrics(functionName) {
-    this.endTime = new Date();
-    const params = {
-      StartTime: this.startTime,
-      EndTime: this.endTime,
-      MetricDataQueries: [
-        {
-          Id: "errors",
-          MetricStat: {
-            Metric: {
-              Dimensions: [
-                {
-                  Name: "FunctionName",
-                  Value: functionName,
-                },
-                {
-                  Name: "Resource",
-                  Value: functionName,
-                },
-              ],
-              MetricName: "Errors",
-              Namespace: "AWS/Lambda",
-            },
-            Period: this.interval,
-            Stat: "Sum",
-          },
-          ReturnData: true,
-        },
-        {
-          Id: "invocations",
-          MetricStat: {
-            Metric: {
-              Dimensions: [
-                {
-                  Name: "FunctionName",
-                  Value: functionName,
-                },
-                {
-                  Name: "Resource",
-                  Value: functionName,
-                },
-              ],
-              MetricName: "Invocations",
-              Namespace: "AWS/Lambda",
-            },
-            Period: this.interval,
-            Stat: "Sum",
-          },
-          ReturnData: true,
-        },
-      ],
-    };
-
-    return cloudwatch.getMetricData(params).promise();
   }
 
   updateRegion(region) {

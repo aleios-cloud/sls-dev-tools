@@ -331,7 +331,6 @@ class Main {
         );
       }
       if (this.focusIndex === 0 && this.isModalOpen === false) {
-        this.isModalOpen = true;
         invokeLambda(lambda, this.fullFuncName);
       }
       return 0;

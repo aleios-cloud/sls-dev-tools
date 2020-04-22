@@ -7,6 +7,9 @@ import { eventInjectionModal } from "./modals/eventInjectionModal";
 import { Map } from "./components";
 import { invokeLambda } from "./services/invoke";
 import Serverless from "./services/serverless";
+import { DurationBarChart } from './components/durationBarChart';
+import { lambdaStatisticsModal } from './modals/lambdaStatisticsModal';
+import { getLambdaMetrics } from './services/lambdaMetrics';
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -147,13 +150,7 @@ class Main {
     this.focusIndex = 0;
     this.lambdasDeploymentStatus = {};
     this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
-    this.lambdaInfoBar = this.layoutGrid.set(4, 6, 4, 3, contrib.bar, {
-      label: "Lambda Duration (ms) (most recent)",
-      barWidth: 6,
-      barSpacing: 6,
-      xOffset: 2,
-      maxHeight: 9,
-    });
+    this.durationBarChart = new DurationBarChart(this, cloudwatchLogs, true);
     this.lambdasTable = this.layoutGrid.set(0, 6, 4, 6, contrib.table, {
       keys: true,
       fg: "green",
@@ -216,7 +213,7 @@ class Main {
     });
     this.setKeypresses();
     screen.on("resize", () => {
-      this.lambdaInfoBar.emit("attach");
+      this.durationBarChart.chart("attach");
       this.lambdasTable.emit("attach");
       // errorsLine.emit('attach');
       this.titleBox.emit("attach");
@@ -237,7 +234,7 @@ class Main {
       // Round to closest interval to make query faster.
       this.startTime = new Date(
         Math.round(new Date().getTime() / this.interval) * this.interval -
-          dateOffset
+        dateOffset
       );
     }
 
@@ -335,6 +332,24 @@ class Main {
       }
       return 0;
     });
+    screen.key(["l"], () => {
+      if (this.focusIndex === 0 && this.isModalOpen === false) {
+        this.isModalOpen = true;
+        const selectedRow = this.lambdasTable.rows.selected;
+        const [selectedLambdaName] = this.lambdasTable.rows.items[
+          selectedRow
+        ].data;
+        const fullFunctionName = `${program.stackName}-${selectedLambdaName}`;
+        return lambdaStatisticsModal(
+          screen,
+          this,
+          fullFunctionName,
+          cloudwatchLogs,
+          cloudwatch
+        );
+      }
+      return 0;
+    });
     screen.key(["r"], () => {
       // If focus is currently on this.eventBridgeTree
       if (this.focusIndex === 1 && this.isModalOpen === false) {
@@ -372,13 +387,12 @@ class Main {
 
   async updateGraphs() {
     if (this.fullFuncName) {
-      this.data = await this.getLambdaMetrics(this.fullFuncName);
-      this.getLogStreams(`/aws/lambda/${this.fullFuncName}`);
+      this.data = await getLambdaMetrics(this, this.fullFuncName, cloudwatch);
+      this.durationBarChart.updateData(this.fullFuncName);
     }
 
     this.padInvocationsAndErrorsWithZeros();
     this.sortMetricDataResultsByTimestamp();
-    this.setBarChartData();
     this.setLineGraphData();
   }
 
@@ -467,7 +481,7 @@ class Main {
     if (provider === "serverlessFramework") {
       exec(
         `serverless deploy -r ${program.region} --aws-profile ${profile} ${
-          slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
+        slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
         }`,
         { cwd: location },
         (error, stdout) => this.handleStackDeployment(error, stdout)
@@ -485,9 +499,9 @@ class Main {
         } else {
           exec(
             `sam deploy --region ${
-              program.region
+            program.region
             } --profile ${profile} --stack-name ${program.stackName} ${
-              slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
+            slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
             }`,
             { cwd: location },
             (deployError, stdout) =>
@@ -536,9 +550,9 @@ class Main {
       if (provider === "serverlessFramework") {
         exec(
           `serverless deploy -f ${selectedLambdaFunctionName} -r ${
-            program.region
+          program.region
           } --aws-profile ${profile} ${
-            slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
+          slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
           }`,
           { cwd: location },
           (error, stdout) =>
@@ -660,24 +674,6 @@ class Main {
     }
   }
 
-  setBarChartData() {
-    const regex = /RequestId:(\s)*(\w|-)*(\s)*Duration:(\s)*(\d|\.)*(\s)*ms/gm;
-    // Extract reports from the server logs
-    const matches = this.lambdaLog.content.match(regex);
-    const splits = [];
-    if (matches !== null) {
-      for (let i = 0; i < matches.length; i++) {
-        // Split report into fields using tabs (or 4 spaces)
-        splits.push(matches[i].split(/\t|\s\s\s\s/));
-      }
-      this.lambdaInfoBar.setData({
-        titles: ["1", "2", "3", "4", "5"],
-        // Extract numerical value from field by splitting on spaces, and taking second value
-        data: splits.map((s) => s[1].split(" ")[1]).slice(-5),
-      });
-    }
-  }
-
   setLineGraphData() {
     if (this.data && this.data.MetricDataResults) {
       const dateFormat = moment(this.data.MetricDataResults[0]).isAfter(
@@ -716,56 +712,6 @@ class Main {
     }
   }
 
-  getLogStreams(logGroupName) {
-    const params = {
-      logGroupName,
-      descending: true,
-      limit: 5,
-      orderBy: "LastEventTime",
-    };
-    return cloudwatchLogs
-      .describeLogStreams(params, (err, data) => {
-        if (err) {
-          console.log(err, err.stack); // an error occurred
-        } else {
-          this.getLogEvents(
-            logGroupName,
-            data.logStreams.map((stream) => stream.logStreamName)
-          );
-        }
-      })
-      .promise();
-  }
-
-  getLogEvents(logGroupName, logStreamNames) {
-    if (logStreamNames.length === 0) {
-      this.lambdaLog.setContent(
-        "ERROR: No log streams found for this function."
-      );
-      return;
-    }
-    const params = {
-      logGroupName,
-      logStreamNames,
-      limit: 50,
-    };
-    cloudwatchLogs
-      .filterLogEvents(params)
-      .promise()
-      .then(
-        (data) => {
-          const { events } = data;
-          this.lambdaLog.setContent("");
-          events.forEach((event) => {
-            this.lambdaLog.log(event.message);
-          });
-        },
-        (err) => {
-          console.log(err, err.stack);
-        }
-      );
-  }
-
   sortMetricDataResultsByTimestamp() {
     if (this.data && this.data.MetricDataResults) {
       this.data.MetricDataResults = this.data.MetricDataResults.map((datum) => {
@@ -781,62 +727,6 @@ class Main {
         return returnData;
       });
     }
-  }
-
-  getLambdaMetrics(functionName) {
-    this.endTime = new Date();
-    const params = {
-      StartTime: this.startTime,
-      EndTime: this.endTime,
-      MetricDataQueries: [
-        {
-          Id: "errors",
-          MetricStat: {
-            Metric: {
-              Dimensions: [
-                {
-                  Name: "FunctionName",
-                  Value: functionName,
-                },
-                {
-                  Name: "Resource",
-                  Value: functionName,
-                },
-              ],
-              MetricName: "Errors",
-              Namespace: "AWS/Lambda",
-            },
-            Period: this.interval,
-            Stat: "Sum",
-          },
-          ReturnData: true,
-        },
-        {
-          Id: "invocations",
-          MetricStat: {
-            Metric: {
-              Dimensions: [
-                {
-                  Name: "FunctionName",
-                  Value: functionName,
-                },
-                {
-                  Name: "Resource",
-                  Value: functionName,
-                },
-              ],
-              MetricName: "Invocations",
-              Namespace: "AWS/Lambda",
-            },
-            Period: this.interval,
-            Stat: "Sum",
-          },
-          ReturnData: true,
-        },
-      ],
-    };
-
-    return cloudwatch.getMetricData(params).promise();
   }
 
   updateRegion(region) {

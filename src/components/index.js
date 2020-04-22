@@ -1,6 +1,6 @@
 export { generateFieldWithTitle } from "./fieldWithTitle";
-export { modalLayout } from "./modalLayout";
-export { modalTitle } from "./modalTitle";
+export { ModalLayout } from "./modalLayout";
+export { ModalTitle } from "./modalTitle";
 export { submitButton } from "./submitButton";
-export { modalHelpText } from "./modalHelpText";
+export { Box } from "./box";
 export { Map } from "./map";

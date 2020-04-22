@@ -1,8 +1,8 @@
 import { eventInjectionModal } from "./eventInjectionModal";
 import {
-  modalTitle,
-  modalHelpText,
-  modalLayout,
+  ModalTitle,
+  Box,
+  ModalLayout,
   submitButton,
   generateFieldWithTitle,
 } from "../components";
@@ -89,7 +89,7 @@ const eventModal = (
   schema,
   injectEvent
 ) => {
-  const eventLayout = modalLayout(blessed, screen, 112, 35, true);
+  const eventLayout = new ModalLayout(screen, 112, 35, true);
 
   const closeModal = () => {
     // Store all text to populate modal when next opened
@@ -160,8 +160,8 @@ const eventModal = (
     selectTextbox(modalState.currentTextbox);
   };
 
-  modalTitle(blessed, eventLayout, 110, `Event Injection - ${schema}`);
-  const currentPageText = modalTitle(blessed, eventLayout, 110, "");
+  new ModalTitle(eventLayout, 110, `Event Injection - ${schema}`);
+  const currentPageText = new ModalTitle(eventLayout, 110, "");
 
   const updateCurrentPageText = () => {
     currentPageText.content = `Page ${modalState.currentPage} of ${modalState.numPages}`;
@@ -194,8 +194,7 @@ const eventModal = (
     updateCurrentPageText
   );
 
-  modalHelpText(
-    blessed,
+  new Box(
     eventLayout,
     110,
     5,

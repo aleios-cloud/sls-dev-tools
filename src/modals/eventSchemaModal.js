@@ -1,4 +1,8 @@
 import { eventModal } from "./eventModal";
+import { Box } from "../components/box";
+import { ModalLayout } from "../components/modalLayout";
+import { ModalTitle } from "../components/modalTitle";
+import { InteractiveList } from "../components/interactiveList";
 
 function updateSchemaTable(api, registry, table) {
   api.listSchemas({ RegistryName: registry }, (err, data) => {
@@ -21,17 +25,7 @@ const eventSchemaModal = (
   registry,
   injectEvent
 ) => {
-  const eventSchemaLayout = blessed.layout({
-    parent: screen,
-    top: "center",
-    left: "center",
-    width: 112,
-    height: 27,
-    border: "line",
-    style: { border: { fg: "green" } },
-    keys: true,
-    grabKeys: true,
-  });
+  const eventSchemaLayout = new ModalLayout(screen, 112, 27, true);
 
   const closeModal = () => {
     // Store all text to populate modal when next opened
@@ -40,45 +34,21 @@ const eventSchemaModal = (
     eventSchemaLayout.destroy();
   };
 
-  blessed.box({
-    parent: eventSchemaLayout,
-    width: 110,
-    left: "right",
-    top: "center",
-    align: "center",
-    padding: { left: 2, right: 2 },
-    style: { fg: "green" },
-    content: "Event Schemas",
-  });
+  new ModalTitle(eventSchemaLayout, 110, "Event Schemas");
 
-  const schemaTable = blessed.list({
-    parent: eventSchemaLayout,
-    width: 110,
-    height: 20,
-    border: "line",
-    style: { fg: "green", border: { fg: "green" } },
-    padding: { left: 2, right: 2 },
-    left: "right",
-    top: "center",
-    keys: true,
-    interactive: true,
-    items: ["loading"],
-    invertSelected: true,
-    label: "Schemas",
-  });
+  const schemaTable = new InteractiveList(
+    eventSchemaLayout,
+    110,
+    20,
+    "Schemas"
+  );
 
-  blessed.box({
-    parent: eventSchemaLayout,
-    width: 110,
-    height: 4,
-    left: "right",
-    top: "center",
-    align: "center",
-    padding: { left: 2, right: 2 },
-    border: "line",
-    style: { fg: "green", border: { fg: "green" } },
-    content: "Arrow keys to navigate | ENTER to select \nESC to close        ",
-  });
+  new Box(
+    eventSchemaLayout,
+    110,
+    4,
+    "Arrow keys to navigate | ENTER to select \nESC to close"
+  );
 
   updateSchemaTable(api, registry, schemaTable);
   schemaTable.focus();

@@ -77,6 +77,7 @@ class DurationBarChart {
           const filterLogEventsParams = {
             logGroupName,
             logStreamNames,
+            limit: 50,
           };
           this.cloudwatchLogs
             .filterLogEvents(filterLogEventsParams)

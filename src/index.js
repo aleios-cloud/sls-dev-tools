@@ -273,7 +273,7 @@ class Main {
       }
       return 0;
     });
-    screen.key(["h", "H"], () => {
+    screen.key(["h"], () => {
       if (this.isModalOpen === false) {
         this.isModalOpen = true;
         return helpModal(screen, blessed, this);
@@ -288,7 +288,7 @@ class Main {
     });
     screen.key(["q", "C-c"], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
-    screen.key(["o", "O"], () => {
+    screen.key(["o"], () => {
       // If focus is currently on this.lambdasTable
       if (this.focusIndex === 0 && this.isModalOpen === false) {
         const selectedLambdaFunctionName = this.lambdasTable.rows.items[

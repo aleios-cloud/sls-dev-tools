@@ -46,6 +46,7 @@ program
 
 function getAWSCredentials() {
   if (program.profile) {
+    process.env.AWS_SDK_LOAD_CONFIG = 1;
     return new AWS.SharedIniFileCredentials({ profile: program.profile });
   }
   if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {

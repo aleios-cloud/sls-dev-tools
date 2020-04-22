@@ -12,7 +12,7 @@ class ModalLayout extends blessed.layout {
       style: { border: { fg: "green" } },
       keys,
       grabKeys: keys,
-    })
+    });
   }
 }
 

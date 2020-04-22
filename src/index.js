@@ -336,9 +336,17 @@ class Main {
       if (this.focusIndex === 0 && this.isModalOpen === false) {
         this.isModalOpen = true;
         const selectedRow = this.lambdasTable.rows.selected;
-        const [selectedLambdaName] = this.lambdasTable.rows.items[selectedRow].data;
+        const [selectedLambdaName] = this.lambdasTable.rows.items[
+          selectedRow
+        ].data;
         const fullFunctionName = `${program.stackName}-${selectedLambdaName}`;
-        return lambdaStatisticsModal(screen, this, fullFunctionName, cloudwatchLogs, cloudwatch);
+        return lambdaStatisticsModal(
+          screen,
+          this,
+          fullFunctionName,
+          cloudwatchLogs,
+          cloudwatch
+        );
       }
       return 0;
     });

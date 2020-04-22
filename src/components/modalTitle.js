@@ -1,4 +1,4 @@
-const blessed = require('blessed');
+const blessed = require("blessed");
 
 class ModalTitle extends blessed.box {
   constructor(parent, width, content) {
@@ -11,7 +11,7 @@ class ModalTitle extends blessed.box {
       padding: { left: 2, right: 2 },
       style: { fg: "green" },
       content,
-    })
+    });
   }
 }
 

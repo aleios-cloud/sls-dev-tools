@@ -10,6 +10,7 @@ const helpModal = (screen, blessed, application) => {
     ["Arrows", "Used to select from list, by default the function list"],
     ["Tab", "Used to change focus between selected windows"],
     ["i", "Open an event injection window for the selected event bus"],
+    ["i", "Invoke lambda function with empty body for the selected function"],
     ["r", "Open the EventBridge Registry window for the selected event bus"],
   ];
   const cliOptionsData = [

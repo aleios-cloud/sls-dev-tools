@@ -163,6 +163,7 @@ Shortcuts
 - Pressing "d" while selecting a function from the function list will deploy the selected lambda function, note this is not possible while using SAM
 - Pressing "s" while selecting a function will deploy the entire stack
 - Pressing "i" while selecting an event bus will open a window to write and inject an event for that bus
+- Pressing "i" while selecting a lambda function to invoke the function with an empty body
 - Pressing "r" while selecting an event bus will open the event registry. Select a event schema to edit the event properties, and inject it on that bus.
 ```
 

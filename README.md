@@ -61,12 +61,11 @@ sls-dev-tools is currently being actively maintained. If you find a problem with
 
 ![installTool](./img/startTool.gif)
 
-Run `sls-dev-tools` in the directory with your serverless.yml\
-Run `sls-dev-tools -l {YOUR_PROJECT_LOCATION}` to run the tool from anywhere\
-Run `sls-dev-tools -n {YOUR_STACK_NAME}] -r {YOUR_REGION}` to access your stack remotely\
-`sls-dev-tools [-l {YOUR_PROJECT_LOCATION}] [-p {PROFILE}] [-n {YOUR_STACK_NAME}] [-r {YOUR_REGION}] [-t {START_TIME}] [-i {INTERVAL}]`
+Run `sls-dev-tools` in the directory with your serverless.yml
 
 ### Options:
+
+`sls-dev-tools [-l {YOUR_PROJECT_LOCATION}] [-p {PROFILE}] [-n {YOUR_STACK_NAME}] [-r {YOUR_REGION}] [-t {START_TIME}] [-i {INTERVAL}]`
 
 ```
   -V, --version                 output the version number
@@ -81,11 +80,12 @@ Run `sls-dev-tools -n {YOUR_STACK_NAME}] -r {YOUR_REGION}` to access your stack 
   --sam                         use the SAM framework to execute commands
 ```
 
-- The start time defines when you want your graphs to start from. The format for the start time is as follows: `'30 March 2020 09:00 GMT'`.
-- The interval defines the size of the buckets in seconds. This means if you give a interval of 3600, the line graph will group the invocations and errors into 1h chunks, and the bar chart will show the average response time over the hour for the last 6 hours during which invocations were made.
-- The profile option allows you to pass in an alternative aws profile to connect with. If none is provided the default aws profile is useda.
+- The location option allows you to specify the serverless project directory you want to work on.
 - To find stack names, log on to AWS cloudformation. It is shown in the overview section of stack info. It may not be what you expected e.g. it might have `-dev` on the end, so worth checking if the dev tools are not working.
 - The region is the AWS region, for example, us-east-1.
+- The profile option allows you to pass in an alternative aws profile to connect with. If none is provided the default aws profile is used.
+- The start time defines when you want your graphs to start from. The format for the start time is as follows: `'30 March 2020 09:00 GMT'`.
+- The interval defines the size of the buckets in seconds. This means if you give a interval of 3600, the line graph will group the invocations and errors into 1h chunks, and the bar chart will show the average response time over the hour for the last 6 hours during which invocations were made.
 
 ## Frameworks
 

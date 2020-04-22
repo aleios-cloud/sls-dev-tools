@@ -58,13 +58,17 @@ sls-dev-tools is currently being actively maintained. If you find a problem with
 
 ## Usage
 
-- Run `sls-dev-tools -n {YOUR_STACK_NAME} -r {YOUR_REGION} [-t {START_TIME}] [-i {INTERVAL}] [-p {PROFILE}] [-l {YOUR_PROJECT_LOCATION}]`
+Run `sls-dev-tools` in the directory with your serverless.yml\
+Run `sls-dev-tools -l {YOUR_PROJECT_LOCATION}` to run the tool from anywhere\
+Run `sls-dev-tools -n {YOUR_STACK_NAME}] -r {YOUR_REGION}` to access your stack remotely\
+`sls-dev-tools [-l {YOUR_PROJECT_LOCATION}] [-p {PROFILE}] [-n {YOUR_STACK_NAME}] [-r {YOUR_REGION}] [-t {START_TIME}] [-i {INTERVAL}]`
+
+### Options:
 
 ```
-Options:
   -V, --version                 output the version number
-  -n, --stack-name <stackName>  AWS stack name
-  -r, --region <region>         AWS region
+  -n, --stack-name <stackName>  manually set AWS stack name
+  -r, --region <region>         manually set AWS region
   -t, --start-time <startTime>  when to start from
   -i, --interval <interval>     interval of graphs, in seconds
   -p, --profile <profile>       aws profile name to use
@@ -74,11 +78,10 @@ Options:
   --sam                         use the SAM framework to execute commands
 ```
 
-- The start time defines when you want your graphs to start from. The format for the start time is as follows: `'30 March 2020 09:00 GMT'`
+- The start time defines when you want your graphs to start from. The format for the start time is as follows: `'30 March 2020 09:00 GMT'`.
 - The interval defines the size of the buckets in seconds. This means if you give a interval of 3600, the line graph will group the invocations and errors into 1h chunks, and the bar chart will show the average response time over the hour for the last 6 hours during which invocations were made.
-- The profile option allows you to pass in an alternative aws profile to connect with if none is provided the default aws profile is used
-- Run sls-dev-tools within your serverless project or specify its location in the command to enable the deployment features.
-- To get the stack name, log on to AWS cloudformation and it is shown in the overview section of stack info. It may not be what you expected e.g. it might have `-dev` on the end, so worth checking if the dev tools are not working.
+- The profile option allows you to pass in an alternative aws profile to connect with. If none is provided the default aws profile is useda.
+- To find stack names, log on to AWS cloudformation. It is shown in the overview section of stack info. It may not be what you expected e.g. it might have `-dev` on the end, so worth checking if the dev tools are not working.
 - The region is the AWS region, for example, us-east-1.
 
 ## Frameworks
@@ -110,6 +113,8 @@ If you're not seeing any data in the graphs, try changing your start date to mak
 ![getStatistics](./img/stats.png)
 
 ### Deploying lambdas
+
+It's necessary to run the tool within your serverless project folder, or specify its location using the `-l` option, for deployment features to work.
 
 #### Single lambda deploy
 
@@ -146,6 +151,8 @@ Navigate to the map pane using tab. Use the arrow keys to select a different reg
 ![regionChange](./img/regionMap.gif)
 
 ## Shortcuts
+
+![helpModal](./img/helpModal.png)
 
 ```
 Shortcuts

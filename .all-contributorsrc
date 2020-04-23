@@ -104,6 +104,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "jnmullen",
+      "name": "James Mullen",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/24397992?v=4",
+      "profile": "https://blog.james-mullen.me.uk",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

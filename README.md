@@ -1,6 +1,9 @@
 # sls-dev-tools
+
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
 [![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors-)
+
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![npm](https://img.shields.io/npm/v/sls-dev-tools)](https://www.npmjs.com/package/sls-dev-tools)
@@ -216,12 +219,13 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/DotGav"><img src="https://avatars0.githubusercontent.com/u/38322167?v=4" width="100px;" alt=""/><br /><sub><b>Gavin Williams</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=DotGav" title="Code">💻</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=DotGav" title="Documentation">📖</a> <a href="#ideas-DotGav" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-DotGav" title="Maintenance">🚧</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/pulls?q=is%3Apr+reviewed-by%3ADotGav" title="Reviewed Pull Requests">👀</a> <a href="#security-DotGav" title="Security">🛡️</a></td>
     <td align="center"><a href="https://github.com/antoineeudes"><img src="https://avatars0.githubusercontent.com/u/13795384?v=4" width="100px;" alt=""/><br /><sub><b>Antoine Eudes</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=antoineeudes" title="Code">💻</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=antoineeudes" title="Documentation">📖</a> <a href="#userTesting-antoineeudes" title="User Testing">📓</a></td>
     <td align="center"><a href="https://github.com/mansurpasha"><img src="https://avatars1.githubusercontent.com/u/28564974?v=4" width="100px;" alt=""/><br /><sub><b>mansurpasha</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=mansurpasha" title="Code">💻</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=mansurpasha" title="Documentation">📖</a> <a href="#userTesting-mansurpasha" title="User Testing">📓</a></td>
-    <td align="center"><a href="https://github.com/Luce"><img src="https://avatars1.githubusercontent.com/u/2273647?v=4" width="100px;" alt=""/><br /><sub><b>luce</b></sub></a><br /><a href="#projectManagement-luce" title="Project Management">📆</a> <a href="#userTesting-luce" title="User Testing">📓</a></td>
+    <td align="center"><a href="https://github.com/luce-theodo"><img src="https://avatars1.githubusercontent.com/u/2273647?v=4" width="100px;" alt=""/><br /><sub><b>luce</b></sub></a><br /><a href="#projectManagement-luce-theodo" title="Project Management">📆</a> <a href="#userTesting-luce-theodo" title="User Testing">📓</a></td>
   </tr>
 </table>
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!

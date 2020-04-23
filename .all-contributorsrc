@@ -95,6 +95,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "artoliukkonen",
+      "name": "Arto Liukkonen",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/683856?v=4",
+      "profile": "http://www.artoliukkonen.net",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

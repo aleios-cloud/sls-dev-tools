@@ -38,6 +38,20 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "DotGav",
+      "name": "Gavin Williams",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/38322167?v=4",
+      "profile": "https://github.com/DotGav",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas",
+        "maintenance",
+        "review",
+        "security"
+      ]
     }
   ],
   "contributorsPerLine": 7,

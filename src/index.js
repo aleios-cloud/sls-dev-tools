@@ -429,16 +429,16 @@ class Main {
   async updateGraphs() {
     if (this.fullFuncName) {
       this.data = await getLambdaMetrics(this, this.fullFuncName, cloudwatch);
-      this.events = await getLogEvents(
-        `/aws/lambda/${this.fullFuncName}`,
-        cloudwatchLogs
+      getLogEvents(`/aws/lambda/${this.fullFuncName}`, cloudwatchLogs).then(
+        (data) => {
+          this.events = data;
+          updateLogContentsFromEvents(this.lambdaLog, this.events);
+          checkLogsForErrors(this.events, this);
+          this.setFirstLogsRetrieved(true);
+
+          this.durationBarChart.updateData();
+        }
       );
-
-      updateLogContentsFromEvents(this.lambdaLog, this.events);
-      checkLogsForErrors(this.events, this);
-      this.setFirstLogsRetrieved(true);
-
-      this.durationBarChart.updateData();
     }
 
     this.padInvocationsAndErrorsWithZeros();

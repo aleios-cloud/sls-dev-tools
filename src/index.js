@@ -257,6 +257,10 @@ class Main {
       [this.funcName] = item.data;
       this.fullFuncName = `${program.stackName}-${this.funcName}`;
     });
+    // Store previous errorId found in logs
+    this.prevErrorId = "";
+    // Flag to avoid getting notifications on first retrieval of logs
+    this.firstLogsRetrieved = false;
   }
 
   setKeypresses() {
@@ -395,6 +399,14 @@ class Main {
 
   setIsModalOpen(value) {
     this.isModalOpen = value;
+  }
+
+  setFirstLogsRetrieved(value) {
+    this.firstLogsRetrieved = value;
+  }
+
+  setPrevErrorId(value) {
+    this.prevErrorId = value;
   }
 
   async render() {

@@ -1,6 +1,6 @@
 function updateLogContentsFromEvents(log, events) {
   if (events.length === 0) {
-    log.log("ERROR: No log streams found for this function.");
+    log.setContent("ERROR: No log streams found for this function.");
   } else {
     log.setContent("");
     events.forEach((event) => {

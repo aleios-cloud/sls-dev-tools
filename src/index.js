@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 import AWS from "aws-sdk";
-import { logo, dateFormats } from "./constants";
+import { logo, dateFormats, DASHBOARD_FOCUS_INDEX } from "./constants";
 import { helpModal } from "./modals/helpModal";
 import { eventRegistryModal } from "./modals/eventRegistryModal";
 import { eventInjectionModal } from "./modals/eventInjectionModal";
-import { lambdaInvokeModal } from "./modals/lambdaInvokeModal";
+
 import { Map } from "./components";
 import { ResourceTable } from "./components/resourceTable";
 import Serverless from "./services/serverless";
 import { DurationBarChart } from "./components/durationBarChart";
-import { lambdaStatisticsModal } from "./modals/lambdaStatisticsModal";
 import { getLambdaMetrics } from "./services/lambdaMetrics";
 import {
   updateLogContentsFromEvents,
@@ -125,7 +124,7 @@ class Main {
     this.focusIndex = 0;
     this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.durationBarChart = new DurationBarChart(this, cloudwatchLogs, true);
-    this.resourceTable = new ResourceTable(this, program, provider, slsDevToolsConfig, profile, location, cloudformation, lambda);
+    this.resourceTable = new ResourceTable(this, screen, program, provider, slsDevToolsConfig, profile, location, cloudformation, lambda, cloudwatch, cloudwatchLogs);
     this.invocationsLineGraph = this.layoutGrid.set(2, 0, 6, 6, contrib.line, {
       maxY: 0,
       label: "Function Metrics",
@@ -207,6 +206,7 @@ class Main {
 
     // Curent element of focusList in focus
     this.focusList = [this.resourceTable.table, this.eventBridgeTree, this.map.map];
+    this.resourceTable.table.focus();
     this.returnFocus();
     this.isModalOpen = false;
 
@@ -217,22 +217,7 @@ class Main {
   }
 
   setKeypresses() {
-    screen.key(["d"], () => {
-      // If focus is currently on this.resourceTable
-      if (this.focusIndex === 0 && this.isModalOpen === false) {
-        return this.resourceTable.deployFunction();
-      }
-      return 0;
-    });
-    screen.key(['right', 'left'], () => {
-      this.resourceTable.switchTable();
-    });
-    screen.key(["s"], () => {
-      if (this.isModalOpen === false) {
-        return this.resourceTable.deployStack();
-      }
-      return 0;
-    });
+
     screen.key(["h"], () => {
       if (this.isModalOpen === false) {
         this.isModalOpen = true;
@@ -249,12 +234,8 @@ class Main {
     screen.key(["q", "C-c"], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.key(["o"], () => {
-      // If focus is currently on this.resourceTable
-      if (this.focusIndex === 0 && this.isModalOpen === false) {
-        return this.resourceTable.openLambdaInAWSConsole();
-      }
       // If focus is currently on this.eventBridgeTree
-      if (this.focusIndex === 1 && this.isModalOpen === false) {
+      if (this.focusIndex === DASHBOARD_FOCUS_INDEX.EVENT_BRIDGE_TREE && this.isModalOpen === false) {
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree
         const selectedEventBridge = this.eventBridgeTree.rows.ritems[
@@ -268,7 +249,7 @@ class Main {
     });
     screen.key(["i"], () => {
       // If focus is currently on this.eventBridgeTree
-      if (this.focusIndex === 1 && this.isModalOpen === false) {
+      if (this.focusIndex === DASHBOARD_FOCUS_INDEX.EVENT_BRIDGE_TREE && this.isModalOpen === false) {
         this.isModalOpen = true;
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree
@@ -284,43 +265,12 @@ class Main {
           previousEvent
         );
       }
-      if (this.focusIndex === 0 && this.isModalOpen === false) {
-        this.isModalOpen = true;
-        const fullFunctionName = this.resourceTable.getCurrentlySelectedLambdaName();
-        const previousLambdaPayload = this.previousLambdaPayload[
-          fullFunctionName
-        ];
-
-        return lambdaInvokeModal(
-          screen,
-          this,
-          fullFunctionName,
-          lambda,
-          previousLambdaPayload
-        );
-      }
-      return 0;
-    });
-    screen.key(["l"], () => {
-      if (this.focusIndex === 0 && this.isModalOpen === false) {
-        this.isModalOpen = true;
-        const fullFunctionName = this.resourceTable.getCurrentlySelectedLambdaName();
-
-        return lambdaStatisticsModal(
-          screen,
-          this,
-          fullFunctionName,
-          cloudwatchLogs,
-          cloudwatch,
-          lambda
-        );
-      }
       return 0;
     });
 
     screen.key(["r"], () => {
       // If focus is currently on this.eventBridgeTree
-      if (this.focusIndex === 1 && this.isModalOpen === false) {
+      if (this.focusIndex === DASHBOARD_FOCUS_INDEX.EVENT_BRIDGE_TREE && this.isModalOpen === false) {
         this.isModalOpen = true;
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree

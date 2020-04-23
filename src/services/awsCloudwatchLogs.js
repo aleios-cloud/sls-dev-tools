@@ -21,6 +21,10 @@ async function getLogEvents(logGroupName, cloudwatchLogsAPI) {
   const streams = await getStreams(cloudwatchLogsAPI, params);
   const streamNames = streams.logStreams.map((stream) => stream.logStreamName);
 
+  if (streamNames.length === 0) {
+    return [];
+  }
+
   const data = await getEventsFromStreams(
     logGroupName,
     streamNames,

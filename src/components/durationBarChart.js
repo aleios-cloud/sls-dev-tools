@@ -74,10 +74,16 @@ class DurationBarChart {
     const logGroupName = `/aws/lambda/${lambdaName}`;
     const events = await getLogEvents(logGroupName, this.cloudwatchLogs);
 
-    this.application.lambdaLog.setContent("");
-    events.forEach((event) => {
-      this.application.lambdaLog.log(event.message);
-    });
+    if (events.length === 0) {
+      this.application.lambdaLog.setContent(
+        "ERROR: No log streams found for this function."
+      );
+    } else {
+      this.application.lambdaLog.setContent("");
+      events.forEach((event) => {
+        this.application.lambdaLog.log(event.message);
+      });
+    }
 
     this.setBarChartDataFromLogContent(this.application.lambdaLog.content);
     this.checkForErrors(events);

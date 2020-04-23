@@ -63,6 +63,17 @@
         "doc",
         "userTesting"
       ]
+    },
+    {
+      "login": "mansurpasha",
+      "name": "mansurpasha",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/28564974?v=4",
+      "profile": "https://github.com/mansurpasha",
+      "contributions": [
+        "code",
+        "doc",
+        "userTesting"
+      ]
     }
   ],
   "contributorsPerLine": 7,

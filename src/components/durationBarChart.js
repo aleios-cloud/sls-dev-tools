@@ -86,12 +86,14 @@ class DurationBarChart {
               (logs) => {
                 const { events } = logs;
 
+                // Get latest error from logs
                 let latestErrorId = "";
                 events.forEach((event) => {
                   if (event.message.includes("ERROR")) {
                     latestErrorId = event.eventId;
                   }
                 });
+                // If error is new, trigger notification
                 if (latestErrorId !== this.prevErrorId) {
                   this.applicaiton.prevErrorId = latestErrorId;
                   if (this.application.firstLogsRetreived) {

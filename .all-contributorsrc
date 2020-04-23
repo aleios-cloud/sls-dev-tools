@@ -1,0 +1,29 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "BenEllerby",
+      "name": "Ben Ellerby",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/11080984?v=4",
+      "profile": "https://medium.com/serverless-transformation",
+      "contributions": [
+        "code",
+        "content",
+        "doc",
+        "ideas",
+        "design",
+        "talk"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "sls-dev-tools",
+  "projectOwner": "Theodo-UK",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}

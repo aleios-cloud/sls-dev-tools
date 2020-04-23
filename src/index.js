@@ -4,8 +4,8 @@ import { logo, dateFormats, DEPLOYMENT_STATUS } from "./constants";
 import { helpModal } from "./modals/helpModal";
 import { eventRegistryModal } from "./modals/eventRegistryModal";
 import { eventInjectionModal } from "./modals/eventInjectionModal";
+import { lambdaInvokeModal } from "./modals/lambdaInvokeModal";
 import { Map } from "./components";
-import { invokeLambda } from "./services/invoke";
 import Serverless from "./services/serverless";
 import { DurationBarChart } from "./components/durationBarChart";
 import { lambdaStatisticsModal } from "./modals/lambdaStatisticsModal";
@@ -251,6 +251,8 @@ class Main {
 
     // Dictionary to store previous submissions for each event bus
     this.previousSubmittedEvent = {};
+    // Dictionary to store previous submissions for each lambda function
+    this.previousLambdaPayload = {};
     this.lambdasTable.rows.on("select", (item) => {
       [this.funcName] = item.data;
       this.fullFuncName = `${program.stackName}-${this.funcName}`;
@@ -329,18 +331,29 @@ class Main {
         );
       }
       if (this.focusIndex === 0 && this.isModalOpen === false) {
-        invokeLambda(lambda, this.fullFuncName);
+        this.isModalOpen = true;
+
+        const fullFunctionName = this.getCurrentlySelectedLambdaName();
+        const previousLambdaPayload = this.previousLambdaPayload[
+          fullFunctionName
+        ];
+
+        return lambdaInvokeModal(
+          screen,
+          blessed,
+          this,
+          fullFunctionName,
+          lambda,
+          previousLambdaPayload
+        );
       }
       return 0;
     });
     screen.key(["l"], () => {
       if (this.focusIndex === 0 && this.isModalOpen === false) {
         this.isModalOpen = true;
-        const selectedRow = this.lambdasTable.rows.selected;
-        const [selectedLambdaName] = this.lambdasTable.rows.items[
-          selectedRow
-        ].data;
-        const fullFunctionName = `${program.stackName}-${selectedLambdaName}`;
+        const fullFunctionName = this.getCurrentlySelectedLambdaName();
+
         return lambdaStatisticsModal(
           screen,
           this,
@@ -372,6 +385,12 @@ class Main {
       }
       return 0;
     });
+  }
+
+  getCurrentlySelectedLambdaName() {
+    const selectedRow = this.lambdasTable.rows.selected;
+    const [selectedLambdaName] = this.lambdasTable.rows.items[selectedRow].data;
+    return `${program.stackName}-${selectedLambdaName}`;
   }
 
   setIsModalOpen(value) {

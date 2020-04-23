@@ -29,6 +29,15 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "robcronin",
+      "name": "Rob Cronin",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/32868346?v=4",
+      "profile": "https://github.com/robcronin",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

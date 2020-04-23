@@ -31,13 +31,27 @@ class ResourceTable {
         this.lambda = lambda;
     }
 
+    switchTable() {
+        switch (this.type) {
+            case RESOURCE_TABLE_TYPE.LAMBDA:
+                this.type = RESOURCE_TABLE_TYPE.ALL_RESOURCES;
+                this.table.setLabel("< All Resources >");
+                break;
+            case RESOURCE_TABLE_TYPE.ALL_RESOURCES:
+                this.type = RESOURCE_TABLE_TYPE.LAMBDA;
+                this.table.setLabel("< Lambda Functions >");
+                break;
+        }
+        this.updateData();
+    }
+
     generateLambdaTable() {
         return this.application.layoutGrid.set(0, 6, 4, 6, contrib.table, {
             keys: true,
             fg: "green",
-            label: "Lambda Functions",
+            label: "< Lambda Functions >",
             columnSpacing: 1,
-            columnWidth: [45, 30, 15],
+            columnWidth: [45, 30, 30],
             style: {
                 border: {
                     fg: "yellow",
@@ -83,6 +97,17 @@ class ResourceTable {
         );
         this.application.data = stackResources;
 
+        switch (this.type) {
+            case RESOURCE_TABLE_TYPE.LAMBDA:
+                await this.updateLambdaTableData(stackResources);
+                break;
+            case RESOURCE_TABLE_TYPE.ALL_RESOURCES:
+                this.updateAllResourceTableData(stackResources);
+                break;
+        }
+    }
+
+    async updateLambdaTableData(stackResources) {
         let latestLastUpdatedTimestamp = -1;
         const lambdaFunctionResources = stackResources.StackResourceSummaries.filter(
             (res) => {
@@ -122,6 +147,20 @@ class ResourceTable {
         });
         this.updateLambdaTableRows();
         this.updateLambdaDeploymentStatus();
+    }
+
+    updateAllResourceTableData(stackResources) {
+        const resources = stackResources.StackResourceSummaries;
+        this.table.data = resources.map((resource) => {
+            const resourceName = resource.LogicalResourceId;
+            const resourceType = resource.ResourceType.replace("AWS::", "");
+            return [
+                resourceName,
+                this.program.region,
+                resourceType,
+            ];
+        });
+        this.updateAllResourcesTableRows();
     }
 
     openLambdaInAWSConsole() {
@@ -168,6 +207,13 @@ class ResourceTable {
                 DEPLOYMENT_STATUS.PENDING;
             this.updateLambdaTableRows();
         }
+    }
+
+    updateAllResourcesTableRows() {
+        this.table.setData({
+            headers: ["logical", "region", "type"],
+            data: this.table.data,
+        });
     }
 
     updateLambdaTableRows() {

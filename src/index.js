@@ -224,6 +224,9 @@ class Main {
       }
       return 0;
     });
+    screen.key(['right', 'left'], () => {
+      this.resourceTable.switchTable();
+    });
     screen.key(["s"], () => {
       if (this.isModalOpen === false) {
         return this.resourceTable.deployStack();

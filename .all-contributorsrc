@@ -19,6 +19,16 @@
         "talk",
         "review"
       ]
+    },
+    {
+      "login": "AbbieHowell",
+      "name": "AbbieHowell",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/41898453?v=4",
+      "profile": "http://emboldenher.org",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

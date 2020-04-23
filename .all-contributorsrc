@@ -74,6 +74,16 @@
         "doc",
         "userTesting"
       ]
+    },
+    {
+      "login": "luce",
+      "name": "luce",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/2273647?v=4",
+      "profile": "https://github.com/Luce",
+      "contributions": [
+        "projectManagement",
+        "userTesting"
+      ]
     }
   ],
   "contributorsPerLine": 7,

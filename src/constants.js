@@ -33,3 +33,8 @@ export const DEPLOYMENT_STATUS = {
   SUCCESS: "SUCCESS",
   ERROR: "ERROR",
 };
+
+export const RESOURCE_TABLE_TYPE = {
+  LAMBDA: "LAMBDA",
+  ALL_RESOURCES: "ALL_RESOURCES",
+};

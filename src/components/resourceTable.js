@@ -1,0 +1,312 @@
+import { DEPLOYMENT_STATUS, RESOURCE_TABLE_TYPE } from "../constants";
+import { getStackResources } from "../services/stackResources";
+
+const contrib = require("blessed-contrib");
+const open = require("open");
+const { exec } = require("child_process");
+const emoji = require("node-emoji");
+const moment = require("moment");
+
+class ResourceTable {
+    constructor(application, program, provider, slsDevToolsConfig, profile, location, cloudformation, lambda) {
+        this.application = application;
+        this.lambdaFunctions = {};
+        this.latestLambdaFunctionsUpdateTimestamp = -1;
+        this.program = program;
+        this.cloudformation = cloudformation;
+        this.table = this.generateLambdaTable();
+        this.funcName = null;
+        this.fullFuncName = null;
+        this.table.rows.on("select", (item) => {
+            [this.funcName] = item.data;
+            this.fullFuncName = `${this.program.stackName}-${this.funcName}`;
+            this.application.setFirstLogsRetrieved(false);
+        });
+        this.provider = provider;
+        this.slsDevToolsConfig = slsDevToolsConfig;
+        this.lambdasDeploymentStatus = {};
+        this.profile = profile;
+        this.location = location;
+        this.type = RESOURCE_TABLE_TYPE.LAMBDA;
+        this.lambda = lambda;
+    }
+
+    generateLambdaTable() {
+        return this.application.layoutGrid.set(0, 6, 4, 6, contrib.table, {
+            keys: true,
+            fg: "green",
+            label: "Lambda Functions",
+            columnSpacing: 1,
+            columnWidth: [45, 30, 15],
+            style: {
+                border: {
+                    fg: "yellow",
+                },
+            },
+        });
+    }
+
+    getCurrentlySelectedLambdaName() {
+        const selectedRow = this.table.rows.selected;
+        const [selectedLambdaName] = this.table.rows.items[selectedRow].data;
+        return `${this.program.stackName}-${selectedLambdaName}`;
+    }
+
+    async refreshLambdaFunctions() {
+        const allFunctions = [];
+        let marker;
+        while (true) {
+            const response = await this.lambda
+                .listFunctions({
+                    Marker: marker,
+                    MaxItems: 50,
+                })
+                .promise();
+            const functions = response.Functions;
+            allFunctions.push(...functions);
+            if (!response.NextMarker) {
+                break;
+            }
+            marker = response.NextMarker;
+        }
+        this.lambdaFunctions = allFunctions.reduce(function (map, func) {
+            map[func.FunctionName] = func;
+            return map;
+        }, {});
+    }
+
+    async updateData() {
+        const stackResources = await getStackResources(
+            this.program.stackName,
+            this.cloudformation,
+            this.application.setData
+        );
+        this.application.data = stackResources;
+
+        let latestLastUpdatedTimestamp = -1;
+        const lambdaFunctionResources = stackResources.StackResourceSummaries.filter(
+            (res) => {
+                const isLambdaFunction = res.ResourceType === "AWS::Lambda::Function";
+                if (isLambdaFunction) {
+                    const lastUpdatedTimestampMilliseconds = moment(
+                        res.LastUpdatedTimestamp
+                    ).valueOf();
+                    if (lastUpdatedTimestampMilliseconds > latestLastUpdatedTimestamp) {
+                        latestLastUpdatedTimestamp = lastUpdatedTimestampMilliseconds;
+                    }
+                }
+                return isLambdaFunction;
+            }
+        );
+        if (latestLastUpdatedTimestamp > this.latestLambdaFunctionsUpdateTimestamp) {
+            // In case of update in the Lambda function resources,
+            // instead of getting updated function configurations one by one individually,
+            // we are getting all the functions' configurations in batch
+            // even though there will be unrelated ones with the stack.
+            // Because this should result with less API calls in most cases.
+            await this.refreshLambdaFunctions();
+            this.latestLambdaFunctionsUpdateTimestamp = latestLastUpdatedTimestamp;
+        }
+        this.table.data = lambdaFunctionResources.map((lam) => {
+            const funcName = lam.PhysicalResourceId;
+            const func = this.lambdaFunctions[funcName];
+            let funcRuntime = "?";
+            if (func) {
+                funcRuntime = func.Runtime;
+            }
+            return [
+                lam.PhysicalResourceId.replace(`${this.program.stackName}-`, ""),
+                moment(lam.LastUpdatedTimestamp).format("MMMM Do YYYY, h:mm:ss a"),
+                funcRuntime,
+            ];
+        });
+        this.updateLambdaTableRows();
+        this.updateLambdaDeploymentStatus();
+    }
+
+    openLambdaInAWSConsole() {
+        const selectedLambdaFunctionName = this.table.rows.items[
+            this.table.rows.selected
+        ].data[0];
+        return open(
+            `https://${this.program.region}.console.aws.amazon.com/lambda/home?region=${this.program.region}#/functions/${this.program.stackName}-${selectedLambdaFunctionName}?tab=configuration`
+        );
+    }
+
+    deployFunction() {
+        const selectedRowIndex = this.table.rows.selected;
+        if (selectedRowIndex !== -1) {
+            const selectedLambdaFunctionName = this.table.rows.items[
+                selectedRowIndex
+            ].data[0];
+            if (this.provider === "serverlessFramework") {
+                exec(
+                    `serverless deploy -f ${selectedLambdaFunctionName} -r ${
+                    this.program.region
+                    } --aws-profile ${this.profile} ${
+                    this.slsDevToolsConfig ? this.slsDevToolsConfig.deploymentArgs : ""
+                    }`,
+                    { cwd: this.location },
+                    (error, stdout) => {
+                        console.log(error)
+                        return this.handleFunctionDeployment(
+                            error,
+                            stdout,
+                            selectedLambdaFunctionName,
+                            selectedRowIndex
+                        )
+                    }
+                );
+            } else if (this.provider === "SAM") {
+                console.error(
+                    "ERROR: UNABLE TO DEPLOY SINGLE FUNCTION WITH SAM. PRESS s TO DEPLOY STACK"
+                );
+                return;
+            }
+            this.flashRow(selectedRowIndex);
+            this.lambdasDeploymentStatus[selectedLambdaFunctionName] =
+                DEPLOYMENT_STATUS.PENDING;
+            this.updateLambdaTableRows();
+        }
+    }
+
+    updateLambdaTableRows() {
+        const lambdaFunctionsWithDeploymentIndicator = JSON.parse(
+            JSON.stringify(this.table.data)
+        );
+        let deploymentIndicator;
+        for (let i = 0; i < this.table.data.length; i++) {
+            deploymentIndicator = null;
+            switch (this.lambdasDeploymentStatus[this.table.data[i][0]]) {
+                case DEPLOYMENT_STATUS.PENDING:
+                    deploymentIndicator = emoji.get("coffee");
+                    break;
+                case DEPLOYMENT_STATUS.SUCCESS:
+                    deploymentIndicator = emoji.get("sparkles");
+                    break;
+                case DEPLOYMENT_STATUS.ERROR:
+                    deploymentIndicator = emoji.get("x");
+                    break;
+                default:
+                    break;
+            }
+            if (deploymentIndicator) {
+                lambdaFunctionsWithDeploymentIndicator[
+                    i
+                ][0] = `${deploymentIndicator} ${this.table.data[i][0]}`;
+            }
+        }
+
+        this.table.setData({
+            headers: ["logical", "updated", "runtime"],
+            data: lambdaFunctionsWithDeploymentIndicator,
+        });
+
+        for (let i = 0; i < this.table.data.length; i++) {
+            this.table.rows.items[i].data = this.table.data[i];
+        }
+    }
+
+    handleFunctionDeployment(error, stdout, lambdaName, lambdaIndex) {
+        if (error) {
+            console.error(error);
+            this.lambdasDeploymentStatus[lambdaName] = DEPLOYMENT_STATUS.ERROR;
+        } else {
+            console.log(stdout);
+            this.lambdasDeploymentStatus[lambdaName] = DEPLOYMENT_STATUS.SUCCESS;
+        }
+        this.unflashRow(lambdaIndex);
+        this.updateLambdaTableRows();
+    }
+
+    flashRow(rowIndex) {
+        this.table.rows.items[rowIndex].style.fg = "blue";
+        this.table.rows.items[rowIndex].style.bg = "green";
+    }
+
+    unflashRow(rowIndex) {
+        this.table.rows.items[rowIndex].style.fg = () =>
+            rowIndex === this.table.rows.selected ? "white" : "green";
+        this.table.rows.items[rowIndex].style.bg = () =>
+            rowIndex === this.table.rows.selected ? "blue" : "default";
+    }
+
+    updateLambdaDeploymentStatus() {
+        Object.entries(this.lambdasDeploymentStatus).forEach(([key, value]) => {
+            if (
+                value === DEPLOYMENT_STATUS.SUCCESS ||
+                value === DEPLOYMENT_STATUS.ERROR
+            ) {
+                this.lambdasDeploymentStatus[key] = undefined;
+            }
+        });
+    }
+
+    deployStack() {
+        if (this.provider === "serverlessFramework") {
+            exec(
+                `serverless deploy -r ${this.program.region} --aws-profile ${this.profile} ${
+                this.slsDevToolsConfig ? this.slsDevToolsConfig.deploymentArgs : ""
+                }`,
+                { cwd: this.location },
+                (error, stdout) => this.handleStackDeployment(error, stdout)
+            );
+        } else if (this.provider === "SAM") {
+            exec("sam build", { cwd: this.location }, (error) => {
+                if (error) {
+                    console.error(error);
+                    Object.keys(this.lambdasDeploymentStatus).forEach(
+                        // eslint-disable-next-line no-return-assign
+                        (functionName) =>
+                            (this.lambdasDeploymentStatus[functionName] =
+                                DEPLOYMENT_STATUS.ERROR)
+                    );
+                } else {
+                    exec(
+                        `sam deploy --region ${
+                        this.program.region
+                        } --profile ${this.profile} --stack-name ${this.program.stackName} ${
+                        this.slsDevToolsConfig ? this.slsDevToolsConfig.deploymentArgs : ""
+                        }`,
+                        { cwd: this.location },
+                        (deployError, stdout) =>
+                            this.handleStackDeployment(deployError, stdout)
+                    );
+                }
+            });
+        }
+        this.table.data.forEach((v, i) => {
+            this.flashRow(i);
+            this.lambdasDeploymentStatus[this.table.rows.items[i].data[0]] =
+                DEPLOYMENT_STATUS.PENDING;
+        });
+        this.updateLambdaTableRows();
+    }
+
+    handleStackDeployment(error, stdout) {
+        if (error) {
+            console.error(error);
+            Object.keys(this.lambdasDeploymentStatus).forEach(
+                // eslint-disable-next-line no-return-assign
+                (functionName) =>
+                    (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR)
+            );
+        } else {
+            console.log(stdout);
+            Object.keys(this.lambdasDeploymentStatus).forEach(
+                // eslint-disable-next-line no-return-assign
+                (functionName) =>
+                    (this.lambdasDeploymentStatus[functionName] =
+                        DEPLOYMENT_STATUS.SUCCESS)
+            );
+        }
+        this.table.data.forEach((v, i) => {
+            this.unflashRow(i);
+        });
+        this.updateLambdaTableRows();
+    }
+}
+
+module.exports = {
+    ResourceTable,
+};

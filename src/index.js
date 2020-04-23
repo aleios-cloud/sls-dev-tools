@@ -269,6 +269,8 @@ class Main {
     this.firstLogsRetrieved = false;
     // Store events from cloudwatchLogs
     this.events = [];
+    // Allows use of .bell() function for notifications
+    this.notifier = new blessed.Program();
   }
 
   setKeypresses() {

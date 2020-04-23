@@ -19,7 +19,7 @@ function checkLogsForErrors(events, application) {
   if (latestErrorId !== application.prevErrorId) {
     application.setPrevErrorId(latestErrorId);
     if (application.firstLogsRetrieved) {
-      console.log(`Error id is ${latestErrorId}`);
+      application.notifier.bell();
     }
   }
 }

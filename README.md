@@ -173,7 +173,7 @@ Shortcuts
 - Pressing "s" while selecting a function will deploy the entire stack
 - Pressing "i" will invoke a lambda or inject an event into an event bus depending on selection
 - Pressing "r" while selecting an event bus will open the event registry. Select a event schema to edit the event properties, and inject it on that bus.
-- Pressing "l" will display a bow with more statistics on the selected lambda
+- Pressing "l" will display a box with more statistics on the selected lambda
 ```
 
 # A note on AWS API calls and pricing

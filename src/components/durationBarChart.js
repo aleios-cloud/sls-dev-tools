@@ -85,6 +85,21 @@ class DurationBarChart {
             .then(
               (logs) => {
                 const { events } = logs;
+
+                let latestErrorId = "";
+                events.forEach((event) => {
+                  if (event.message.includes("ERROR")) {
+                    latestErrorId = event.eventId;
+                  }
+                });
+                if (latestErrorId !== this.prevErrorId) {
+                  this.applicaiton.prevErrorId = latestErrorId;
+                  if (this.application.firstLogsRetreived) {
+                    console.log(latestErrorId);
+                  }
+                }
+                this.application.firstLogsRetreived = true;
+
                 this.application.lambdaLog.setContent("");
                 events.forEach((event) => {
                   this.application.lambdaLog.log(event.message);

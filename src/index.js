@@ -255,6 +255,11 @@ class Main {
       [this.funcName] = item.data;
       this.fullFuncName = `${program.stackName}-${this.funcName}`;
     });
+
+    // Stored eventId of last error message
+    this.prevErrorId = "";
+    // Flag to avoid triggering notifications on first retreival of logs
+    this.firstLogsRetreived = false;
   }
 
   setKeypresses() {
@@ -618,10 +623,15 @@ class Main {
               (it) => it.valueOf() !== timestamp
             )
           ) {
-            this.data.MetricDataResults[index].Timestamps.push(
-              new Date(timestamp)
-            );
-            this.data.MetricDataResults[index].Values.push(0);
+            try {
+              this.data.MetricDataResults[index].Timestamps.push(
+                new Date(timestamp)
+              );
+              this.data.MetricDataResults[index].Values.push(0);
+            } catch (e) {
+              console.log("I found it");
+              console.error(e);
+            }
           }
         }
       }

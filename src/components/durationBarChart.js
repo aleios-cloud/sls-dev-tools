@@ -1,3 +1,5 @@
+import { getLogEvents } from "../services/awsCloudwatchLogs";
+
 const contrib = require("blessed-contrib");
 
 class DurationBarChart {
@@ -52,54 +54,16 @@ class DurationBarChart {
     }
   }
 
-  updateData(lambdaName) {
+  async updateData(lambdaName) {
     const logGroupName = `/aws/lambda/${lambdaName}`;
-    const describeLogStreamsParams = {
-      logGroupName,
-      descending: true,
-      limit: 5,
-      orderBy: "LastEventTime",
-    };
-    return this.cloudwatchLogs
-      .describeLogStreams(describeLogStreamsParams, (err, data) => {
-        if (err) {
-          console.log(err, err.stack); // an error occurred
-        } else {
-          const logStreamNames = data.logStreams.map(
-            (stream) => stream.logStreamName
-          );
-          if (logStreamNames.length === 0) {
-            this.application.lambdaLog.setContent(
-              "ERROR: No log streams found for this function."
-            );
-            return;
-          }
-          const filterLogEventsParams = {
-            logGroupName,
-            logStreamNames,
-            limit: 50,
-          };
-          this.cloudwatchLogs
-            .filterLogEvents(filterLogEventsParams)
-            .promise()
-            .then(
-              (logs) => {
-                const { events } = logs;
-                this.application.lambdaLog.setContent("");
-                events.forEach((event) => {
-                  this.application.lambdaLog.log(event.message);
-                });
-                this.setBarChartDataFromLogContent(
-                  this.application.lambdaLog.content
-                );
-              },
-              (err) => {
-                console.log(err, err.stack);
-              }
-            );
-        }
-      })
-      .promise();
+    const events = await getLogEvents(logGroupName, this.cloudwatchLogs);
+
+    this.application.lambdaLog.setContent("");
+    events.forEach((event) => {
+      this.application.lambdaLog.log(event.message);
+    });
+
+    this.setBarChartDataFromLogContent(this.application.lambdaLog.content);
   }
 }
 

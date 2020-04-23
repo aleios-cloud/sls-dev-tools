@@ -10,6 +10,11 @@ import Serverless from "./services/serverless";
 import { DurationBarChart } from "./components/durationBarChart";
 import { lambdaStatisticsModal } from "./modals/lambdaStatisticsModal";
 import { getLambdaMetrics } from "./services/lambdaMetrics";
+import {
+  updateLogContentsFromEvents,
+  checkLogsForErrors,
+} from "./services/processEventLogs";
+import { getLogEvents } from "./services/awsCloudwatchLogs";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -256,11 +261,14 @@ class Main {
     this.lambdasTable.rows.on("select", (item) => {
       [this.funcName] = item.data;
       this.fullFuncName = `${program.stackName}-${this.funcName}`;
+      this.setFirstLogsRetrieved(false);
     });
     // Store previous errorId found in logs
     this.prevErrorId = "";
     // Flag to avoid getting notifications on first retrieval of logs
     this.firstLogsRetrieved = false;
+    // Store events from cloudwatchLogs
+    this.events = [];
   }
 
   setKeypresses() {
@@ -421,7 +429,16 @@ class Main {
   async updateGraphs() {
     if (this.fullFuncName) {
       this.data = await getLambdaMetrics(this, this.fullFuncName, cloudwatch);
-      this.durationBarChart.updateData(this.fullFuncName);
+      this.events = await getLogEvents(
+        `/aws/lambda/${this.fullFuncName}`,
+        cloudwatchLogs
+      );
+
+      updateLogContentsFromEvents(this.lambdaLog, this.events);
+      checkLogsForErrors(this.events, this);
+      this.setFirstLogsRetrieved(true);
+
+      this.durationBarChart.updateData();
     }
 
     this.padInvocationsAndErrorsWithZeros();

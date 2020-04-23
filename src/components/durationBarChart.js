@@ -54,39 +54,8 @@ class DurationBarChart {
     }
   }
 
-  checkForErrors(events) {
-    let latestErrorId = "";
-    events.forEach((event) => {
-      if (event.message.includes("ERROR")) {
-        latestErrorId = event.eventId;
-      }
-    });
-    if (latestErrorId !== this.application.prevErrorId) {
-      this.application.setPrevErrorId(latestErrorId);
-      if (this.application.firstLogsRetrieved) {
-        console.log(`Error id is ${latestErrorId}`);
-      }
-    }
-    this.application.setFirstLogsRetrieved(true);
-  }
-
-  async updateData(lambdaName) {
-    const logGroupName = `/aws/lambda/${lambdaName}`;
-    const events = await getLogEvents(logGroupName, this.cloudwatchLogs);
-
-    if (events.length === 0) {
-      this.application.lambdaLog.setContent(
-        "ERROR: No log streams found for this function."
-      );
-    } else {
-      this.application.lambdaLog.setContent("");
-      events.forEach((event) => {
-        this.application.lambdaLog.log(event.message);
-      });
-    }
-
+  async updateData() {
     this.setBarChartDataFromLogContent(this.application.lambdaLog.content);
-    this.checkForErrors(events);
   }
 }
 

@@ -1,9 +1,5 @@
 # sls-dev-tools
 
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-
 [![npm](https://img.shields.io/npm/v/sls-dev-tools)](https://www.npmjs.com/package/sls-dev-tools)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Theodo-UK/sls-dev-tools/blob/master/LICENSE)
 [![Gitter](https://img.shields.io/gitter/room/sls-dev-tools/community.svg)](https://gitter.im/sls-dev-tools)
@@ -11,6 +7,9 @@
 [![Follow](https://img.shields.io/twitter/follow/SlsDevTools?style=social)](https://twitter.com/SlsDevTools)
 ![Maintained](https://img.shields.io/maintenance/yes/2020.svg)
 [![Tweet](./img/tweetBadge.svg)](https://twitter.com/intent/tweet?text=@SlsDevTools)
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The Developer Tools for the Serverless World - think Chrome Dev Tools but for Serverless.
 
@@ -214,7 +213,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/robcronin"><img src="https://avatars1.githubusercontent.com/u/32868346?v=4" width="100px;" alt=""/><br /><sub><b>Rob Cronin</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=robcronin" title="Code">💻</a></td>
   </tr>
   <tr>
-    <td align="center"><a href="https://github.com/Serkan"><img src="https://avatars1.githubusercontent.com/u/29704?v=4" width="100px;" alt=""/><br /><sub><b>Serkan Turgut</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=serkan" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Serkan-ozal"><img src="https://avatars1.githubusercontent.com/u/3143425?v=4" width="100px;" alt=""/><br /><sub><b>Serkan ÖZAL</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=serkan-ozal" title="Code">💻</a></td>
   </tr>
 </table>
 

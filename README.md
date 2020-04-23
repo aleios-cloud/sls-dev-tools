@@ -132,6 +132,10 @@ You can also press 's' to deploy your entire stack.
 
 ![deployFunctions](./img/deployFunctions.jpeg)
 
+### Invoking lambdas
+
+Pressing 'i' with a lambda selected will open up a modal which will allow you to invoke a lambda. Fill the parameters field for any paramters you wish to invoke the lambda with and press submit to trigger the invocation.
+
 ### EventBridge
 
 On opening the tool, the EventBridge pane will display all the event buses currently available to you.
@@ -167,8 +171,7 @@ Shortcuts
 - Pressing "o" while selecting a function from the function list will open the relevant page of the AWS console (saving some clicks!)
 - Pressing "d" while selecting a function from the function list will deploy the selected lambda function, note this is not possible while using SAM
 - Pressing "s" while selecting a function will deploy the entire stack
-- Pressing "i" while selecting an event bus will open a window to write and inject an event for that bus
-- Pressing "i" while selecting a lambda function to invoke the function with an empty body
+- Pressing "i" will invoke a lambda or inject an event into an event bus depending on selection
 - Pressing "r" while selecting an event bus will open the event registry. Select a event schema to edit the event properties, and inject it on that bus.
 ```
 

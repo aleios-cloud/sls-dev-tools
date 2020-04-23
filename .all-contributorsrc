@@ -36,7 +36,7 @@
     },
     {
       "login": "mansurpasha",
-      "name": "mansurpasha",
+      "name": "Mansur Pasha",
       "avatar_url": "https://avatars1.githubusercontent.com/u/28564974?v=4",
       "profile": "https://github.com/mansurpasha",
       "contributions": [
@@ -60,7 +60,7 @@
     },
     {
       "login": "luce-theodo",
-      "name": "luce-theodo",
+      "name": "Luc Esplin",
       "avatar_url": "https://avatars1.githubusercontent.com/u/59560841?v=4",
       "profile": "https://github.com/luce-theodo",
       "contributions": [
@@ -83,6 +83,15 @@
       "name": "Rob Cronin",
       "avatar_url": "https://avatars1.githubusercontent.com/u/32868346?v=4",
       "profile": "https://github.com/robcronin",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "serkan-ozal",
+      "name": "Serkan ÖZAL",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/3143425?v=4",
+      "profile": "https://github.com/serkan-ozal",
       "contributions": [
         "code"
       ]

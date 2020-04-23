@@ -1,6 +1,6 @@
 # sls-dev-tools
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [![npm](https://img.shields.io/npm/v/sls-dev-tools)](https://www.npmjs.com/package/sls-dev-tools)
@@ -214,6 +214,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://emboldenher.org"><img src="https://avatars1.githubusercontent.com/u/41898453?v=4" width="100px;" alt=""/><br /><sub><b>AbbieHowell</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=AbbieHowell" title="Code">💻</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=AbbieHowell" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/robcronin"><img src="https://avatars1.githubusercontent.com/u/32868346?v=4" width="100px;" alt=""/><br /><sub><b>Rob Cronin</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=robcronin" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/DotGav"><img src="https://avatars0.githubusercontent.com/u/38322167?v=4" width="100px;" alt=""/><br /><sub><b>Gavin Williams</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=DotGav" title="Code">💻</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=DotGav" title="Documentation">📖</a> <a href="#ideas-DotGav" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-DotGav" title="Maintenance">🚧</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/pulls?q=is%3Apr+reviewed-by%3ADotGav" title="Reviewed Pull Requests">👀</a> <a href="#security-DotGav" title="Security">🛡️</a></td>
+    <td align="center"><a href="https://github.com/antoineeudes"><img src="https://avatars0.githubusercontent.com/u/13795384?v=4" width="100px;" alt=""/><br /><sub><b>Antoine Eudes</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=antoineeudes" title="Code">💻</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=antoineeudes" title="Documentation">📖</a> <a href="#userTesting-antoineeudes" title="User Testing">📓</a></td>
   </tr>
 </table>
 

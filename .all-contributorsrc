@@ -42,7 +42,8 @@
       "contributions": [
         "code",
         "doc",
-        "userTesting"
+        "userTesting",
+        "blog"
       ]
     },
     {
@@ -55,7 +56,7 @@
         "userTesting"
       ]
     },
-        {
+    {
       "login": "AbbieHowell",
       "name": "AbbieHowell",
       "avatar_url": "https://avatars1.githubusercontent.com/u/41898453?v=4",

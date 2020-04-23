@@ -334,7 +334,9 @@ class Main {
         this.isModalOpen = true;
 
         const fullFunctionName = this.getCurrentlySelectedLambdaName();
-        const previousLambdaPayload = this.previousLambdaPayload[fullFunctionName];
+        const previousLambdaPayload = this.previousLambdaPayload[
+          fullFunctionName
+        ];
 
         return lambdaInvokeModal(
           screen,
@@ -344,8 +346,6 @@ class Main {
           lambda,
           previousLambdaPayload
         );
-
-        // invokeLambda(lambda, this.fullFuncName);
       }
       return 0;
     });

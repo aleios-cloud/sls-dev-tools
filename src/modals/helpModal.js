@@ -1,7 +1,9 @@
 import { Box } from "../components/box";
 import { ModalLayout } from "../components/modalLayout";
 
-const helpModal = (screen, blessed, application) => {
+const blessed = require("blessed");
+
+const helpModal = (screen, application) => {
   const helpMenuData = [
     ["Keybinding", "Action"],
     ["-----------", "-----------"],

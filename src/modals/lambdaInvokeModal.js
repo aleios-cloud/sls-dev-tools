@@ -4,9 +4,10 @@ import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
 import { invokeLambda } from "../services/invoke";
 
+const blessed = require("blessed");
+
 const lambdaInvokeModal = (
   screen,
-  blessed,
   application,
   functionName,
   awsLambdaApi,

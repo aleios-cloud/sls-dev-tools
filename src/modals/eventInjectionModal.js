@@ -3,9 +3,10 @@ import { Box } from "../components/box";
 import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
 
+const blessed = require("blessed");
+
 const eventInjectionModal = (
   screen,
-  blessed,
   eventBridge,
   application,
   injectEvent,

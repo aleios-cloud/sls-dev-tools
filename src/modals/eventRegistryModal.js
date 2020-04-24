@@ -4,6 +4,8 @@ import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
 import { InteractiveList } from "../components/interactiveList";
 
+const blessed = require("blessed");
+
 function updateRegistryTable(api, table) {
   api.listRegistries({ Scope: "LOCAL" }, (err, data) => {
     if (err) {
@@ -18,7 +20,6 @@ function updateRegistryTable(api, table) {
 
 const eventRegistryModal = (
   screen,
-  blessed,
   eventBridge,
   application,
   api,
@@ -57,7 +58,6 @@ const eventRegistryModal = (
     eventRegistryLayout.destroy();
     return eventSchemaModal(
       screen,
-      blessed,
       eventBridge,
       application,
       api,

@@ -290,7 +290,7 @@ class Main {
     screen.key(["h"], () => {
       if (this.isModalOpen === false) {
         this.isModalOpen = true;
-        return helpModal(screen, blessed, this);
+        return helpModal(screen, this);
       }
       return 0;
     });
@@ -337,7 +337,6 @@ class Main {
         const previousEvent = this.previousSubmittedEvent[selectedEventBridge];
         return eventInjectionModal(
           screen,
-          blessed,
           selectedEventBridge,
           this,
           injectEvent,
@@ -354,7 +353,6 @@ class Main {
 
         return lambdaInvokeModal(
           screen,
-          blessed,
           this,
           fullFunctionName,
           lambda,
@@ -390,7 +388,6 @@ class Main {
         ].substring(2);
         return eventRegistryModal(
           screen,
-          blessed,
           selectedEventBridge,
           this,
           schemas,

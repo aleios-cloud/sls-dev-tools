@@ -15,6 +15,7 @@ import {
   checkLogsForErrors,
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
+import { clargsWizardModal } from "./modals/clargsWizardModal";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -93,19 +94,29 @@ if (!program.stackName) {
   );
   process.exit(1);
 }
-if (!program.region) {
-  console.error("error: required option '-r, --region <region>' not specified");
-  process.exit(1);
-}
 
 AWS.config.credentials = getAWSCredentials();
-AWS.config.region = program.region;
-let cloudformation = new AWS.CloudFormation();
-let cloudwatch = new AWS.CloudWatch();
-let cloudwatchLogs = new AWS.CloudWatchLogs();
-let eventBridge = new AWS.EventBridge();
-let schemas = new AWS.Schemas();
-let lambda = new AWS.Lambda();
+
+let cloudformation;
+let cloudwatch;
+let cloudwatchLogs;
+let eventBridge;
+let schemas;
+let lambda;
+
+function updateAWSServices() {
+  cloudformation = new AWS.CloudFormation();
+  cloudwatch = new AWS.CloudWatch();
+  cloudwatchLogs = new AWS.CloudWatchLogs();
+  eventBridge = new AWS.EventBridge();
+  schemas = new AWS.Schemas();
+  lambda = new AWS.Lambda();
+}
+
+if (program.region) {
+  AWS.config.region = program.region;
+  updateAWSServices();
+}
 
 function getStackResources(stackName) {
   return cloudformation.listStackResources({ StackName: stackName }).promise();
@@ -418,9 +429,14 @@ class Main {
 
   async render() {
     setInterval(() => {
-      this.map.updateMap();
-      this.updateResourcesInformation();
-      this.updateGraphs();
+      if (program.region && program.stackName) {
+        this.map.updateMap();
+        this.updateResourcesInformation();
+        this.updateGraphs();
+      } else if (!this.isModalOpen) {
+        this.setIsModalOpen(true);
+        clargsWizardModal(screen, this);
+      }
       screen.render();
     }, 1000);
   }
@@ -779,14 +795,9 @@ class Main {
   }
 
   updateRegion(region) {
-    this.program.region = region;
+    program.region = region;
     AWS.config.region = region;
-    cloudformation = new AWS.CloudFormation();
-    cloudwatch = new AWS.CloudWatch();
-    cloudwatchLogs = new AWS.CloudWatchLogs();
-    eventBridge = new AWS.EventBridge();
-    schemas = new AWS.Schemas();
-    lambda = new AWS.Lambda();
+    updateAWSServices();
   }
 }
 

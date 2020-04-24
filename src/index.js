@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 import AWS from "aws-sdk";
-import { logo, dateFormats, DEPLOYMENT_STATUS } from "./constants";
+import { logo, dateFormats, DASHBOARD_FOCUS_INDEX } from "./constants";
 import { helpModal } from "./modals/helpModal";
 import { eventRegistryModal } from "./modals/eventRegistryModal";
 import { eventInjectionModal } from "./modals/eventInjectionModal";
-import { lambdaInvokeModal } from "./modals/lambdaInvokeModal";
+
 import { Map } from "./components";
+import { resourceTable } from "./components/resourceTable";
 import Serverless from "./services/serverless";
 import { DurationBarChart } from "./components/durationBarChart";
-import { lambdaStatisticsModal } from "./modals/lambdaStatisticsModal";
 import { getLambdaMetrics } from "./services/lambdaMetrics";
 import {
   updateLogContentsFromEvents,
@@ -21,8 +21,6 @@ const contrib = require("blessed-contrib");
 const moment = require("moment");
 const program = require("commander");
 const open = require("open");
-const { exec } = require("child_process");
-const emoji = require("node-emoji");
 const packageJson = require("../package.json");
 
 let slsDevToolsConfig;
@@ -107,36 +105,6 @@ let eventBridge = new AWS.EventBridge();
 let schemas = new AWS.Schemas();
 let lambda = new AWS.Lambda();
 
-function getStackResources(stackName) {
-  return cloudformation.listStackResources({ StackName: stackName }).promise();
-}
-
-let lambdaFunctions = {};
-let latestLambdaFunctionsUpdateTimestamp = -1;
-
-async function refreshLambdaFunctions() {
-  const allFunctions = [];
-  let marker;
-  while (true) {
-    const response = await lambda
-      .listFunctions({
-        Marker: marker,
-        MaxItems: 50,
-      })
-      .promise();
-    const functions = response.Functions;
-    allFunctions.push(...functions);
-    if (!response.NextMarker) {
-      break;
-    }
-    marker = response.NextMarker;
-  }
-  lambdaFunctions = allFunctions.reduce(function (map, func) {
-    map[func.FunctionName] = func;
-    return map;
-  }, {});
-}
-
 function getEventBuses() {
   return eventBridge.listEventBuses().promise();
 }
@@ -154,21 +122,21 @@ function injectEvent(event) {
 class Main {
   constructor() {
     this.focusIndex = 0;
-    this.lambdasDeploymentStatus = {};
     this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.durationBarChart = new DurationBarChart(this, cloudwatchLogs, true);
-    this.lambdasTable = this.layoutGrid.set(0, 6, 4, 6, contrib.table, {
-      keys: true,
-      fg: "green",
-      label: "Lambda Functions",
-      columnSpacing: 1,
-      columnWidth: [45, 30, 15],
-      style: {
-        border: {
-          fg: "yellow",
-        },
-      },
-    });
+    this.resourceTable = new resourceTable(
+      this,
+      screen,
+      program,
+      provider,
+      slsDevToolsConfig,
+      profile,
+      location,
+      cloudformation,
+      lambda,
+      cloudwatch,
+      cloudwatchLogs
+    );
     this.invocationsLineGraph = this.layoutGrid.set(2, 0, 6, 6, contrib.line, {
       maxY: 0,
       label: "Function Metrics",
@@ -220,7 +188,7 @@ class Main {
     this.setKeypresses();
     screen.on("resize", () => {
       this.durationBarChart.chart("attach");
-      this.lambdasTable.emit("attach");
+      this.resourceTable.table.emit("attach");
       // errorsLine.emit('attach');
       this.titleBox.emit("attach");
       this.invocationsLineGraph.emit("attach");
@@ -229,7 +197,6 @@ class Main {
       this.consoleLogs.emit("attach");
     });
     screen.title = "sls-dev-tools";
-    this.funcName = null;
     this.interval = program.interval || 3600; // 1 hour
     this.endTime = new Date();
     if (program.startTime) {
@@ -240,7 +207,7 @@ class Main {
       // Round to closest interval to make query faster.
       this.startTime = new Date(
         Math.round(new Date().getTime() / this.interval) * this.interval -
-          dateOffset
+        dateOffset
       );
     }
 
@@ -250,7 +217,12 @@ class Main {
     };
 
     // Curent element of focusList in focus
-    this.focusList = [this.lambdasTable, this.eventBridgeTree, this.map.map];
+    this.focusList = [
+      this.resourceTable.table,
+      this.eventBridgeTree,
+      this.map.map,
+    ];
+    this.resourceTable.table.focus();
     this.returnFocus();
     this.isModalOpen = false;
 
@@ -258,35 +230,9 @@ class Main {
     this.previousSubmittedEvent = {};
     // Dictionary to store previous submissions for each lambda function
     this.previousLambdaPayload = {};
-    this.lambdasTable.rows.on("select", (item) => {
-      [this.funcName] = item.data;
-      this.fullFuncName = `${program.stackName}-${this.funcName}`;
-      this.setFirstLogsRetrieved(false);
-    });
-    // Store previous errorId found in logs
-    this.prevErrorId = "";
-    // Flag to avoid getting notifications on first retrieval of logs
-    this.firstLogsRetrieved = false;
-    // Store events from cloudwatchLogs
-    this.events = [];
-    // Allows use of .bell() function for notifications
-    this.notifier = new blessed.Program();
   }
 
   setKeypresses() {
-    screen.key(["d"], () => {
-      // If focus is currently on this.lambdasTable
-      if (this.focusIndex === 0 && this.isModalOpen === false) {
-        return this.deployFunction();
-      }
-      return 0;
-    });
-    screen.key(["s"], () => {
-      if (this.isModalOpen === false) {
-        return this.deployStack();
-      }
-      return 0;
-    });
     screen.key(["h"], () => {
       if (this.isModalOpen === false) {
         this.isModalOpen = true;
@@ -303,17 +249,11 @@ class Main {
     screen.key(["q", "C-c"], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.key(["o"], () => {
-      // If focus is currently on this.lambdasTable
-      if (this.focusIndex === 0 && this.isModalOpen === false) {
-        const selectedLambdaFunctionName = this.lambdasTable.rows.items[
-          this.lambdasTable.rows.selected
-        ].data[0];
-        return open(
-          `https://${program.region}.console.aws.amazon.com/lambda/home?region=${program.region}#/functions/${program.stackName}-${selectedLambdaFunctionName}?tab=configuration`
-        );
-      }
       // If focus is currently on this.eventBridgeTree
-      if (this.focusIndex === 1 && this.isModalOpen === false) {
+      if (
+        this.focusIndex === DASHBOARD_FOCUS_INDEX.EVENT_BRIDGE_TREE &&
+        this.isModalOpen === false
+      ) {
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree
         const selectedEventBridge = this.eventBridgeTree.rows.ritems[
@@ -327,7 +267,10 @@ class Main {
     });
     screen.key(["i"], () => {
       // If focus is currently on this.eventBridgeTree
-      if (this.focusIndex === 1 && this.isModalOpen === false) {
+      if (
+        this.focusIndex === DASHBOARD_FOCUS_INDEX.EVENT_BRIDGE_TREE &&
+        this.isModalOpen === false
+      ) {
         this.isModalOpen = true;
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree
@@ -343,43 +286,15 @@ class Main {
           previousEvent
         );
       }
-      if (this.focusIndex === 0 && this.isModalOpen === false) {
-        this.isModalOpen = true;
-
-        const fullFunctionName = this.getCurrentlySelectedLambdaName();
-        const previousLambdaPayload = this.previousLambdaPayload[
-          fullFunctionName
-        ];
-
-        return lambdaInvokeModal(
-          screen,
-          this,
-          fullFunctionName,
-          lambda,
-          previousLambdaPayload
-        );
-      }
       return 0;
     });
-    screen.key(["l"], () => {
-      if (this.focusIndex === 0 && this.isModalOpen === false) {
-        this.isModalOpen = true;
-        const fullFunctionName = this.getCurrentlySelectedLambdaName();
 
-        return lambdaStatisticsModal(
-          screen,
-          this,
-          fullFunctionName,
-          cloudwatchLogs,
-          cloudwatch,
-          lambda
-        );
-      }
-      return 0;
-    });
     screen.key(["r"], () => {
       // If focus is currently on this.eventBridgeTree
-      if (this.focusIndex === 1 && this.isModalOpen === false) {
+      if (
+        this.focusIndex === DASHBOARD_FOCUS_INDEX.EVENT_BRIDGE_TREE &&
+        this.isModalOpen === false
+      ) {
         this.isModalOpen = true;
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree
@@ -396,12 +311,6 @@ class Main {
       }
       return 0;
     });
-  }
-
-  getCurrentlySelectedLambdaName() {
-    const selectedRow = this.lambdasTable.rows.selected;
-    const [selectedLambdaName] = this.lambdasTable.rows.items[selectedRow].data;
-    return `${program.stackName}-${selectedLambdaName}`;
   }
 
   setIsModalOpen(value) {
@@ -426,9 +335,9 @@ class Main {
   }
 
   async updateGraphs() {
-    if (this.fullFuncName) {
-      this.data = await getLambdaMetrics(this, this.fullFuncName, cloudwatch);
-      getLogEvents(`/aws/lambda/${this.fullFuncName}`, cloudwatchLogs).then(
+    if (this.resourceTable.fullFuncName) {
+      this.data = await getLambdaMetrics(this, this.resourceTable.fullFuncName, cloudwatch);
+      getLogEvents(`/aws/lambda/${this.resourceTable.fullFuncName}`, cloudwatchLogs).then(
         (data) => {
           this.events = data;
           updateLogContentsFromEvents(this.lambdaLog, this.events);
@@ -446,54 +355,7 @@ class Main {
   }
 
   async updateResourcesInformation() {
-    const stackResources = await getStackResources(
-      program.stackName,
-      this.setData
-    );
-    this.data = stackResources;
-
-    let latestLastUpdatedTimestamp = -1;
-    const lambdaFunctionResources = stackResources.StackResourceSummaries.filter(
-      (res) => {
-        const isLambdaFunction = res.ResourceType === "AWS::Lambda::Function";
-        if (isLambdaFunction) {
-          const lastUpdatedTimestampMilliseconds = moment(
-            res.LastUpdatedTimestamp
-          ).valueOf();
-          if (lastUpdatedTimestampMilliseconds > latestLastUpdatedTimestamp) {
-            latestLastUpdatedTimestamp = lastUpdatedTimestampMilliseconds;
-          }
-        }
-        return isLambdaFunction;
-      }
-    );
-    if (latestLastUpdatedTimestamp > latestLambdaFunctionsUpdateTimestamp) {
-      // In case of update in the Lambda function resources,
-      // instead of getting updated function configurations one by one individually,
-      // we are getting all the functions' configurations in batch
-      // even though there will be unrelated ones with the stack.
-      // Because this should result with less API calls in most cases.
-      await refreshLambdaFunctions();
-      latestLambdaFunctionsUpdateTimestamp = latestLastUpdatedTimestamp;
-    }
-
-    this.lambdasTable.data = lambdaFunctionResources.map((lam) => {
-      const funcName = lam.PhysicalResourceId;
-      const func = lambdaFunctions[funcName];
-      let funcRuntime = "?";
-      if (func) {
-        funcRuntime = func.Runtime;
-      }
-      return [
-        lam.PhysicalResourceId.replace(`${program.stackName}-`, ""),
-        moment(lam.LastUpdatedTimestamp).format("MMMM Do YYYY, h:mm:ss a"),
-        funcRuntime,
-      ];
-    });
-
-    this.updateLambdaTableRows();
-    this.updateLambdaDeploymentStatus();
-
+    await this.resourceTable.updateData();
     const eventBridgeResources = await getEventBuses();
     const busNames = eventBridgeResources.EventBuses.map((o) => o.Name).reduce(
       (eventBridges, bus) => {
@@ -526,129 +388,6 @@ class Main {
     this.focusList[this.focusIndex].focus();
   }
 
-  deployStack() {
-    if (provider === "serverlessFramework") {
-      exec(
-        `serverless deploy -r ${program.region} --aws-profile ${profile} ${
-          slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
-        }`,
-        { cwd: location },
-        (error, stdout) => this.handleStackDeployment(error, stdout)
-      );
-    } else if (provider === "SAM") {
-      exec("sam build", { cwd: location }, (error) => {
-        if (error) {
-          console.error(error);
-          Object.keys(this.lambdasDeploymentStatus).forEach(
-            // eslint-disable-next-line no-return-assign
-            (functionName) =>
-              (this.lambdasDeploymentStatus[functionName] =
-                DEPLOYMENT_STATUS.ERROR)
-          );
-        } else {
-          exec(
-            `sam deploy --region ${
-              program.region
-            } --profile ${profile} --stack-name ${program.stackName} ${
-              slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
-            }`,
-            { cwd: location },
-            (deployError, stdout) =>
-              this.handleStackDeployment(deployError, stdout)
-          );
-        }
-      });
-    }
-    this.lambdasTable.data.forEach((v, i) => {
-      this.flashLambdaTableRow(i);
-      this.lambdasDeploymentStatus[this.lambdasTable.rows.items[i].data[0]] =
-        DEPLOYMENT_STATUS.PENDING;
-    });
-    this.updateLambdaTableRows();
-  }
-
-  handleStackDeployment(error, stdout) {
-    if (error) {
-      console.error(error);
-      Object.keys(this.lambdasDeploymentStatus).forEach(
-        // eslint-disable-next-line no-return-assign
-        (functionName) =>
-          (this.lambdasDeploymentStatus[functionName] = DEPLOYMENT_STATUS.ERROR)
-      );
-    } else {
-      console.log(stdout);
-      Object.keys(this.lambdasDeploymentStatus).forEach(
-        // eslint-disable-next-line no-return-assign
-        (functionName) =>
-          (this.lambdasDeploymentStatus[functionName] =
-            DEPLOYMENT_STATUS.SUCCESS)
-      );
-    }
-    this.lambdasTable.data.forEach((v, i) => {
-      this.unflashLambdaTableRow(i);
-    });
-    this.updateLambdaTableRows();
-  }
-
-  deployFunction() {
-    const selectedRowIndex = this.lambdasTable.rows.selected;
-    if (selectedRowIndex !== -1) {
-      const selectedLambdaFunctionName = this.lambdasTable.rows.items[
-        selectedRowIndex
-      ].data[0];
-      if (provider === "serverlessFramework") {
-        exec(
-          `serverless deploy -f ${selectedLambdaFunctionName} -r ${
-            program.region
-          } --aws-profile ${profile} ${
-            slsDevToolsConfig ? slsDevToolsConfig.deploymentArgs : ""
-          }`,
-          { cwd: location },
-          (error, stdout) =>
-            this.handleFunctionDeployment(
-              error,
-              stdout,
-              selectedLambdaFunctionName,
-              selectedRowIndex
-            )
-        );
-      } else if (provider === "SAM") {
-        console.error(
-          "ERROR: UNABLE TO DEPLOY SINGLE FUNCTION WITH SAM. PRESS s TO DEPLOY STACK"
-        );
-        return;
-      }
-      this.flashLambdaTableRow(selectedRowIndex);
-      this.lambdasDeploymentStatus[selectedLambdaFunctionName] =
-        DEPLOYMENT_STATUS.PENDING;
-      this.updateLambdaTableRows();
-    }
-  }
-
-  handleFunctionDeployment(error, stdout, lambdaName, lambdaIndex) {
-    if (error) {
-      console.error(error);
-      this.lambdasDeploymentStatus[lambdaName] = DEPLOYMENT_STATUS.ERROR;
-    } else {
-      console.log(stdout);
-      this.lambdasDeploymentStatus[lambdaName] = DEPLOYMENT_STATUS.SUCCESS;
-    }
-    this.unflashLambdaTableRow(lambdaIndex);
-    this.updateLambdaTableRows();
-  }
-
-  flashLambdaTableRow(rowIndex) {
-    this.lambdasTable.rows.items[rowIndex].style.fg = "blue";
-    this.lambdasTable.rows.items[rowIndex].style.bg = "green";
-  }
-
-  unflashLambdaTableRow(rowIndex) {
-    this.lambdasTable.rows.items[rowIndex].style.fg = () =>
-      rowIndex === this.lambdasTable.rows.selected ? "white" : "green";
-    this.lambdasTable.rows.items[rowIndex].style.bg = () =>
-      rowIndex === this.lambdasTable.rows.selected ? "blue" : "default";
-  }
-
   padInvocationsAndErrorsWithZeros() {
     /* For the invocations and errors data in this.data.MetricDataResults, we will add '0' for each
      * timestamp that doesn't have an entry. This is to make the graph more readable.
@@ -672,54 +411,6 @@ class Main {
           }
         }
       }
-    }
-  }
-
-  updateLambdaDeploymentStatus() {
-    Object.entries(this.lambdasDeploymentStatus).forEach(([key, value]) => {
-      if (
-        value === DEPLOYMENT_STATUS.SUCCESS ||
-        value === DEPLOYMENT_STATUS.ERROR
-      ) {
-        this.lambdasDeploymentStatus[key] = undefined;
-      }
-    });
-  }
-
-  updateLambdaTableRows() {
-    const lambdaFunctionsWithDeploymentIndicator = JSON.parse(
-      JSON.stringify(this.lambdasTable.data)
-    );
-    let deploymentIndicator;
-    for (let i = 0; i < this.lambdasTable.data.length; i++) {
-      deploymentIndicator = null;
-      switch (this.lambdasDeploymentStatus[this.lambdasTable.data[i][0]]) {
-        case DEPLOYMENT_STATUS.PENDING:
-          deploymentIndicator = emoji.get("coffee");
-          break;
-        case DEPLOYMENT_STATUS.SUCCESS:
-          deploymentIndicator = emoji.get("sparkles");
-          break;
-        case DEPLOYMENT_STATUS.ERROR:
-          deploymentIndicator = emoji.get("x");
-          break;
-        default:
-          break;
-      }
-      if (deploymentIndicator) {
-        lambdaFunctionsWithDeploymentIndicator[
-          i
-        ][0] = `${deploymentIndicator} ${this.lambdasTable.data[i][0]}`;
-      }
-    }
-
-    this.lambdasTable.setData({
-      headers: ["logical", "updated", "runtime"],
-      data: lambdaFunctionsWithDeploymentIndicator,
-    });
-
-    for (let i = 0; i < this.lambdasTable.data.length; i++) {
-      this.lambdasTable.rows.items[i].data = this.lambdasTable.data[i];
     }
   }
 

@@ -2,6 +2,7 @@ import { generateFieldWithTitle } from "../components/fieldWithTitle";
 import { Box } from "../components/box";
 import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
+import { eventRegistryModal } from "./eventRegistryModal";
 
 const blessed = require("blessed");
 
@@ -10,7 +11,8 @@ const eventInjectionModal = (
   eventBridge,
   application,
   injectEvent,
-  prefilledEvent
+  prefilledEvent,
+  schemas
 ) => {
   const eventInjectLayout = new ModalLayout(screen, 112, 31, true);
 
@@ -59,14 +61,30 @@ const eventInjectionModal = (
     event.Detail = textboxes[3].getValue();
   };
 
-  const closeModal = () => {
+  const storeInputValues = () => {
     // Store all text to populate modal when next opened
     updateEventValues();
     application.previousSubmittedEvent[eventBridge] = event;
+  }
+
+  const closeModal = () => {
+    storeInputValues()
     application.setIsModalOpen(false);
     application.returnFocus();
     eventInjectLayout.destroy();
   };
+
+  const openEventRegistryModal = () => {
+    storeInputValues();
+    eventInjectLayout.destroy();
+    eventRegistryModal(
+      screen,
+      eventBridge,
+      application,
+      schemas,
+      injectEvent,
+    );
+  }
 
   new ModalTitle(eventInjectLayout, 110, "Event Injection");
 
@@ -109,6 +127,8 @@ const eventInjectionModal = (
       updateEventValues();
       injectEvent(event);
       closeModal();
+    } else if (currentTextbox === 5) {
+      openEventRegistryModal();
     } else {
       textboxes[currentTextbox].focus();
     }

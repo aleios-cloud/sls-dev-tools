@@ -42,4 +42,4 @@ export const RESOURCE_TABLE_TYPE = {
 export const DASHBOARD_FOCUS_INDEX = {
   RESOURCE_TABLE: 0,
   EVENT_BRIDGE_TREE: 1,
-}
+};

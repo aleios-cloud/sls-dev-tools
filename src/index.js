@@ -6,7 +6,7 @@ import { eventRegistryModal } from "./modals/eventRegistryModal";
 import { eventInjectionModal } from "./modals/eventInjectionModal";
 
 import { Map } from "./components";
-import { ResourceTable } from "./components/resourceTable";
+import { resourceTable } from "./components/resourceTable";
 import Serverless from "./services/serverless";
 import { DurationBarChart } from "./components/durationBarChart";
 import { getLambdaMetrics } from "./services/lambdaMetrics";
@@ -124,7 +124,19 @@ class Main {
     this.focusIndex = 0;
     this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.durationBarChart = new DurationBarChart(this, cloudwatchLogs, true);
-    this.resourceTable = new ResourceTable(this, screen, program, provider, slsDevToolsConfig, profile, location, cloudformation, lambda, cloudwatch, cloudwatchLogs);
+    this.resourceTable = new resourceTable(
+      this,
+      screen,
+      program,
+      provider,
+      slsDevToolsConfig,
+      profile,
+      location,
+      cloudformation,
+      lambda,
+      cloudwatch,
+      cloudwatchLogs
+    );
     this.invocationsLineGraph = this.layoutGrid.set(2, 0, 6, 6, contrib.line, {
       maxY: 0,
       label: "Function Metrics",
@@ -205,7 +217,11 @@ class Main {
     };
 
     // Curent element of focusList in focus
-    this.focusList = [this.resourceTable.table, this.eventBridgeTree, this.map.map];
+    this.focusList = [
+      this.resourceTable.table,
+      this.eventBridgeTree,
+      this.map.map,
+    ];
     this.resourceTable.table.focus();
     this.returnFocus();
     this.isModalOpen = false;
@@ -217,7 +233,6 @@ class Main {
   }
 
   setKeypresses() {
-
     screen.key(["h"], () => {
       if (this.isModalOpen === false) {
         this.isModalOpen = true;
@@ -235,7 +250,10 @@ class Main {
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.key(["o"], () => {
       // If focus is currently on this.eventBridgeTree
-      if (this.focusIndex === DASHBOARD_FOCUS_INDEX.EVENT_BRIDGE_TREE && this.isModalOpen === false) {
+      if (
+        this.focusIndex === DASHBOARD_FOCUS_INDEX.EVENT_BRIDGE_TREE &&
+        this.isModalOpen === false
+      ) {
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree
         const selectedEventBridge = this.eventBridgeTree.rows.ritems[
@@ -249,7 +267,10 @@ class Main {
     });
     screen.key(["i"], () => {
       // If focus is currently on this.eventBridgeTree
-      if (this.focusIndex === DASHBOARD_FOCUS_INDEX.EVENT_BRIDGE_TREE && this.isModalOpen === false) {
+      if (
+        this.focusIndex === DASHBOARD_FOCUS_INDEX.EVENT_BRIDGE_TREE &&
+        this.isModalOpen === false
+      ) {
         this.isModalOpen = true;
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree
@@ -270,7 +291,10 @@ class Main {
 
     screen.key(["r"], () => {
       // If focus is currently on this.eventBridgeTree
-      if (this.focusIndex === DASHBOARD_FOCUS_INDEX.EVENT_BRIDGE_TREE && this.isModalOpen === false) {
+      if (
+        this.focusIndex === DASHBOARD_FOCUS_INDEX.EVENT_BRIDGE_TREE &&
+        this.isModalOpen === false
+      ) {
         this.isModalOpen = true;
         const selectedRow = this.eventBridgeTree.rows.selected;
         // take substring to remove leading characters displayed in tree

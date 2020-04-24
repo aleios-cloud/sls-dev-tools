@@ -1,4 +1,8 @@
-import { DEPLOYMENT_STATUS, RESOURCE_TABLE_TYPE, DASHBOARD_FOCUS_INDEX } from "../constants";
+import {
+    DEPLOYMENT_STATUS,
+    RESOURCE_TABLE_TYPE,
+    DASHBOARD_FOCUS_INDEX,
+} from "../constants";
 import { getStackResources } from "../services/stackResources";
 import { lambdaStatisticsModal } from "../modals/lambdaStatisticsModal";
 import { lambdaInvokeModal } from "../modals/lambdaInvokeModal";
@@ -8,8 +12,21 @@ const open = require("open");
 const { exec } = require("child_process");
 const emoji = require("node-emoji");
 const moment = require("moment");
-class ResourceTable {
-    constructor(application, screen, program, provider, slsDevToolsConfig, profile, location, cloudformation, lambda, cloudwatch, cloudwatchLogs) {
+
+class resourceTable {
+    constructor(
+        application,
+        screen,
+        program,
+        provider,
+        slsDevToolsConfig,
+        profile,
+        location,
+        cloudformation,
+        lambda,
+        cloudwatch,
+        cloudwatchLogs
+    ) {
         this.application = application;
         this.lambdaFunctions = {};
         this.latestLambdaFunctionsUpdateTimestamp = -1;
@@ -21,7 +38,6 @@ class ResourceTable {
         this.table.rows.on("select", (item) => {
             [this.funcName] = item.data;
             this.fullFuncName = this.getFullFunctionName(this.funcName);
-            this.application.setFirstLogsRetrieved(false);
         });
         this.provider = provider;
         this.slsDevToolsConfig = slsDevToolsConfig;
@@ -64,7 +80,11 @@ class ResourceTable {
             return 0;
         });
         this.screen.key(["i"], () => {
-            if (this.isOnFocus() && this.isLambdaTable() && this.application.isModalOpen === false) {
+            if (
+                this.isOnFocus() &&
+                this.isLambdaTable() &&
+                this.application.isModalOpen === false
+            ) {
                 this.application.isModalOpen = true;
                 const fullFunctionName = this.getCurrentlyOnHoverFullLambdaName();
                 const previousLambdaPayload = this.application.previousLambdaPayload[
@@ -79,26 +99,43 @@ class ResourceTable {
                     previousLambdaPayload
                 );
             }
+            return 0;
         });
         this.screen.key(["o"], () => {
-            if (this.isOnFocus() && this.isLambdaTable() && this.application.isModalOpen === false) {
+            if (
+                this.isOnFocus() &&
+                this.isLambdaTable() &&
+                this.application.isModalOpen === false
+            ) {
                 return this.openLambdaInAWSConsole();
             }
-        })
+            return 0;
+        });
         this.screen.key(["d"], () => {
-            if (this.isOnFocus() && this.isLambdaTable() && this.application.isModalOpen === false) {
+            if (
+                this.isOnFocus() &&
+                this.isLambdaTable() &&
+                this.application.isModalOpen === false
+            ) {
                 return this.deployFunction();
             }
+            return 0;
         });
-        this.screen.key(['right', 'left'], () => {
+        this.screen.key(["right", "left"], () => {
             if (this.isOnFocus() && this.application.isModalOpen === false) {
                 this.switchTable();
             }
+            return 0;
         });
         this.screen.key(["s"], () => {
-            if (this.isOnFocus() && this.isLambdaTable() && this.application.isModalOpen === false) {
+            if (
+                this.isOnFocus() &&
+                this.isLambdaTable() &&
+                this.application.isModalOpen === false
+            ) {
                 return this.deployStack();
             }
+            return 0;
         });
     }
 
@@ -112,8 +149,10 @@ class ResourceTable {
                 this.type = RESOURCE_TABLE_TYPE.LAMBDA;
                 this.table.setLabel("<-         Lambda Functions         ->");
                 break;
+            default:
+                return 0;
         }
-        this.updateData();
+        return this.updateData();
     }
 
     generateLambdaTable() {
@@ -179,7 +218,10 @@ class ResourceTable {
             case RESOURCE_TABLE_TYPE.ALL_RESOURCES:
                 this.updateAllResourceTableData(stackResources);
                 break;
+            default:
+                break;
         }
+        return 0;
     }
 
     async updateLambdaTableData(stackResources) {
@@ -198,7 +240,9 @@ class ResourceTable {
                 return isLambdaFunction;
             }
         );
-        if (latestLastUpdatedTimestamp > this.latestLambdaFunctionsUpdateTimestamp) {
+        if (
+            latestLastUpdatedTimestamp > this.latestLambdaFunctionsUpdateTimestamp
+        ) {
             // In case of update in the Lambda function resources,
             // instead of getting updated function configurations one by one individually,
             // we are getting all the functions' configurations in batch
@@ -229,11 +273,7 @@ class ResourceTable {
         this.table.data = resources.map((resource) => {
             const resourceName = resource.LogicalResourceId;
             const resourceType = resource.ResourceType.replace("AWS::", "");
-            return [
-                resourceName,
-                this.program.region,
-                resourceType,
-            ];
+            return [resourceName, this.program.region, resourceType];
         });
         this.updateAllResourcesTableRows();
     }
@@ -241,9 +281,14 @@ class ResourceTable {
     openLambdaInAWSConsole() {
         if (this.type === RESOURCE_TABLE_TYPE.LAMBDA) {
             return open(
-                `https://${this.program.region}.console.aws.amazon.com/lambda/home?region=${this.program.region}#/functions/${this.getCurrentlyOnHoverFullLambdaName()}?tab=configuration`
+                `https://${
+                this.program.region
+                }.console.aws.amazon.com/lambda/home?region=${
+                this.program.region
+                }#/functions/${this.getCurrentlyOnHoverFullLambdaName()}?tab=configuration`
             );
         }
+        return 0;
     }
 
     deployFunction() {
@@ -259,13 +304,13 @@ class ResourceTable {
                     }`,
                     { cwd: this.location },
                     (error, stdout) => {
-                        console.log(error)
+                        console.log(error);
                         return this.handleFunctionDeployment(
                             error,
                             stdout,
                             selectedLambdaFunctionName,
                             selectedRowIndex
-                        )
+                        );
                     }
                 );
             } else if (this.provider === "SAM") {
@@ -363,7 +408,9 @@ class ResourceTable {
     deployStack() {
         if (this.provider === "serverlessFramework") {
             exec(
-                `serverless deploy -r ${this.program.region} --aws-profile ${this.profile} ${
+                `serverless deploy -r ${this.program.region} --aws-profile ${
+                this.profile
+                } ${
                 this.slsDevToolsConfig ? this.slsDevToolsConfig.deploymentArgs : ""
                 }`,
                 { cwd: this.location },
@@ -381,10 +428,12 @@ class ResourceTable {
                     );
                 } else {
                     exec(
-                        `sam deploy --region ${
-                        this.program.region
-                        } --profile ${this.profile} --stack-name ${this.program.stackName} ${
-                        this.slsDevToolsConfig ? this.slsDevToolsConfig.deploymentArgs : ""
+                        `sam deploy --region ${this.program.region} --profile ${
+                        this.profile
+                        } --stack-name ${this.program.stackName} ${
+                        this.slsDevToolsConfig
+                            ? this.slsDevToolsConfig.deploymentArgs
+                            : ""
                         }`,
                         { cwd: this.location },
                         (deployError, stdout) =>
@@ -426,5 +475,5 @@ class ResourceTable {
 }
 
 module.exports = {
-    ResourceTable,
+    resourceTable,
 };

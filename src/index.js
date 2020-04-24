@@ -15,6 +15,7 @@ import {
   checkLogsForErrors,
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
+import { DiffDetection } from "./services";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -271,6 +272,8 @@ class Main {
     this.events = [];
     // Allows use of .bell() function for notifications
     this.notifier = new blessed.Program();
+    // Add watchman for diff detection
+    this.diffDetection = new DiffDetection(location);
   }
 
   setKeypresses() {

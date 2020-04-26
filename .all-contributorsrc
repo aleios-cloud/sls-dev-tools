@@ -1,0 +1,124 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "BenEllerby",
+      "name": "Ben Ellerby",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/11080984?v=4",
+      "profile": "https://medium.com/serverless-transformation",
+      "contributions": [
+        "code",
+        "content",
+        "doc",
+        "ideas",
+        "design",
+        "talk",
+        "review"
+      ]
+    },
+    {
+      "login": "DotGav",
+      "name": "Gavin Williams",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/38322167?v=4",
+      "profile": "https://github.com/DotGav",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas",
+        "maintenance",
+        "review",
+        "security"
+      ]
+    },
+    {
+      "login": "mansurpasha",
+      "name": "Mansur Pasha",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/28564974?v=4",
+      "profile": "https://github.com/mansurpasha",
+      "contributions": [
+        "code",
+        "doc",
+        "userTesting",
+        "blog"
+      ]
+    },
+    {
+      "login": "antoineeudes",
+      "name": "Antoine Eudes",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/13795384?v=4",
+      "profile": "https://github.com/antoineeudes",
+      "contributions": [
+        "code",
+        "doc",
+        "userTesting",
+        "blog"
+      ]
+    },
+    {
+      "login": "luce-theodo",
+      "name": "Luc Esplin",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/59560841?v=4",
+      "profile": "https://github.com/luce-theodo",
+      "contributions": [
+        "projectManagement",
+        "userTesting"
+      ]
+    },
+    {
+      "login": "AbbieHowell",
+      "name": "AbbieHowell",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/41898453?v=4",
+      "profile": "http://emboldenher.org",
+      "contributions": [
+        "code",
+        "doc"
+      ]
+    },
+    {
+      "login": "robcronin",
+      "name": "Rob Cronin",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/32868346?v=4",
+      "profile": "https://github.com/robcronin",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "serkan-ozal",
+      "name": "Serkan ÖZAL",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/3143425?v=4",
+      "profile": "https://github.com/serkan-ozal",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "artoliukkonen",
+      "name": "Arto Liukkonen",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/683856?v=4",
+      "profile": "http://www.artoliukkonen.net",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "jnmullen",
+      "name": "James Mullen",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/24397992?v=4",
+      "profile": "https://blog.james-mullen.me.uk",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "sls-dev-tools",
+  "projectOwner": "Theodo-UK",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}

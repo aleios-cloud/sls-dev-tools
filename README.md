@@ -7,6 +7,9 @@
 [![Follow](https://img.shields.io/twitter/follow/SlsDevTools?style=social)](https://twitter.com/SlsDevTools)
 ![Maintained](https://img.shields.io/maintenance/yes/2020.svg)
 [![Tweet](./img/tweetBadge.svg)](https://twitter.com/intent/tweet?text=@SlsDevTools)
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The Developer Tools for the Serverless World - think Chrome Dev Tools but for Serverless.
 
@@ -129,6 +132,10 @@ You can also press 's' to deploy your entire stack.
 
 ![deployFunctions](./img/deployFunctions.jpeg)
 
+### Invoking lambdas
+
+Pressing 'i' with a lambda selected will open up a modal which will allow you to invoke a lambda. Fill the parameters field for any paramters you wish to invoke the lambda with and press submit to trigger the invocation.
+
 ### EventBridge
 
 On opening the tool, the EventBridge pane will display all the event buses currently available to you.
@@ -164,9 +171,9 @@ Shortcuts
 - Pressing "o" while selecting a function from the function list will open the relevant page of the AWS console (saving some clicks!)
 - Pressing "d" while selecting a function from the function list will deploy the selected lambda function, note this is not possible while using SAM
 - Pressing "s" while selecting a function will deploy the entire stack
-- Pressing "i" while selecting an event bus will open a window to write and inject an event for that bus
-- Pressing "i" while selecting a lambda function to invoke the function with an empty body
+- Pressing "i" will invoke a lambda or inject an event into an event bus depending on selection
 - Pressing "r" while selecting an event bus will open the event registry. Select a event schema to edit the event properties, and inject it on that bus.
+- Pressing "l" will display a box with more statistics on the selected lambda
 ```
 
 # A note on AWS API calls and pricing
@@ -192,8 +199,32 @@ The current list of calls made by the tool:
 
 Heavily based off the amazing [blessed](https://github.com/chjj/blessed) and [blessed-contrib](https://github.com/yaronn/blessed-contrib) projects.
 
-## Core Team
+## Contributors ✨
 
-| [Ben Ellerby](https://github.com/BenEllerby)                            | [Abbie Howell](https://github.com/abbiehowell)                           | [Rob Cronin](https://github.com/robcronin)                             | [Gavin Williams](https://github.com/DotGav)               | [Antoine Eudes](https://github.com/antoineeudes)                          | [Mansur Pasha](https://github.com/mansurpasha)               | [Luc Esplin](https://github.com/luce-theodo)               |
-| ----------------------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------- |
-| ![Ben Ellerby](https://avatars2.githubusercontent.com/u/11080984?s=150) | ![Abbie Howell](https://avatars3.githubusercontent.com/u/41898453?s=150) | ![Rob Cronin](https://avatars3.githubusercontent.com/u/32868346?s=150) | ![Gavin Williams](https://github.com/DotGav.png?size=150) | ![Antoine Eudes](https://avatars3.githubusercontent.com/u/13795384?s=150) | ![Mansur Pasha](https://github.com/mansurpasha.png?size=150) | ![Luc Esplin](https://github.com/luce-theodo.png?size=150) |
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://medium.com/serverless-transformation"><img src="https://avatars1.githubusercontent.com/u/11080984?v=4" width="100px;" alt=""/><br /><sub><b>Ben Ellerby</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=BenEllerby" title="Code">💻</a> <a href="#content-BenEllerby" title="Content">🖋</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=BenEllerby" title="Documentation">📖</a> <a href="#ideas-BenEllerby" title="Ideas, Planning, & Feedback">🤔</a> <a href="#design-BenEllerby" title="Design">🎨</a> <a href="#talk-BenEllerby" title="Talks">📢</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/pulls?q=is%3Apr+reviewed-by%3ABenEllerby" title="Reviewed Pull Requests">👀</a></td>
+    <td align="center"><a href="https://github.com/DotGav"><img src="https://avatars0.githubusercontent.com/u/38322167?v=4" width="100px;" alt=""/><br /><sub><b>Gavin Williams</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=DotGav" title="Code">💻</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=DotGav" title="Documentation">📖</a> <a href="#ideas-DotGav" title="Ideas, Planning, & Feedback">🤔</a> <a href="#maintenance-DotGav" title="Maintenance">🚧</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/pulls?q=is%3Apr+reviewed-by%3ADotGav" title="Reviewed Pull Requests">👀</a> <a href="#security-DotGav" title="Security">🛡️</a></td>
+    <td align="center"><a href="https://github.com/mansurpasha"><img src="https://avatars1.githubusercontent.com/u/28564974?v=4" width="100px;" alt=""/><br /><sub><b>Mansur Pasha</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=mansurpasha" title="Code">💻</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=mansurpasha" title="Documentation">📖</a> <a href="#userTesting-mansurpasha" title="User Testing">📓</a> <a href="#blog-mansurpasha" title="Blogposts">📝</a></td>
+    <td align="center"><a href="https://github.com/antoineeudes"><img src="https://avatars0.githubusercontent.com/u/13795384?v=4" width="100px;" alt=""/><br /><sub><b>Antoine Eudes</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=antoineeudes" title="Code">💻</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=antoineeudes" title="Documentation">📖</a> <a href="#userTesting-antoineeudes" title="User Testing">📓</a> <a href="#blog-antoineeudes" title="Blogposts">📝</a></td>
+    <td align="center"><a href="https://github.com/luce-theodo"><img src="https://avatars1.githubusercontent.com/u/59560841?v=4" width="100px;" alt=""/><br /><sub><b>Luc Esplin</b></sub></a><br /><a href="#projectManagement-luce-theodo" title="Project Management">📆</a> <a href="#userTesting-luce-theodo" title="User Testing">📓</a></td>
+    <td align="center"><a href="http://emboldenher.org"><img src="https://avatars1.githubusercontent.com/u/41898453?v=4" width="100px;" alt=""/><br /><sub><b>AbbieHowell</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=AbbieHowell" title="Code">💻</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=AbbieHowell" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/robcronin"><img src="https://avatars1.githubusercontent.com/u/32868346?v=4" width="100px;" alt=""/><br /><sub><b>Rob Cronin</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=robcronin" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/serkan-ozal"><img src="https://avatars1.githubusercontent.com/u/3143425?v=4" width="100px;" alt=""/><br /><sub><b>Serkan ÖZAL</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=serkan-ozal" title="Code">💻</a></td>
+    <td align="center"><a href="http://www.artoliukkonen.net"><img src="https://avatars3.githubusercontent.com/u/683856?v=4" width="100px;" alt=""/><br /><sub><b>Arto Liukkonen</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=artoliukkonen" title="Code">💻</a></td>
+    <td align="center"><a href="https://blog.james-mullen.me.uk"><img src="https://avatars3.githubusercontent.com/u/24397992?v=4" width="100px;" alt=""/><br /><sub><b>James Mullen</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=jnmullen" title="Code">💻</a></td>
+  </tr>
+</table>
+
+<!-- markdownlint-enable -->
+<!-- prettier-ignore-end -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!

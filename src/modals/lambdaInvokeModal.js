@@ -2,137 +2,116 @@ import { generateFieldWithTitle } from "../components/fieldWithTitle";
 import { Box } from "../components/box";
 import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
+import { invokeLambda } from "../services/invoke";
 
 const blessed = require("blessed");
 
-const eventInjectionModal = (
+const lambdaInvokeModal = (
   screen,
-  eventBridge,
   application,
-  injectEvent,
-  prefilledEvent
+  functionName,
+  awsLambdaApi,
+  previousLambdaPayload
 ) => {
-  const eventInjectLayout = new ModalLayout(screen, 112, 27, true);
+  const lambdaInvokeLayout = new ModalLayout(screen, 112, 20, true);
 
-  // Prefill textbox with previous submission if there is one
-  const event = prefilledEvent || {
-    EventBusName: eventBridge,
-    DetailType: "",
-    Source: "",
-    Detail: "{}",
-  };
+  const preset = [functionName, previousLambdaPayload || "{}"];
 
-  // String values textboxes are initialized with
-  const preset = [
-    event.EventBusName,
-    event.DetailType,
-    event.Source,
-    event.Detail,
-  ];
+  const fields = ["FunctionName", "Payload"];
 
-  const fields = ["EventBusName", "DetailType", "Source", "Detail"];
-
-  const numTextboxes = 4;
-
+  const numTextboxes = 2;
   let currentTextbox = 1;
-
   const textboxes = [];
 
   const unselectTextbox = (index) => {
     textboxes[index].style.border.fg = "green";
-    if (index === 4) {
+    if (index === 2) {
       textboxes[index].style.fg = "green";
     }
   };
 
   const selectTextbox = (index) => {
     textboxes[index].style.border.fg = "yellow";
-    if (index === 4) {
+    if (index === 2) {
       textboxes[index].style.fg = "yellow";
     }
   };
 
-  const updateEventValues = () => {
-    event.EventBusName = textboxes[0].getValue();
-    event.DetailType = textboxes[1].getValue();
-    event.Source = textboxes[2].getValue();
-    event.Detail = textboxes[3].getValue();
+  const storePayload = () => {
+    application.previousLambdaPayload[functionName] = textboxes[1].getValue();
   };
 
   const closeModal = () => {
-    // Store all text to populate modal when next opened
-    updateEventValues();
-    application.previousSubmittedEvent[eventBridge] = event;
+    // Store the payload
+    storePayload();
     application.setIsModalOpen(false);
     application.returnFocus();
-    eventInjectLayout.destroy();
+    lambdaInvokeLayout.destroy();
   };
 
-  new ModalTitle(eventInjectLayout, 110, "Event Injection");
+  new ModalTitle(lambdaInvokeLayout, 110, "Lambda Invoke");
 
   for (let i = 0; i < numTextboxes; i += 1) {
     const textboxWithTitle = generateFieldWithTitle(
       blessed,
-      eventInjectLayout,
+      lambdaInvokeLayout,
       fields[i],
       preset[i],
       110
     );
     const { textbox } = textboxWithTitle;
     textbox.on("cancel", () => {
-      updateEventValues();
       closeModal();
     });
     textboxes.push(textbox);
   }
 
-  const submit = new Box(eventInjectLayout, 110, 4, "Submit");
+  const submit = new Box(lambdaInvokeLayout, 110, 4, "Submit");
 
   textboxes.push(submit);
 
   new Box(
-    eventInjectLayout,
+    lambdaInvokeLayout,
     110,
     4,
     "Arrow keys to select field | ENTER to toggle edit mode \nENTER on Submit to inject event | ESC to close"
   );
 
-  eventInjectLayout.focus();
+  lambdaInvokeLayout.focus();
 
   selectTextbox(currentTextbox);
 
-  eventInjectLayout.key(["enter"], () => {
+  lambdaInvokeLayout.key(["enter"], () => {
     // Inject event or select field for entry
-    if (currentTextbox === 4) {
-      updateEventValues();
-      injectEvent(event);
+    if (currentTextbox === 2) {
+      invokeLambda(awsLambdaApi, functionName, textboxes[1].getValue());
       closeModal();
     } else {
       textboxes[currentTextbox].focus();
     }
   });
-  eventInjectLayout.key(["up"], () => {
+  lambdaInvokeLayout.key(["up"], () => {
     unselectTextbox(currentTextbox);
     currentTextbox -= 1;
     if (currentTextbox === -1) {
-      currentTextbox = 4;
+      currentTextbox = 2;
     }
     selectTextbox(currentTextbox);
   });
-  eventInjectLayout.key(["down"], () => {
+  lambdaInvokeLayout.key(["down"], () => {
     unselectTextbox(currentTextbox);
     currentTextbox += 1;
-    if (currentTextbox === 5) {
-      currentTextbox = 0;
+    if (currentTextbox === 3) {
+      currentTextbox = 1;
     }
     selectTextbox(currentTextbox);
   });
-  eventInjectLayout.key(["escape"], () => {
+  lambdaInvokeLayout.key(["escape"], () => {
     // Discard modal
     closeModal();
   });
 };
 
 module.exports = {
-  eventInjectionModal,
+  lambdaInvokeModal,
 };

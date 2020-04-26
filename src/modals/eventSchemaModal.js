@@ -4,6 +4,8 @@ import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
 import { InteractiveList } from "../components/interactiveList";
 
+const blessed = require("blessed");
+
 function updateSchemaTable(api, registry, table) {
   api.listSchemas({ RegistryName: registry }, (err, data) => {
     if (err) {
@@ -18,7 +20,6 @@ function updateSchemaTable(api, registry, table) {
 
 const eventSchemaModal = (
   screen,
-  blessed,
   eventBridge,
   application,
   api,
@@ -58,7 +59,6 @@ const eventSchemaModal = (
     eventSchemaLayout.destroy();
     return eventModal(
       screen,
-      blessed,
       eventBridge,
       application,
       api,

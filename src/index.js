@@ -15,6 +15,7 @@ import {
   checkLogsForErrors,
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
+import updateNotifier from "./utils/updateNotifier";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -30,6 +31,8 @@ try {
 } catch (e) {
   // No config provided
 }
+
+updateNotifier();
 
 program.version(packageJson.version);
 program

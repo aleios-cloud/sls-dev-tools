@@ -15,7 +15,8 @@ import {
   checkLogsForErrors,
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
-import { clargsWizardModal } from "./modals/clargsWizardModal";
+import { regionWizardModal } from "./modals/regionWizardModal";
+import { stackWizardModal } from "./modals/stackWizardModal";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -84,13 +85,6 @@ if (program.sam) {
   if (!program.region) {
     program.region = SLS.getRegion();
   }
-}
-
-if (!program.stackName) {
-  console.error(
-    "error: required option '-n, --stack-name <stackName>' not specified"
-  );
-  process.exit(1);
 }
 
 AWS.config.credentials = getAWSCredentials();
@@ -492,15 +486,33 @@ class Main {
   }
 }
 
+function promptStackName() {
+  const stackTable = stackWizardModal(screen, program, cloudformation);
+  stackTable.key(["enter"], () => {
+    program.stackName = stackTable.ritems[stackTable.selected];
+    new Main().render();
+  });
+}
+
+function promptRegion() {
+  const regionTable = regionWizardModal(screen, program);
+  regionTable.key(["enter"], () => {
+    program.region = regionTable.ritems[regionTable.selected];
+    AWS.config.region = program.region;
+    updateAWSServices();
+    if (!program.stackName) {
+      promptStackName();
+    } else {
+      new Main().render();
+    }
+  });
+}
+
 function startTool() {
   if (!program.region) {
-    const regionTable = clargsWizardModal(screen, program);
-    regionTable.key(["enter"], () => {
-      program.region = regionTable.ritems[regionTable.selected];
-      AWS.config.region = program.region;
-      updateAWSServices();
-      new Main().render();
-    });
+    promptRegion();
+  } else if (!program.stackName) {
+    promptStackName();
   } else {
     new Main().render();
   }

@@ -7,8 +7,11 @@
 [![Follow](https://img.shields.io/twitter/follow/SlsDevTools?style=social)](https://twitter.com/SlsDevTools)
 ![Maintained](https://img.shields.io/maintenance/yes/2020.svg)
 [![Tweet](./img/tweetBadge.svg)](https://twitter.com/intent/tweet?text=@SlsDevTools)
+
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
 [![All Contributors](https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat-square)](#contributors-)
+
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The Developer Tools for the Serverless World - think Chrome Dev Tools but for Serverless.
@@ -31,7 +34,10 @@ sls-dev-tools is currently being actively maintained. If you find a problem with
 ![demo](./img/demo.gif)
 
 [Installation](#installation)\
-[Usage](#usage)\
+[Usage](#usage)
+
+- [Options](#options)
+
 [Frameworks](#frameworks)
 
 - [Serverless framework](#serverless-framework)
@@ -55,7 +61,7 @@ sls-dev-tools is currently being actively maintained. If you find a problem with
 
 [A note on AWS API calls and pricing](#a-note-on-aws-api-calls-and-pricing)\
 [Libs](#libs)\
-[Core Team](#core-team)
+[Contributors ✨](#contributors-✨)
 
 ## Installation
 
@@ -67,6 +73,10 @@ sls-dev-tools is currently being actively maintained. If you find a problem with
 ![installTool](./img/startTool.gif)
 
 Run `sls-dev-tools` in the directory with your serverless.yml
+
+If the tool isn't able to find the stack name or region in local files or in the command arguments, it will open up a wizard to allow you to select the region and any available stacks.
+
+![argumentWizard](./img/modalWizard.gif)
 
 ### Options:
 
@@ -233,6 +243,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!

@@ -20,6 +20,7 @@ function checkLogsForErrors(events, application) {
     application.setPrevErrorId(latestErrorId);
     if (application.firstLogsRetrieved) {
       application.notifier.bell();
+      console.log("Recent lambda error. Check logs for details");
     }
   }
 }

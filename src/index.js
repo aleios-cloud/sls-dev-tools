@@ -17,6 +17,7 @@ import {
 import { getLogEvents } from "./services/awsCloudwatchLogs";
 import { regionWizardModal } from "./modals/regionWizardModal";
 import { stackWizardModal } from "./modals/stackWizardModal";
+import updateNotifier from "./utils/updateNotifier";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -32,6 +33,8 @@ try {
 } catch (e) {
   // No config provided
 }
+
+updateNotifier();
 
 program.version(packageJson.version);
 program
@@ -235,6 +238,15 @@ class Main {
     this.previousSubmittedEvent = {};
     // Dictionary to store previous submissions for each lambda function
     this.previousLambdaPayload = {};
+
+    // Store previous errorId found in logs
+    this.prevErrorId = "";
+    // Flag to avoid getting notifications on first retrieval of logs
+    this.firstLogsRetrieved = false;
+    // Store events from cloudwatchLogs
+    this.events = [];
+    // Allows use of .bell() function for notifications
+    this.notifier = new blessed.Program();
   }
 
   setKeypresses() {

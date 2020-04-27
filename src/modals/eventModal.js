@@ -8,8 +8,9 @@ import {
 } from "../components";
 import { getProperties } from "../services/awsSchema";
 
+const blessed = require("blessed");
+
 const createDynamicForm = async (
-  blessed,
   api,
   parent,
   closeModal,
@@ -81,7 +82,6 @@ const createDetail = (keys, types, values) => {
 
 const eventModal = (
   screen,
-  blessed,
   eventBridge,
   application,
   api,
@@ -186,7 +186,6 @@ const eventModal = (
   setButtonSelected(true);
 
   createDynamicForm(
-    blessed,
     api,
     fieldLayout,
     closeModal,
@@ -229,7 +228,6 @@ const eventModal = (
       eventLayout.destroy();
       eventInjectionModal(
         screen,
-        blessed,
         eventBridge,
         application,
         injectEvent,

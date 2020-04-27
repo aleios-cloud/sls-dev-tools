@@ -74,6 +74,10 @@ sls-dev-tools is currently being actively maintained. If you find a problem with
 
 Run `sls-dev-tools` in the directory with your serverless.yml
 
+If the tool isn't able to find the stack name or region in local files or in the command arguments, it will open up a wizard to allow you to select the region and any available stacks.
+
+![argumentWizard](./img/modalWizard.gif)
+
 ### Options:
 
 `sls-dev-tools [-l {YOUR_PROJECT_LOCATION}] [-p {PROFILE}] [-n {YOUR_STACK_NAME}] [-r {YOUR_REGION}] [-t {START_TIME}] [-i {INTERVAL}]`

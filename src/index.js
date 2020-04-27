@@ -218,7 +218,7 @@ class Main {
       // Round to closest interval to make query faster.
       this.startTime = new Date(
         Math.round(new Date().getTime() / this.interval) * this.interval -
-        dateOffset
+          dateOffset
       );
     }
 
@@ -338,31 +338,31 @@ class Main {
 
   async render() {
     setInterval(() => {
-      if (program.region && program.stackName) {
-        this.map.updateMap();
-        this.updateResourcesInformation();
-        this.updateGraphs();
-      } else if (!this.isModalOpen) {
-        this.setIsModalOpen(true);
-        clargsWizardModal(screen, this);
-      }
+      this.map.updateMap();
+      this.updateResourcesInformation();
+      this.updateGraphs();
       screen.render();
     }, 1000);
   }
 
   async updateGraphs() {
     if (this.resourceTable.fullFuncName) {
-      this.data = await getLambdaMetrics(this, this.resourceTable.fullFuncName, cloudwatch);
-      getLogEvents(`/aws/lambda/${this.resourceTable.fullFuncName}`, cloudwatchLogs).then(
-        (data) => {
-          this.events = data;
-          updateLogContentsFromEvents(this.lambdaLog, this.events);
-          checkLogsForErrors(this.events, this);
-          this.setFirstLogsRetrieved(true);
-
-          this.durationBarChart.updateData();
-        }
+      this.data = await getLambdaMetrics(
+        this,
+        this.resourceTable.fullFuncName,
+        cloudwatch
       );
+      getLogEvents(
+        `/aws/lambda/${this.resourceTable.fullFuncName}`,
+        cloudwatchLogs
+      ).then((data) => {
+        this.events = data;
+        updateLogContentsFromEvents(this.lambdaLog, this.events);
+        checkLogsForErrors(this.events, this);
+        this.setFirstLogsRetrieved(true);
+
+        this.durationBarChart.updateData();
+      });
     }
 
     this.padInvocationsAndErrorsWithZeros();
@@ -492,5 +492,19 @@ class Main {
   }
 }
 
-new Main().render();
-exports.slsDevTools = () => new Main().render();
+function startTool() {
+  if (!program.region) {
+    const regionTable = clargsWizardModal(screen, program);
+    regionTable.key(["enter"], () => {
+      program.region = regionTable.ritems[regionTable.selected];
+      AWS.config.region = program.region;
+      updateAWSServices();
+      new Main().render();
+    });
+  } else {
+    new Main().render();
+  }
+}
+
+startTool();
+exports.slsDevTools = () => startTool();

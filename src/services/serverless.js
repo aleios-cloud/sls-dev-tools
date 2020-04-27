@@ -31,6 +31,9 @@ class Serverless {
     ) {
       return `${this.config.provider.stackName}`;
     }
+    if (typeof this.config.service === "string") {
+      return `${this.config.service}-${stage}`;
+    }
     return `${this.config.service.name}-${stage}`;
   }
 

@@ -210,7 +210,7 @@ class Main {
       // Round to closest interval to make query faster.
       this.startTime = new Date(
         Math.round(new Date().getTime() / this.interval) * this.interval -
-        dateOffset
+          dateOffset
       );
     }
 
@@ -233,6 +233,15 @@ class Main {
     this.previousSubmittedEvent = {};
     // Dictionary to store previous submissions for each lambda function
     this.previousLambdaPayload = {};
+
+    // Store previous errorId found in logs
+    this.prevErrorId = "";
+    // Flag to avoid getting notifications on first retrieval of logs
+    this.firstLogsRetrieved = false;
+    // Store events from cloudwatchLogs
+    this.events = [];
+    // Allows use of .bell() function for notifications
+    this.notifier = new blessed.Program();
   }
 
   setKeypresses() {
@@ -339,17 +348,22 @@ class Main {
 
   async updateGraphs() {
     if (this.resourceTable.fullFuncName) {
-      this.data = await getLambdaMetrics(this, this.resourceTable.fullFuncName, cloudwatch);
-      getLogEvents(`/aws/lambda/${this.resourceTable.fullFuncName}`, cloudwatchLogs).then(
-        (data) => {
-          this.events = data;
-          updateLogContentsFromEvents(this.lambdaLog, this.events);
-          checkLogsForErrors(this.events, this);
-          this.setFirstLogsRetrieved(true);
-
-          this.durationBarChart.updateData();
-        }
+      this.data = await getLambdaMetrics(
+        this,
+        this.resourceTable.fullFuncName,
+        cloudwatch
       );
+      getLogEvents(
+        `/aws/lambda/${this.resourceTable.fullFuncName}`,
+        cloudwatchLogs
+      ).then((data) => {
+        this.events = data;
+        updateLogContentsFromEvents(this.lambdaLog, this.events);
+        checkLogsForErrors(this.events, this);
+        this.setFirstLogsRetrieved(true);
+
+        this.durationBarChart.updateData();
+      });
     }
 
     this.padInvocationsAndErrorsWithZeros();

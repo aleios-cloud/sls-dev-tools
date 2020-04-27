@@ -73,6 +73,7 @@ function getAWSCredentials() {
 }
 
 const screen = blessed.screen({ smartCSR: true });
+screen.key(["q", "C-c"], () => process.exit(0));
 const profile = program.profile || "default";
 const location = program.location || process.cwd();
 let provider = "";
@@ -263,7 +264,6 @@ class Main {
       }
       return 0;
     });
-    screen.key(["q", "C-c"], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.key(["o"], () => {
       // If focus is currently on this.eventBridgeTree

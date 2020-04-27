@@ -49,13 +49,19 @@ sls-dev-tools works with the serverless framework by default, and can be used by
 
 To use the SAM framework, pass the `--sam` option when running the tool.
 
-When using the sam framework extra arguments for capabilites and s3 bucket must be added in the slsdevtools.config.js e.g. `--capabilities CAPABILITY_IAM --s3-bucket deployment-bucket-name` [Example SLS Dev Tools Config](slsdevtools.config.js.dist)
+When using the sam framework extra arguments for capabilities and s3 bucket must be added in the slsdevtools.config.js e.g. `--capabilities CAPABILITY_IAM --s3-bucket deployment-bucket-name` [Example SLS Dev Tools Config](slsdevtools.config.js.dist)
 
 ## Features
 
 ### Navigating the tool
 
 Use the arrow keys to move around each pane. Use tab to switch between different panes.
+
+### Viewing all stack resources
+
+Use the left and right arrow keys to navigate to the a list of all resources in the stack e.g. SNS, API Gateway, Dynamo DB. More functionality coming to this table soon!
+
+![resourceTable](./assets/resourceTable.png)
 
 ### Viewing statistics and recent calls
 
@@ -83,7 +89,7 @@ You can also press 's' to deploy your entire stack.
 
 ### Invoking lambdas
 
-Pressing 'i' with a lambda selected will open up a modal which will allow you to invoke a lambda. Fill the parameters field for any paramters you wish to invoke the lambda with and press submit to trigger the invocation.
+Pressing 'i' with a lambda selected will open up a modal which will allow you to invoke a lambda. Fill the parameters field for any parameters you wish to invoke the lambda with and press submit to trigger the invocation.
 
 ### EventBridge
 
@@ -115,13 +121,14 @@ Navigate to the map pane using tab. Use the arrow keys to select a different reg
 
 ```
 Shortcuts
-- Pressing "h" while the tool is open will display a helpbox with all the keybindings and cli options
+- Pressing "h" while the tool is open will display a help-box with all the keybindings and cli options
 - Pressing "q" will quit the tool
 - Pressing "o" while selecting a function from the function list will open the relevant page of the AWS console (saving some clicks!)
 - Pressing "d" while selecting a function from the function list will deploy the selected lambda function, note this is not possible while using SAM
 - Pressing "s" while selecting a function will deploy the entire stack
 - Pressing "i" will invoke a lambda or inject an event into an event bus depending on selection
 - Pressing "r" while selecting an event bus will open the event registry. Select a event schema to edit the event properties, and inject it on that bus.
+- Pressing "l" will display a box with more statistics on the selected lambda
 ```
 
 # A note on AWS API calls and pricing

@@ -9,15 +9,13 @@ function updateRegionTable(table) {
   table.setItems(regions);
 }
 
-const clargsWizardModal = (screen, application) => {
+const clargsWizardModal = (screen, program) => {
   let region = "";
   const wizardLayout = new ModalLayout(screen, 112, 27, true);
 
   const closeModal = () => {
-    application.updateRegion(region);
-    application.setIsModalOpen(false);
-    application.returnFocus();
     wizardLayout.destroy();
+    program.region = region;
   };
 
   new ModalTitle(wizardLayout, 110, "Select your stack/region");
@@ -39,7 +37,8 @@ const clargsWizardModal = (screen, application) => {
     closeModal();
   });
 
-  return wizardLayout;
+  screen.render();
+  return regionTable;
 };
 
 module.exports = { clargsWizardModal };

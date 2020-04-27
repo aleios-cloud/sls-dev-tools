@@ -15,6 +15,8 @@ import {
   checkLogsForErrors,
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
+import { regionWizardModal } from "./modals/regionWizardModal";
+import { stackWizardModal } from "./modals/stackWizardModal";
 import updateNotifier from "./utils/updateNotifier";
 
 const blessed = require("blessed");
@@ -88,25 +90,28 @@ if (program.sam) {
   }
 }
 
-if (!program.stackName) {
-  console.error(
-    "error: required option '-n, --stack-name <stackName>' not specified"
-  );
-  process.exit(1);
-}
-if (!program.region) {
-  console.error("error: required option '-r, --region <region>' not specified");
-  process.exit(1);
+AWS.config.credentials = getAWSCredentials();
+
+let cloudformation;
+let cloudwatch;
+let cloudwatchLogs;
+let eventBridge;
+let schemas;
+let lambda;
+
+function updateAWSServices() {
+  cloudformation = new AWS.CloudFormation();
+  cloudwatch = new AWS.CloudWatch();
+  cloudwatchLogs = new AWS.CloudWatchLogs();
+  eventBridge = new AWS.EventBridge();
+  schemas = new AWS.Schemas();
+  lambda = new AWS.Lambda();
 }
 
-AWS.config.credentials = getAWSCredentials();
-AWS.config.region = program.region;
-let cloudformation = new AWS.CloudFormation();
-let cloudwatch = new AWS.CloudWatch();
-let cloudwatchLogs = new AWS.CloudWatchLogs();
-let eventBridge = new AWS.EventBridge();
-let schemas = new AWS.Schemas();
-let lambda = new AWS.Lambda();
+if (program.region) {
+  AWS.config.region = program.region;
+  updateAWSServices();
+}
 
 function getEventBuses() {
   return eventBridge.listEventBuses().promise();
@@ -487,16 +492,43 @@ class Main {
   }
 
   updateRegion(region) {
-    this.program.region = region;
+    program.region = region;
     AWS.config.region = region;
-    cloudformation = new AWS.CloudFormation();
-    cloudwatch = new AWS.CloudWatch();
-    cloudwatchLogs = new AWS.CloudWatchLogs();
-    eventBridge = new AWS.EventBridge();
-    schemas = new AWS.Schemas();
-    lambda = new AWS.Lambda();
+    updateAWSServices();
   }
 }
 
-new Main().render();
-exports.slsDevTools = () => new Main().render();
+function promptStackName() {
+  const stackTable = stackWizardModal(screen, program, cloudformation);
+  stackTable.key(["enter"], () => {
+    program.stackName = stackTable.ritems[stackTable.selected];
+    new Main().render();
+  });
+}
+
+function promptRegion() {
+  const regionTable = regionWizardModal(screen, program);
+  regionTable.key(["enter"], () => {
+    program.region = regionTable.ritems[regionTable.selected];
+    AWS.config.region = program.region;
+    updateAWSServices();
+    if (!program.stackName) {
+      promptStackName();
+    } else {
+      new Main().render();
+    }
+  });
+}
+
+function startTool() {
+  if (!program.region) {
+    promptRegion();
+  } else if (!program.stackName) {
+    promptStackName();
+  } else {
+    new Main().render();
+  }
+}
+
+startTool();
+exports.slsDevTools = () => startTool();

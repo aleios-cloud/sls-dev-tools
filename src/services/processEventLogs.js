@@ -10,19 +10,31 @@ function updateLogContentsFromEvents(log, events) {
 }
 
 function checkLogsForErrors(events, application) {
+  let logId = "";
+  if (events.length > 0) {
+    logId = events[0].logStreamName;
+  }
   let latestErrorId = "";
   events.forEach((event) => {
     if (event.message.includes("ERROR")) {
       latestErrorId = event.eventId;
     }
   });
-  if (latestErrorId !== application.prevErrorId) {
-    application.setPrevErrorId(latestErrorId);
-    if (application.firstLogsRetrieved) {
-      application.notifier.bell();
-      console.log("Recent lambda error. Check logs for details");
-    }
+
+  const latestError = {
+    errorId: latestErrorId,
+    logId,
+  };
+
+  if (
+    latestError.errorId !== application.prevError.errorId &&
+    latestError.logId === application.prevError.logId
+  ) {
+    application.notifier.bell();
+    console.log("Recent lambda error. Check logs for details");
   }
+
+  application.setPrevError(latestError);
 }
 
 module.exports = {

@@ -240,10 +240,8 @@ class Main {
     // Dictionary to store previous submissions for each lambda function
     this.previousLambdaPayload = {};
 
-    // Store previous errorId found in logs
-    this.prevErrorId = "";
-    // Flag to avoid getting notifications on first retrieval of logs
-    this.firstLogsRetrieved = false;
+    // Store previous errorId found in logs, with region and fullFunc name
+    this.prevError = {};
     // Store events from cloudwatchLogs
     this.events = [];
     // Allows use of .bell() function for notifications
@@ -339,8 +337,8 @@ class Main {
     this.firstLogsRetrieved = value;
   }
 
-  setPrevErrorId(value) {
-    this.prevErrorId = value;
+  setPrevError(value) {
+    this.prevError = value;
   }
 
   async render() {

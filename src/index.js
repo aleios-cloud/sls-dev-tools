@@ -363,10 +363,12 @@ class Main {
       ).then((data) => {
         this.events = data;
         updateLogContentsFromEvents(this.lambdaLog, this.events);
-        checkLogsForErrors(this.events, this);
-        this.setFirstLogsRetrieved(true);
+        if (data) {
+          checkLogsForErrors(this.events, this);
+          this.setFirstLogsRetrieved(true);
 
-        this.durationBarChart.updateData();
+          this.durationBarChart.updateData();
+        }
       });
     }
 

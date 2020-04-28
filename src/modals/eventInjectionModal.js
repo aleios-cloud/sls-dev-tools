@@ -65,10 +65,10 @@ const eventInjectionModal = (
     // Store all text to populate modal when next opened
     updateEventValues();
     application.previousSubmittedEvent[eventBridge] = event;
-  }
+  };
 
   const closeModal = () => {
-    storeInputValues()
+    storeInputValues();
     application.setIsModalOpen(false);
     application.returnFocus();
     eventInjectLayout.destroy();
@@ -77,14 +77,8 @@ const eventInjectionModal = (
   const openEventRegistryModal = () => {
     storeInputValues();
     eventInjectLayout.destroy();
-    eventRegistryModal(
-      screen,
-      eventBridge,
-      application,
-      schemas,
-      injectEvent,
-    );
-  }
+    eventRegistryModal(screen, eventBridge, application, schemas, injectEvent);
+  };
 
   new ModalTitle(eventInjectLayout, 110, "Event Injection");
 
@@ -105,10 +99,15 @@ const eventInjectionModal = (
   }
 
   const submit = new Box(eventInjectLayout, 110, 4, "Submit");
-  const openEventRegistryModalBox = new Box(eventInjectLayout, 110, 4, "Open event registry");
+  const openEventRegistryModalBox = new Box(
+    eventInjectLayout,
+    110,
+    4,
+    "Open event registry"
+  );
 
   textboxes.push(submit);
-  textboxes.push(openEventRegistryModalBox)
+  textboxes.push(openEventRegistryModalBox);
 
   new Box(
     eventInjectLayout,

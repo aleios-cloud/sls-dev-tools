@@ -9,20 +9,30 @@ function updateLogContentsFromEvents(log, events) {
   }
 }
 
-function checkLogsForErrors(events, application) {
+function checkLogsForErrors(events, application, program) {
   let latestErrorId = "";
   events.forEach((event) => {
     if (event.message.includes("ERROR")) {
       latestErrorId = event.eventId;
     }
   });
-  if (latestErrorId !== application.prevErrorId) {
-    application.setPrevErrorId(latestErrorId);
-    if (application.firstLogsRetrieved) {
-      application.notifier.bell();
-      console.log("Recent lambda error. Check logs for details");
-    }
+
+  const latestError = {
+    id: latestErrorId,
+    region: program.region,
+    funcName: application.resourceTable.fullFuncName,
+  };
+
+  if (
+    latestError.id !== application.prevError.id &&
+    latestError.region === application.prevError.region &&
+    latestError.funcName === application.prevError.funcName
+  ) {
+    application.notifier.bell();
+    console.log("Recent lambda error. Check logs for details");
   }
+
+  application.setPrevError(latestError);
 }
 
 module.exports = {

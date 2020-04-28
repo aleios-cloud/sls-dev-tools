@@ -9,7 +9,11 @@ function updateLogContentsFromEvents(log, events) {
   }
 }
 
-function checkLogsForErrors(events, application, program) {
+function checkLogsForErrors(events, application) {
+  let logId = "";
+  if (events.length > 0) {
+    logId = events[0].logStreamName;
+  }
   let latestErrorId = "";
   events.forEach((event) => {
     if (event.message.includes("ERROR")) {
@@ -18,15 +22,13 @@ function checkLogsForErrors(events, application, program) {
   });
 
   const latestError = {
-    id: latestErrorId,
-    region: program.region,
-    funcName: application.resourceTable.fullFuncName,
+    errorId: latestErrorId,
+    logId,
   };
 
   if (
-    latestError.id !== application.prevError.id &&
-    latestError.region === application.prevError.region &&
-    latestError.funcName === application.prevError.funcName
+    latestError.errorId !== application.prevError.errorId &&
+    latestError.logId === application.prevError.logId
   ) {
     application.notifier.bell();
     console.log("Recent lambda error. Check logs for details");

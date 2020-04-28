@@ -44,7 +44,8 @@ class Serverless {
     if (
       this.config.provider &&
       this.config.provider.region &&
-      typeof this.config.provider.region === "string"
+      typeof this.config.provider.region === "string" &&
+      this.config.provider.region[0] !== "$"
     ) {
       return `${this.config.provider.region}`;
     }

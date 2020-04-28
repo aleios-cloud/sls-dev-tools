@@ -184,8 +184,10 @@ class resourceTable {
   async refreshLambdaFunctions() {
     const allFunctions = [];
     let marker;
-    while (true) {
-      const response = await this.lambda
+    let response = { NextMarker: true };
+    while (response.NextMarker) {
+      // eslint-disable-next-line no-await-in-loop
+      response = await this.lambda
         .listFunctions({
           Marker: marker,
           MaxItems: 50,
@@ -193,15 +195,15 @@ class resourceTable {
         .promise();
       const functions = response.Functions;
       allFunctions.push(...functions);
-      if (!response.NextMarker) {
-        break;
-      }
       marker = response.NextMarker;
     }
-    this.lambdaFunctions = allFunctions.reduce((map, func) => {
+    this.lambdaFunctions = allFunctions.map((map, func) => {
+      // eslint-disable-next-line no-param-reassign
       map[func.FunctionName] = func;
       return map;
     }, {});
+
+    console.log(this.lambdaFunctions);
   }
 
   async updateData() {

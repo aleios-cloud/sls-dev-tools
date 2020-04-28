@@ -90,6 +90,7 @@ If the tool isn't able to find the stack name or region in local files or in the
   -i, --interval <interval>     interval of graphs, in seconds
   -p, --profile <profile>       aws profile name to use
   -h, --help                    output usage information
+  -s, --stage <stage>           if using the serverless framework uses this as the stage option
   -l, --location                location of your serverless project (default is current directory)
   --sls                         use the serverless framework to execute commands
   --sam                         use the SAM framework to execute commands

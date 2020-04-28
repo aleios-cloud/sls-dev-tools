@@ -2,6 +2,7 @@ import { generateFieldWithTitle } from "../components/fieldWithTitle";
 import { Box } from "../components/box";
 import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
+import { eventRegistryModal } from "./eventRegistryModal";
 
 const blessed = require("blessed");
 
@@ -10,9 +11,10 @@ const eventInjectionModal = (
   eventBridge,
   application,
   injectEvent,
-  prefilledEvent
+  prefilledEvent,
+  schemas
 ) => {
-  const eventInjectLayout = new ModalLayout(screen, 112, 27, true);
+  const eventInjectLayout = new ModalLayout(screen, 112, 31, true);
 
   // Prefill textbox with previous submission if there is one
   const event = prefilledEvent || {
@@ -40,14 +42,14 @@ const eventInjectionModal = (
 
   const unselectTextbox = (index) => {
     textboxes[index].style.border.fg = "green";
-    if (index === 4) {
+    if (index === 4 || index === 5) {
       textboxes[index].style.fg = "green";
     }
   };
 
   const selectTextbox = (index) => {
     textboxes[index].style.border.fg = "yellow";
-    if (index === 4) {
+    if (index === 4 || index === 5) {
       textboxes[index].style.fg = "yellow";
     }
   };
@@ -59,14 +61,30 @@ const eventInjectionModal = (
     event.Detail = textboxes[3].getValue();
   };
 
-  const closeModal = () => {
+  const storeInputValues = () => {
     // Store all text to populate modal when next opened
     updateEventValues();
     application.previousSubmittedEvent[eventBridge] = event;
+  }
+
+  const closeModal = () => {
+    storeInputValues()
     application.setIsModalOpen(false);
     application.returnFocus();
     eventInjectLayout.destroy();
   };
+
+  const openEventRegistryModal = () => {
+    storeInputValues();
+    eventInjectLayout.destroy();
+    eventRegistryModal(
+      screen,
+      eventBridge,
+      application,
+      schemas,
+      injectEvent,
+    );
+  }
 
   new ModalTitle(eventInjectLayout, 110, "Event Injection");
 
@@ -87,8 +105,10 @@ const eventInjectionModal = (
   }
 
   const submit = new Box(eventInjectLayout, 110, 4, "Submit");
+  const openEventRegistryModalBox = new Box(eventInjectLayout, 110, 4, "Open event registry");
 
   textboxes.push(submit);
+  textboxes.push(openEventRegistryModalBox)
 
   new Box(
     eventInjectLayout,
@@ -107,6 +127,8 @@ const eventInjectionModal = (
       updateEventValues();
       injectEvent(event);
       closeModal();
+    } else if (currentTextbox === 5) {
+      openEventRegistryModal();
     } else {
       textboxes[currentTextbox].focus();
     }
@@ -115,14 +137,14 @@ const eventInjectionModal = (
     unselectTextbox(currentTextbox);
     currentTextbox -= 1;
     if (currentTextbox === -1) {
-      currentTextbox = 4;
+      currentTextbox = 5;
     }
     selectTextbox(currentTextbox);
   });
   eventInjectLayout.key(["down"], () => {
     unselectTextbox(currentTextbox);
     currentTextbox += 1;
-    if (currentTextbox === 5) {
+    if (currentTextbox === 6) {
       currentTextbox = 0;
     }
     selectTextbox(currentTextbox);

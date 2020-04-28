@@ -300,7 +300,8 @@ class Main {
           selectedEventBridge,
           this,
           injectEvent,
-          previousEvent
+          previousEvent,
+          schemas
         );
       }
       return 0;

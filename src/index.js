@@ -47,7 +47,7 @@ program
   .option("-i, --interval <interval>", "interval of graphs, in seconds")
   .option("-p, --profile <profile>", "aws profile name to use")
   .option("-l, --location <location>", "location of your serverless project")
-  .option("-s, --stage <stage>", "If sls option is set, use this stage", "dev")
+  .option("-s, --stage <stage>", "If sls option is set, use this stage")
   .option("--sls", "use the serverless framework to execute commands")
   .option("--sam", "use the SAM framework to execute commands")
   .parse(process.argv);
@@ -82,10 +82,12 @@ if (program.sam) {
 } else {
   provider = "serverlessFramework";
   const SLS = new Serverless(location);
+  if (!program.stage) {
+    program.stage = SLS.getStage();
+  }
   if (!program.stackName) {
     program.stackName = SLS.getStackName(program.stage);
   }
-
   if (!program.region) {
     program.region = SLS.getRegion();
   }

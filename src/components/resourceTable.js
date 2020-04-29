@@ -6,6 +6,7 @@ import {
 import { getStackResources } from "../services/stackResources";
 import { lambdaStatisticsModal } from "../modals/lambdaStatisticsModal";
 import { lambdaInvokeModal } from "../modals/lambdaInvokeModal";
+import { padString } from "../utils/padString";
 
 const contrib = require("blessed-contrib");
 const open = require("open");
@@ -161,7 +162,7 @@ class resourceTable {
       fg: "green",
       label: "<-         Lambda Functions         ->",
       columnSpacing: 1,
-      columnWidth: [45, 30, 30],
+      columnWidth: [35, 40, 10, 10, 20],
       style: {
         border: {
           fg: "yellow",
@@ -254,13 +255,23 @@ class resourceTable {
     this.table.data = lambdaFunctionResources.map((lam) => {
       const funcName = lam.PhysicalResourceId;
       const func = this.lambdaFunctions[funcName];
+      let timeout = "?";
+      let memory = "?";
       let funcRuntime = "?";
       if (func) {
         funcRuntime = func.Runtime;
+        timeout = func.Timeout.toString();
+        memory = func.MemorySize.toString();
       }
+      // Max timout is 900 seconds, align values with whitespace
+      timeout = padString(timeout, 3);
+      // Max memory is 3008 MB, align values with whitespace
+      memory = padString(memory, 4);
       return [
         lam.PhysicalResourceId.replace(`${this.program.stackName}-`, ""),
         moment(lam.LastUpdatedTimestamp).format("MMMM Do YYYY, h:mm:ss a"),
+        `${memory} MB`,
+        `${timeout} secs`,
         funcRuntime,
       ];
     });
@@ -361,7 +372,7 @@ class resourceTable {
     }
 
     this.table.setData({
-      headers: ["logical", "updated", "runtime"],
+      headers: ["logical", "updated", "memory", "timeout", "runtime"],
       data: lambdaFunctionsWithDeploymentIndicator,
     });
 

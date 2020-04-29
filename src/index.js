@@ -19,6 +19,8 @@ import { regionWizardModal } from "./modals/regionWizardModal";
 import { stackWizardModal } from "./modals/stackWizardModal";
 import updateNotifier from "./utils/updateNotifier";
 
+import GuardianCI from './guardian/index';
+
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
 const moment = require("moment");
@@ -50,7 +52,14 @@ program
   .option("-s, --stage <stage>", "If sls option is set, use this stage")
   .option("--sls", "use the serverless framework to execute commands")
   .option("--sam", "use the SAM framework to execute commands")
+  .option("-c, --ci", "ci mode for sls-dev-guardian checks")
   .parse(process.argv);
+
+if (program.ci) {
+  const guardian = new GuardianCI();
+  guardian.runChecks();
+  process.exit(guardian.resultCode);
+}
 
 function getAWSCredentials() {
   if (program.profile) {
@@ -524,7 +533,9 @@ function promptRegion() {
 }
 
 function startTool() {
-  if (!program.region) {
+  if (program.ci) {
+    // ci intercepted above.
+  } else if (!program.region) {
     promptRegion();
   } else if (!program.stackName) {
     promptStackName();

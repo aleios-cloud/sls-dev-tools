@@ -18,6 +18,7 @@ import { getLogEvents } from "./services/awsCloudwatchLogs";
 import { regionWizardModal } from "./modals/regionWizardModal";
 import { stackWizardModal } from "./modals/stackWizardModal";
 import updateNotifier from "./utils/updateNotifier";
+import { publishLambdaLayer } from "./services/publishLambdaLayer";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -343,6 +344,7 @@ class Main {
 
   async render() {
     setInterval(() => {
+      publishLambdaLayer(lambda, this.resourceTable.fullFuncName);
       this.map.updateMap();
       this.updateResourcesInformation();
       this.updateGraphs();

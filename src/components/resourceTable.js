@@ -7,7 +7,6 @@ import { getStackResources } from "../services/stackResources";
 import { lambdaStatisticsModal } from "../modals/lambdaStatisticsModal";
 import { lambdaInvokeModal } from "../modals/lambdaInvokeModal";
 import { padString } from "../utils/padString";
-import { Table } from "../components/table";
 
 const contrib = require("blessed-contrib");
 const open = require("open");
@@ -34,7 +33,7 @@ class resourceTable {
     this.latestLambdaFunctionsUpdateTimestamp = -1;
     this.program = program;
     this.cloudformation = cloudformation;
-    this.table = new Table(application).table;
+    this.table = this.generateLambdaTable();
     this.funcName = null;
     this.fullFuncName = null;
     this.table.rows.on("select", (item) => {
@@ -155,6 +154,21 @@ class resourceTable {
         return 0;
     }
     return this.updateData();
+  }
+
+  generateLambdaTable() {
+    return this.application.layoutGrid.set(0, 6, 4, 6, contrib.table, {
+      keys: true,
+      fg: "green",
+      label: "<-         Lambda Functions         ->",
+      columnSpacing: 1,
+      columnWidth: [35, 40, 10, 10, 20],
+      style: {
+        border: {
+          fg: "yellow",
+        },
+      },
+    });
   }
 
   getCurrentlyOnHoverLambdaName() {

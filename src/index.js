@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 import AWS from "aws-sdk";
 import { logo, dateFormats, DASHBOARD_FOCUS_INDEX } from "./constants";
-import { helpModal } from "./modals/helpModal";
-import { eventRegistryModal } from "./modals/eventRegistryModal";
-import { eventInjectionModal } from "./modals/eventInjectionModal";
+import {
+  eventRegistryModal,
+  eventInjectionModal,
+  helpModal,
+  regionWizardModal,
+  stackWizardModal,
+} from "./modals";
 
 import { Map } from "./components";
 import { resourceTable } from "./components/resourceTable";
@@ -15,8 +19,6 @@ import {
   checkLogsForErrors,
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
-import { regionWizardModal } from "./modals/regionWizardModal";
-import { stackWizardModal } from "./modals/stackWizardModal";
 import updateNotifier from "./utils/updateNotifier";
 
 const blessed = require("blessed");

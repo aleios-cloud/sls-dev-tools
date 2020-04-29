@@ -2,7 +2,7 @@ import { generateFieldWithTitle } from "../components/fieldWithTitle";
 import { Box } from "../components/box";
 import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
-import { eventRegistryModal } from "./eventRegistryModal";
+import { eventRegistryModal } from "./index";
 
 const blessed = require("blessed");
 

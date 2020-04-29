@@ -4,8 +4,6 @@ import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
 import { InteractiveList } from "../components/interactiveList";
 
-const blessed = require("blessed");
-
 function updateSchemaTable(api, registry, table) {
   api.listSchemas({ RegistryName: registry }, (err, data) => {
     if (err) {

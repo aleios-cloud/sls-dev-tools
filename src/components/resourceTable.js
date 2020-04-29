@@ -162,7 +162,7 @@ class resourceTable {
       fg: "green",
       label: "<-         Lambda Functions         ->",
       columnSpacing: 1,
-      columnWidth: [35, 40, 10, 10, 20],
+      columnWidth: [30, 30, 10, 10, 20],
       style: {
         border: {
           fg: "yellow",

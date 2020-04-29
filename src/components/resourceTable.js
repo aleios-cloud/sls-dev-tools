@@ -6,7 +6,6 @@ import {
 import { getStackResources } from "../services/stackResources";
 import { lambdaStatisticsModal } from "../modals/lambdaStatisticsModal";
 import { lambdaInvokeModal } from "../modals/lambdaInvokeModal";
-import { getFunctionMemoryAndTimeout } from "../services/awsLambda";
 import { padString } from "../utils/padString";
 import { Table } from "../components/table";
 
@@ -42,7 +41,6 @@ class resourceTable {
       [this.funcName] = item.data;
       this.fullFuncName = this.getFullFunctionName(this.funcName);
     });
-    this.funcConfigs = {};
     this.provider = provider;
     this.slsDevToolsConfig = slsDevToolsConfig;
     this.lambdasDeploymentStatus = {};
@@ -243,23 +241,18 @@ class resourceTable {
     this.table.data = lambdaFunctionResources.map((lam) => {
       const funcName = lam.PhysicalResourceId;
       const func = this.lambdaFunctions[funcName];
-      getFunctionMemoryAndTimeout(this.lambda, funcName).then((config) => {
-        this.funcConfigs[funcName] = config;
-      });
-      let timeout = this.funcConfigs[funcName]
-        ? this.funcConfigs[funcName].timeout
-        : "?";
-      let memory = this.funcConfigs[funcName]
-        ? this.funcConfigs[funcName].memory
-        : "?";
+      let timeout = "?";
+      let memory = "?";
+      let funcRuntime = "?";
+      if (func) {
+        funcRuntime = func.Runtime;
+        timeout = func.Timeout.toString();
+        memory = func.MemorySize.toString();
+      }
       // Max timout is 900 seconds, align values with whitespace
       timeout = padString(timeout, 3);
       // Max memory is 3008 MB, align values with whitespace
       memory = padString(memory, 4);
-      let funcRuntime = "?";
-      if (func) {
-        funcRuntime = func.Runtime;
-      }
       return [
         lam.PhysicalResourceId.replace(`${this.program.stackName}-`, ""),
         moment(lam.LastUpdatedTimestamp).format("MMMM Do YYYY, h:mm:ss a"),

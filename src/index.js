@@ -10,7 +10,7 @@ import {
 } from "./modals";
 
 import { Map } from "./components";
-import { resourceTable } from "./components/resourceTable";
+import { ResourceTable } from "./components/resourceTable";
 import Serverless from "./services/serverless";
 import { DurationBarChart } from "./components/durationBarChart";
 import { getLambdaMetrics } from "./services/lambdaMetrics";
@@ -135,9 +135,10 @@ function injectEvent(event) {
 class Main {
   constructor() {
     this.focusIndex = 0;
+    // eslint-disable-next-line new-cap
     this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.durationBarChart = new DurationBarChart(this, cloudwatchLogs, true);
-    this.resourceTable = new resourceTable(
+    this.resourceTable = new ResourceTable(
       this,
       screen,
       program,
@@ -496,7 +497,7 @@ class Main {
     }
   }
 
-  updateRegion(region) {
+  static updateRegion(region) {
     program.region = region;
     AWS.config.region = region;
     updateAWSServices();

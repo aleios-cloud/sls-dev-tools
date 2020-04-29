@@ -1,4 +1,4 @@
-import { eventModal } from "./eventModal";
+import { eventModal } from "./index";
 import { Box } from "../components/box";
 import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";

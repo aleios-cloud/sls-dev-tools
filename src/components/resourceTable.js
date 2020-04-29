@@ -13,7 +13,7 @@ const { exec } = require("child_process");
 const emoji = require("node-emoji");
 const moment = require("moment");
 
-class resourceTable {
+class ResourceTable {
   constructor(
     application,
     screen,
@@ -485,5 +485,5 @@ class resourceTable {
 }
 
 module.exports = {
-  resourceTable,
+  ResourceTable,
 };

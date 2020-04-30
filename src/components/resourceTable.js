@@ -12,6 +12,7 @@ import {
   errorModal,
 } from "../modals";
 
+
 const contrib = require("blessed-contrib");
 const open = require("open");
 const { exec } = require("child_process");

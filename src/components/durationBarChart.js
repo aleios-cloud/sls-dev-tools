@@ -1,5 +1,3 @@
-import { getLogEvents } from "../services/awsCloudwatchLogs";
-
 const contrib = require("blessed-contrib");
 
 class DurationBarChart {

@@ -30,7 +30,7 @@ class ErrorDonutChart {
       (count, numberOfErrorsOnPeriod) => count + numberOfErrorsOnPeriod,
       0
     );
-    if (invocationCount == 0) {
+    if (invocationCount === 0) {
       this.chart.update([
         { percent: 0, label: "Errors/Invocations", color: "red" },
       ]);

@@ -4,9 +4,8 @@ import {
   DASHBOARD_FOCUS_INDEX,
 } from "../constants";
 import { getStackResources } from "../services/stackResources";
-import { lambdaStatisticsModal } from "../modals/lambdaStatisticsModal";
-import { lambdaInvokeModal } from "../modals/lambdaInvokeModal";
 import { padString } from "../utils/padString";
+import { lambdaStatisticsModal, lambdaInvokeModal } from "../modals";
 
 const contrib = require("blessed-contrib");
 const open = require("open");
@@ -14,7 +13,7 @@ const { exec } = require("child_process");
 const emoji = require("node-emoji");
 const moment = require("moment");
 
-class resourceTable {
+class ResourceTable {
   constructor(
     application,
     screen,
@@ -184,8 +183,10 @@ class resourceTable {
   async refreshLambdaFunctions() {
     const allFunctions = [];
     let marker;
-    while (true) {
-      const response = await this.lambda
+    let response = { NextMarker: true };
+    while (response.NextMarker) {
+      // eslint-disable-next-line no-await-in-loop
+      response = await this.lambda
         .listFunctions({
           Marker: marker,
           MaxItems: 50,
@@ -193,12 +194,10 @@ class resourceTable {
         .promise();
       const functions = response.Functions;
       allFunctions.push(...functions);
-      if (!response.NextMarker) {
-        break;
-      }
       marker = response.NextMarker;
     }
     this.lambdaFunctions = allFunctions.reduce((map, func) => {
+      // eslint-disable-next-line no-param-reassign
       map[func.FunctionName] = func;
       return map;
     }, {});
@@ -486,5 +485,5 @@ class resourceTable {
 }
 
 module.exports = {
-  resourceTable,
+  ResourceTable,
 };

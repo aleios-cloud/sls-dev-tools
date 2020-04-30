@@ -8,3 +8,4 @@ export { lambdaStatisticsModal } from "./lambdaStatisticsModal";
 export { regionWizardModal } from "./regionWizardModal";
 export { stackWizardModal } from "./stackWizardModal";
 export { relayModal } from "./relayModal";
+export { errorModal } from "./errorModal";

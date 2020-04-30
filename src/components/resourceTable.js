@@ -19,7 +19,6 @@ const { exec } = require("child_process");
 const emoji = require("node-emoji");
 const moment = require("moment");
 
-
 class ResourceTable {
   constructor(
     application,

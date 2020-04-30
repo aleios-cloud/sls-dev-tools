@@ -10,3 +10,4 @@ export { stackWizardModal } from "./stackWizardModal";
 export { promptMfaModal } from "./promptMfaModal";
 export { relayModal } from "./relayModal";
 export { errorModal } from "./errorModal";
+export { disableRelayModal } from "./disableRelayModal";

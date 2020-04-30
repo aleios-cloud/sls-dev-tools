@@ -17,13 +17,13 @@ import {
 import { getLogEvents } from "./services/awsCloudwatchLogs";
 import checkForUpdates from "./utils/updateNotifier";
 import { getAWSCredentials } from "./services";
-
 import {
   eventRegistryModal,
   eventInjectionModal,
   helpModal,
   regionWizardModal,
   stackWizardModal,
+  disableRelayModal,
 } from "./modals";
 
 const blessed = require("blessed");
@@ -289,10 +289,7 @@ class Main {
     this.screen.unkey(["q", "C-c"]);
     this.screen.key(["q", "C-c"], () => {
       if (this.relayActive && !this.warningGiven) {
-        console.log(
-          "You have an active Relay layer! Disable this before you quit the tool"
-        );
-        this.warningGiven = true;
+        disableRelayModal(this.screen, this);
       } else {
         process.exit(0);
       }
@@ -391,6 +388,10 @@ class Main {
 
   setRelayActive(value) {
     this.relayActive = value;
+  }
+
+  setWarningGiven(value) {
+    this.warningGiven = value;
   }
 
   async render() {

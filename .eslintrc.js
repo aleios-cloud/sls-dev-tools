@@ -20,5 +20,7 @@ module.exports = {
     "no-plusplus": "off",
     "no-param-reassign": "off",
     "no-new": "off",
+    "import/named": "off",
+    "import/no-cycle": "off",
   },
 };

@@ -7,6 +7,7 @@ import { getStackResources } from "../services/stackResources";
 import { lambdaStatisticsModal } from "../modals/lambdaStatisticsModal";
 import { lambdaInvokeModal } from "../modals/lambdaInvokeModal";
 import { padString } from "../utils/padString";
+import { listeningStationModal } from "../modals/listeningStationModal";
 
 const contrib = require("blessed-contrib");
 const open = require("open");
@@ -37,6 +38,9 @@ class resourceTable {
     this.funcName = null;
     this.fullFuncName = null;
     this.table.rows.on("select", (item) => {
+      if (item.data[0] === this.funcName) {
+        listeningStationModal(screen, this.application);
+      }
       [this.funcName] = item.data;
       this.fullFuncName = this.getFullFunctionName(this.funcName);
     });

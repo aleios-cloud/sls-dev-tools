@@ -182,6 +182,11 @@ class Main {
     // Allows use of .bell() function for notifications
     this.notifier = new blessed.Program();
 
+    // Monitor active relay layers
+    this.relayActive = false;
+    // Allow the user the quit after receiving a warning
+    this.warningGiven = false;
+
     checkForUpdates();
 
     this.init();
@@ -280,6 +285,18 @@ class Main {
   }
 
   setKeypresses() {
+    // Overwrite quit keybinds to perform safety checks
+    this.screen.unkey(["q", "C-c"]);
+    this.screen.key(["q", "C-c"], () => {
+      if (this.relayActive && !this.warningGiven) {
+        console.log(
+          "You have an active Relay layer! Disable this before you quit the tool"
+        );
+        this.warningGiven = true;
+      } else {
+        process.exit(0);
+      }
+    });
     this.screen.key(["h"], () => {
       if (this.isModalOpen === false) {
         this.isModalOpen = true;
@@ -370,6 +387,10 @@ class Main {
 
   setPrevError(value) {
     this.prevError = value;
+  }
+
+  setRelayActive(value) {
+    this.relayActive = value;
   }
 
   async render() {

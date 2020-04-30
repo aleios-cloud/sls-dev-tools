@@ -63,6 +63,7 @@ const relayModal = (screen, application) => {
       setTimeout(() => {
         loader.stop();
         loader.destroy();
+        application.setRelayActive(true);
         console.log("Relay setup complete");
       }, 3000);
     }

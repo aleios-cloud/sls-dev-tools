@@ -5,7 +5,11 @@ import {
 } from "../constants";
 import { getStackResources } from "../services/stackResources";
 import { padString } from "../utils/padString";
-import { lambdaStatisticsModal, lambdaInvokeModal } from "../modals";
+import {
+  lambdaStatisticsModal,
+  lambdaInvokeModal,
+  relayModal,
+} from "../modals";
 
 const contrib = require("blessed-contrib");
 const open = require("open");
@@ -36,6 +40,9 @@ class ResourceTable {
     this.funcName = null;
     this.fullFuncName = null;
     this.table.rows.on("select", (item) => {
+      if (item.data[0] === this.funcName) {
+        relayModal(screen, this.application);
+      }
       [this.funcName] = item.data;
       this.fullFuncName = this.getFullFunctionName(this.funcName);
     });

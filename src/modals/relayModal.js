@@ -1,6 +1,7 @@
 import { Box } from "../components/box";
 import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
+import { Loader } from "../components/loader";
 
 const relayModal = (screen, application) => {
   const relayLayout = new ModalLayout(screen, 112, 20, true);
@@ -56,6 +57,14 @@ const relayModal = (screen, application) => {
     if (currentBox === 0) {
       // setup Relay
       console.log("Setting up Relay...");
+      const loader = new Loader(screen, 5, 20);
+      loader.load("Please wait");
+      // Simulate loading time/API callback
+      setTimeout(() => {
+        loader.stop();
+        loader.destroy();
+        console.log("Relay setup complete");
+      }, 3000);
     }
     closeModal();
   });

@@ -8,6 +8,7 @@ import { lambdaStatisticsModal } from "../modals/lambdaStatisticsModal";
 import { lambdaInvokeModal } from "../modals/lambdaInvokeModal";
 import { padString } from "../utils/padString";
 import { relayModal } from "../modals/relayModal";
+import { errorModal } from "../modals/errorModal";
 
 const contrib = require("blessed-contrib");
 const open = require("open");
@@ -39,7 +40,11 @@ class resourceTable {
     this.fullFuncName = null;
     this.table.rows.on("select", (item) => {
       if (item.data[0] === this.funcName) {
-        relayModal(screen, this.application);
+        if (item.data[4].substring(0, 6) === "nodejs") {
+          relayModal(screen, this.application);
+        } else {
+          errorModal(screen, this.application);
+        }
       }
       [this.funcName] = item.data;
       this.fullFuncName = this.getFullFunctionName(this.funcName);

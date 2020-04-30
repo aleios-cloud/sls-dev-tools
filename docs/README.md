@@ -13,7 +13,11 @@ sidebar_label: Installation and use
 
 ![installTool](./assets/startTool.gif)
 
-Run `sls-dev-tools` in the directory with your serverless.yml
+Run `sls-dev-tools` in your serverless project directory.
+
+If the tool isn't able to find the stack name or region in local files or in the command arguments, it will open up a wizard to allow you to select the region and any available stacks.
+
+![argumentWizard](./assets/modalWizard.gif)
 
 ### Options:
 

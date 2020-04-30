@@ -15,6 +15,9 @@ import {
   checkLogsForErrors,
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
+import { regionWizardModal } from "./modals/regionWizardModal";
+import { stackWizardModal } from "./modals/stackWizardModal";
+import updateNotifier from "./utils/updateNotifier";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -31,6 +34,8 @@ try {
   // No config provided
 }
 
+updateNotifier();
+
 program.version(packageJson.version);
 program
   .option("-n, --stack-name <stackName>", "AWS stack name")
@@ -42,7 +47,7 @@ program
   .option("-i, --interval <interval>", "interval of graphs, in seconds")
   .option("-p, --profile <profile>", "aws profile name to use")
   .option("-l, --location <location>", "location of your serverless project")
-  .option("-s, --stage <stage>", "If sls option is set, use this stage", "dev")
+  .option("-s, --stage <stage>", "If sls option is set, use this stage")
   .option("--sls", "use the serverless framework to execute commands")
   .option("--sam", "use the SAM framework to execute commands")
   .parse(process.argv);
@@ -68,6 +73,7 @@ function getAWSCredentials() {
 }
 
 const screen = blessed.screen({ smartCSR: true });
+screen.key(["q", "C-c"], () => process.exit(0));
 const profile = program.profile || "default";
 const location = program.location || process.cwd();
 let provider = "";
@@ -76,34 +82,39 @@ if (program.sam) {
 } else {
   provider = "serverlessFramework";
   const SLS = new Serverless(location);
+  if (!program.stage) {
+    program.stage = SLS.getStage();
+  }
   if (!program.stackName) {
     program.stackName = SLS.getStackName(program.stage);
   }
-
   if (!program.region) {
     program.region = SLS.getRegion();
   }
 }
 
-if (!program.stackName) {
-  console.error(
-    "error: required option '-n, --stack-name <stackName>' not specified"
-  );
-  process.exit(1);
-}
-if (!program.region) {
-  console.error("error: required option '-r, --region <region>' not specified");
-  process.exit(1);
+AWS.config.credentials = getAWSCredentials();
+
+let cloudformation;
+let cloudwatch;
+let cloudwatchLogs;
+let eventBridge;
+let schemas;
+let lambda;
+
+function updateAWSServices() {
+  cloudformation = new AWS.CloudFormation();
+  cloudwatch = new AWS.CloudWatch();
+  cloudwatchLogs = new AWS.CloudWatchLogs();
+  eventBridge = new AWS.EventBridge();
+  schemas = new AWS.Schemas();
+  lambda = new AWS.Lambda();
 }
 
-AWS.config.credentials = getAWSCredentials();
-AWS.config.region = program.region;
-let cloudformation = new AWS.CloudFormation();
-let cloudwatch = new AWS.CloudWatch();
-let cloudwatchLogs = new AWS.CloudWatchLogs();
-let eventBridge = new AWS.EventBridge();
-let schemas = new AWS.Schemas();
-let lambda = new AWS.Lambda();
+if (program.region) {
+  AWS.config.region = program.region;
+  updateAWSServices();
+}
 
 function getEventBuses() {
   return eventBridge.listEventBuses().promise();
@@ -207,7 +218,7 @@ class Main {
       // Round to closest interval to make query faster.
       this.startTime = new Date(
         Math.round(new Date().getTime() / this.interval) * this.interval -
-        dateOffset
+          dateOffset
       );
     }
 
@@ -230,6 +241,13 @@ class Main {
     this.previousSubmittedEvent = {};
     // Dictionary to store previous submissions for each lambda function
     this.previousLambdaPayload = {};
+
+    // Store previous errorId found in logs, with region and fullFunc name
+    this.prevError = {};
+    // Store events from cloudwatchLogs
+    this.events = [];
+    // Allows use of .bell() function for notifications
+    this.notifier = new blessed.Program();
   }
 
   setKeypresses() {
@@ -246,7 +264,6 @@ class Main {
       }
       return 0;
     });
-    screen.key(["q", "C-c"], () => process.exit(0));
     // fixes https://github.com/yaronn/blessed-contrib/issues/10
     screen.key(["o"], () => {
       // If focus is currently on this.eventBridgeTree
@@ -283,7 +300,8 @@ class Main {
           selectedEventBridge,
           this,
           injectEvent,
-          previousEvent
+          previousEvent,
+          schemas
         );
       }
       return 0;
@@ -321,8 +339,8 @@ class Main {
     this.firstLogsRetrieved = value;
   }
 
-  setPrevErrorId(value) {
-    this.prevErrorId = value;
+  setPrevError(value) {
+    this.prevError = value;
   }
 
   async render() {
@@ -336,17 +354,24 @@ class Main {
 
   async updateGraphs() {
     if (this.resourceTable.fullFuncName) {
-      this.data = await getLambdaMetrics(this, this.resourceTable.fullFuncName, cloudwatch);
-      getLogEvents(`/aws/lambda/${this.resourceTable.fullFuncName}`, cloudwatchLogs).then(
-        (data) => {
-          this.events = data;
-          updateLogContentsFromEvents(this.lambdaLog, this.events);
+      this.data = await getLambdaMetrics(
+        this,
+        this.resourceTable.fullFuncName,
+        cloudwatch
+      );
+      getLogEvents(
+        `/aws/lambda/${this.resourceTable.fullFuncName}`,
+        cloudwatchLogs
+      ).then((data) => {
+        this.events = data;
+        updateLogContentsFromEvents(this.lambdaLog, this.events);
+        if (data) {
           checkLogsForErrors(this.events, this);
           this.setFirstLogsRetrieved(true);
 
           this.durationBarChart.updateData();
         }
-      );
+      });
     }
 
     this.padInvocationsAndErrorsWithZeros();
@@ -470,16 +495,43 @@ class Main {
   }
 
   updateRegion(region) {
-    this.program.region = region;
+    program.region = region;
     AWS.config.region = region;
-    cloudformation = new AWS.CloudFormation();
-    cloudwatch = new AWS.CloudWatch();
-    cloudwatchLogs = new AWS.CloudWatchLogs();
-    eventBridge = new AWS.EventBridge();
-    schemas = new AWS.Schemas();
-    lambda = new AWS.Lambda();
+    updateAWSServices();
   }
 }
 
-new Main().render();
-exports.slsDevTools = () => new Main().render();
+function promptStackName() {
+  const stackTable = stackWizardModal(screen, program, cloudformation);
+  stackTable.key(["enter"], () => {
+    program.stackName = stackTable.ritems[stackTable.selected];
+    new Main().render();
+  });
+}
+
+function promptRegion() {
+  const regionTable = regionWizardModal(screen, program);
+  regionTable.key(["enter"], () => {
+    program.region = regionTable.ritems[regionTable.selected];
+    AWS.config.region = program.region;
+    updateAWSServices();
+    if (!program.stackName) {
+      promptStackName();
+    } else {
+      new Main().render();
+    }
+  });
+}
+
+function startTool() {
+  if (!program.region) {
+    promptRegion();
+  } else if (!program.stackName) {
+    promptStackName();
+  } else {
+    new Main().render();
+  }
+}
+
+startTool();
+exports.slsDevTools = () => startTool();

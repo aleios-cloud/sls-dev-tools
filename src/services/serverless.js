@@ -20,6 +20,21 @@ class Serverless {
     }
   }
 
+  getStage() {
+    if (typeof this.config !== "object") {
+      return "dev";
+    }
+    if (
+      this.config.provider &&
+      this.config.provider.stage &&
+      typeof this.config.provider.stage === "string" &&
+      this.config.provider.stage[0] !== "$"
+    ) {
+      return `${this.config.provider.stage}`;
+    }
+    return "dev";
+  }
+
   getStackName(stage) {
     if (typeof this.config !== "object") {
       return null;
@@ -44,7 +59,8 @@ class Serverless {
     if (
       this.config.provider &&
       this.config.provider.region &&
-      typeof this.config.provider.region === "string"
+      typeof this.config.provider.region === "string" &&
+      this.config.provider.region[0] !== "$"
     ) {
       return `${this.config.provider.region}`;
     }

@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 import AWS from "aws-sdk";
 import { logo, dateFormats, DASHBOARD_FOCUS_INDEX } from "./constants";
-import { helpModal } from "./modals/helpModal";
-import { eventRegistryModal } from "./modals/eventRegistryModal";
-import { eventInjectionModal } from "./modals/eventInjectionModal";
+import {
+  eventRegistryModal,
+  eventInjectionModal,
+  helpModal,
+  regionWizardModal,
+  stackWizardModal,
+} from "./modals";
 
 import { Map } from "./components";
-import { resourceTable } from "./components/resourceTable";
+import { ResourceTable } from "./components/resourceTable";
 import Serverless from "./services/serverless";
 import { DurationBarChart } from "./components/durationBarChart";
 import { getLambdaMetrics } from "./services/lambdaMetrics";
@@ -15,9 +19,8 @@ import {
   checkLogsForErrors,
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
-import { regionWizardModal } from "./modals/regionWizardModal";
-import { stackWizardModal } from "./modals/stackWizardModal";
 import updateNotifier from "./utils/updateNotifier";
+import { disableRelayModal } from "./modals/disableRelayModal";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -133,9 +136,10 @@ function injectEvent(event) {
 class Main {
   constructor() {
     this.focusIndex = 0;
+    // eslint-disable-next-line new-cap
     this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.durationBarChart = new DurationBarChart(this, cloudwatchLogs, true);
-    this.resourceTable = new resourceTable(
+    this.resourceTable = new ResourceTable(
       this,
       screen,
       program,
@@ -248,9 +252,23 @@ class Main {
     this.events = [];
     // Allows use of .bell() function for notifications
     this.notifier = new blessed.Program();
+
+    // Monitor active relay layers
+    this.relayActive = false;
+    // Allow the user the quit after receiving a warning
+    this.warningGiven = false;
   }
 
   setKeypresses() {
+    // Overwrite quit keybinds to perform safety checks
+    screen.unkey(["q", "C-c"]);
+    screen.key(["q", "C-c"], () => {
+      if (this.relayActive && !this.warningGiven) {
+        disableRelayModal(screen, this);
+      } else {
+        process.exit(0);
+      }
+    });
     screen.key(["h"], () => {
       if (this.isModalOpen === false) {
         this.isModalOpen = true;
@@ -341,6 +359,14 @@ class Main {
 
   setPrevError(value) {
     this.prevError = value;
+  }
+
+  setRelayActive(value) {
+    this.relayActive = value;
+  }
+
+  setWarningGiven(value) {
+    this.warningGiven = value;
   }
 
   async render() {
@@ -494,7 +520,7 @@ class Main {
     }
   }
 
-  updateRegion(region) {
+  static updateRegion(region) {
     program.region = region;
     AWS.config.region = region;
     updateAWSServices();

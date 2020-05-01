@@ -3,8 +3,8 @@ import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
 import { Loader } from "../components/loader";
 
-const relayModal = (screen, application) => {
-  const relayLayout = new ModalLayout(screen, 112, 20, true);
+const disableRelayModal = (screen, application) => {
+  const disableRelayLayout = new ModalLayout(screen, 112, 20, true);
 
   const numBoxes = 2;
   let currentBox = 0;
@@ -23,54 +23,57 @@ const relayModal = (screen, application) => {
   const closeModal = () => {
     application.setIsModalOpen(false);
     application.returnFocus();
-    relayLayout.destroy();
+    disableRelayLayout.destroy();
   };
 
-  new ModalTitle(relayLayout, 110, "Setup Relay?");
+  new ModalTitle(disableRelayLayout, 110, "Disable Relay");
 
   new Box(
-    relayLayout,
+    disableRelayLayout,
     110,
     4,
-    "Select yes to add the Relay layer to your lambda function.\nThis allows you to receive lambda logs faster than the AWS console displays them"
+    "You still have active Relay layers on some of your Lambdas. We strongly recommend disabling these before quitting the tool"
   );
 
-  const yesButton = new Box(relayLayout, 110, 4, "Yes");
-  const noButton = new Box(relayLayout, 110, 4, "No");
+  const confirmButton = new Box(
+    disableRelayLayout,
+    110,
+    4,
+    "Disable all Relay layers and quit"
+  );
+  const dismissButton = new Box(disableRelayLayout, 110, 4, "Dismiss");
 
-  boxes.push(yesButton);
-  boxes.push(noButton);
+  boxes.push(confirmButton);
+  boxes.push(dismissButton);
 
   new Box(
-    relayLayout,
+    disableRelayLayout,
     110,
     4,
     "Use the arrow keys and ENTER to select option\nESC to close"
   );
 
-  relayLayout.focus();
+  disableRelayLayout.focus();
 
   selectButton(currentBox);
 
-  relayLayout.key(["enter"], () => {
-    // If yes selected, begin Relay setup
+  disableRelayLayout.key(["enter"], () => {
+    // If confirm selected, disable Relay layers
     if (currentBox === 0) {
-      // setup Relay
-      console.log("Setting up Relay...");
-      const loader = new Loader(screen, 5, 20);
-      loader.load("Please wait");
-      // Simulate loading time/API callback
+      const loader = new Loader(screen, 5, 30);
+      loader.load("Disabling Relay layers...");
+      // Simulate remove layers API callback
       setTimeout(() => {
-        loader.stop();
-        loader.destroy();
-        application.setRelayActive(true);
-        console.log("Relay setup complete");
-      }, 3000);
+        process.exit(0);
+      }, 2000);
+    } else {
+      // Dismiss warning and allow user to quit
+      application.setWarningGiven(true);
+      closeModal();
     }
-    closeModal();
   });
 
-  relayLayout.key(["up"], () => {
+  disableRelayLayout.key(["up"], () => {
     unselectButton(currentBox);
     currentBox -= 1;
     if (currentBox === -1) {
@@ -78,7 +81,7 @@ const relayModal = (screen, application) => {
     }
     selectButton(currentBox);
   });
-  relayLayout.key(["down"], () => {
+  disableRelayLayout.key(["down"], () => {
     unselectButton(currentBox);
     currentBox += 1;
     if (currentBox === numBoxes) {
@@ -86,12 +89,12 @@ const relayModal = (screen, application) => {
     }
     selectButton(currentBox);
   });
-  relayLayout.key(["escape"], () => {
+  disableRelayLayout.key(["escape"], () => {
     // Discard modal
     closeModal();
   });
 };
 
 module.exports = {
-  relayModal,
+  disableRelayModal,
 };

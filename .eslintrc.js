@@ -18,5 +18,9 @@ module.exports = {
     quotes: ["error", "double"],
     "no-console": "off",
     "no-plusplus": "off",
+    "no-param-reassign": "off",
+    "no-new": "off",
+    "import/named": "off",
+    "import/no-cycle": "off",
   },
 };

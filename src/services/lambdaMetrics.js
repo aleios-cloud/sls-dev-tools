@@ -51,7 +51,10 @@ const getLambdaMetrics = (application, functionName, cloudwatch) => {
     ],
   };
 
-  return cloudwatch.getMetricData(params).promise();
+  return cloudwatch
+    .getMetricData(params)
+    .promise()
+    .catch((error) => console.error(error));
 };
 
 module.exports = {

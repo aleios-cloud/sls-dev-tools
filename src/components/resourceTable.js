@@ -191,7 +191,8 @@ class ResourceTable {
           Marker: marker,
           MaxItems: 50,
         })
-        .promise();
+        .promise()
+        .catch((error) => console.error(error));
       const functions = response.Functions;
       allFunctions.push(...functions);
       marker = response.NextMarker;
@@ -209,17 +210,20 @@ class ResourceTable {
       this.cloudformation,
       this.application.setData
     );
-    this.application.data = stackResources;
 
-    switch (this.type) {
-      case RESOURCE_TABLE_TYPE.LAMBDA:
-        await this.updateLambdaTableData(stackResources);
-        break;
-      case RESOURCE_TABLE_TYPE.ALL_RESOURCES:
-        this.updateAllResourceTableData(stackResources);
-        break;
-      default:
-        break;
+    if (stackResources) {
+      this.application.data = stackResources;
+
+      switch (this.type) {
+        case RESOURCE_TABLE_TYPE.LAMBDA:
+          this.updateLambdaTableData(stackResources);
+          break;
+        case RESOURCE_TABLE_TYPE.ALL_RESOURCES:
+          this.updateAllResourceTableData(stackResources);
+          break;
+        default:
+          break;
+      }
     }
     return 0;
   }
@@ -248,7 +252,7 @@ class ResourceTable {
       // we are getting all the functions' configurations in batch
       // even though there will be unrelated ones with the stack.
       // Because this should result with less API calls in most cases.
-      await this.refreshLambdaFunctions();
+      this.refreshLambdaFunctions();
       this.latestLambdaFunctionsUpdateTimestamp = latestLastUpdatedTimestamp;
     }
     this.table.data = lambdaFunctionResources.map((lam) => {

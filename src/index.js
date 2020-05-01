@@ -119,7 +119,12 @@ if (program.region) {
 }
 
 function getEventBuses() {
-  return eventBridge.listEventBuses().promise();
+  return eventBridge
+    .listEventBuses()
+    .promise()
+    .catch((error) => {
+      console.error(error);
+    });
 }
 
 function injectEvent(event) {
@@ -383,20 +388,21 @@ class Main {
   }
 
   async updateResourcesInformation() {
-    await this.resourceTable.updateData();
+    this.resourceTable.updateData();
     const eventBridgeResources = await getEventBuses();
-    const busNames = eventBridgeResources.EventBuses.map((o) => o.Name).reduce(
-      (eventBridges, bus) => {
+    if (eventBridgeResources) {
+      const busNames = eventBridgeResources.EventBuses.map(
+        (o) => o.Name
+      ).reduce((eventBridges, bus) => {
         eventBridges[bus] = {};
         return eventBridges;
-      },
-      {}
-    );
+      }, {});
 
-    this.eventBridgeTree.setData({
-      extended: true,
-      children: busNames,
-    });
+      this.eventBridgeTree.setData({
+        extended: true,
+        children: busNames,
+      });
+    }
   }
 
   changeFocus() {

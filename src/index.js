@@ -165,7 +165,7 @@ class Main {
       wholeNumbersOnly: true,
       legend: { width: 50 },
     });
-    this.map = new Map(this.layoutGrid, program, this.updateRegion);
+    this.map = new Map(this.layoutGrid, program, Main.updateRegion);
     this.eventBridgeTree = this.layoutGrid.set(8, 9, 4, 3, contrib.tree, {
       label: "Event Bridges",
       style: {

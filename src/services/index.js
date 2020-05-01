@@ -1,3 +1,4 @@
 export { getAWSCredentials } from "./awsCredentials";
-export { getStackResources } from "./stackResources";
 export { getLambdaFunctions } from "./awsLambda";
+export { ApiGateway } from "./apiGateway";
+export { getStackResources } from "./stackResources";

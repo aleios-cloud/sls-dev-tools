@@ -16,7 +16,7 @@ import {
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
 import checkForUpdates from "./utils/updateNotifier";
-import { getAWSCredentials } from "./services";
+import { getAWSCredentials, ApiGateway } from "./services";
 import {
   eventRegistryModal,
   eventInjectionModal,
@@ -48,6 +48,7 @@ class Main {
     this.eventBridge = new AWS.EventBridge();
     this.schemas = new AWS.Schemas();
     this.lambda = new AWS.Lambda();
+    this.apiGateway = new ApiGateway(AWS);
 
     if (this.program.region) {
       AWS.config.region = this.program.region;

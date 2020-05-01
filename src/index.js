@@ -21,6 +21,7 @@ import {
 import { getLogEvents } from "./services/awsCloudwatchLogs";
 import updateNotifier from "./utils/updateNotifier";
 import { disableRelayModal } from "./modals/disableRelayModal";
+import { ApiGateway } from "./services";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -104,6 +105,7 @@ let cloudwatchLogs;
 let eventBridge;
 let schemas;
 let lambda;
+let apiGateway;
 
 function updateAWSServices() {
   cloudformation = new AWS.CloudFormation();
@@ -112,6 +114,7 @@ function updateAWSServices() {
   eventBridge = new AWS.EventBridge();
   schemas = new AWS.Schemas();
   lambda = new AWS.Lambda();
+  apiGateway = new ApiGateway(AWS);
 }
 
 if (program.region) {

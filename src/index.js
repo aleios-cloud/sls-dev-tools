@@ -7,6 +7,7 @@ import {
   helpModal,
   regionWizardModal,
   stackWizardModal,
+  promptMfaModal,
 } from "./modals";
 
 import { Map } from "./components";
@@ -54,10 +55,22 @@ program
   .option("--sam", "use the SAM framework to execute commands")
   .parse(process.argv);
 
+function getMfaToken(serial, callback) {
+  promptMfaModal(callback, screen);
+}
+
 function getAWSCredentials() {
   if (program.profile) {
     process.env.AWS_SDK_LOAD_CONFIG = 1;
-    return new AWS.SharedIniFileCredentials({ profile: program.profile });
+    return new AWS.SharedIniFileCredentials({
+      profile: program.profile,
+      tokenCodeFn: getMfaToken,
+      callback: (err) => {
+        if (err) {
+          console.error(`SharedIniFileCreds Error: ${err}`);
+        }
+      },
+    });
   }
   if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
     return new AWS.Credentials({
@@ -69,6 +82,12 @@ function getAWSCredentials() {
   if (process.env.AWS_PROFILE) {
     return new AWS.SharedIniFileCredentials({
       profile: process.env.AWS_PROFILE,
+      tokenCodeFn: getMfaToken,
+      callback: (err) => {
+        if (err) {
+          console.error(`SharedIniFileCreds Error: ${err}`);
+        }
+      },
     });
   }
   return new AWS.SharedIniFileCredentials({ profile: "default" });
@@ -94,8 +113,6 @@ if (program.sam) {
     program.region = SLS.getRegion();
   }
 }
-
-AWS.config.credentials = getAWSCredentials();
 
 let cloudformation;
 let cloudwatch;
@@ -532,14 +549,32 @@ function promptRegion() {
   });
 }
 
-function startTool() {
-  if (!program.region) {
-    promptRegion();
-  } else if (!program.stackName) {
-    promptStackName();
-  } else {
-    new Main().render();
-  }
+async function getAwsCreds() {
+  const creds = getAWSCredentials();
+
+  (async () => {
+    await creds
+      .getPromise()
+      .then(() => {
+        AWS.config.credentials = creds;
+        updateAWSServices();
+
+        if (!program.region) {
+          promptRegion();
+        } else if (!program.stackName) {
+          promptStackName();
+        } else {
+          new Main().render();
+        }
+      })
+      .catch((error) => {
+        console.log(JSON.stringify(creds), "error:", error);
+      });
+  })();
+}
+
+async function startTool() {
+  await getAwsCreds();
 }
 
 startTool();

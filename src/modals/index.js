@@ -7,3 +7,4 @@ export { lambdaInvokeModal } from "./lambdaInvokeModal";
 export { lambdaStatisticsModal } from "./lambdaStatisticsModal";
 export { regionWizardModal } from "./regionWizardModal";
 export { stackWizardModal } from "./stackWizardModal";
+export { promptMfaModal } from "./promptMfaModal";

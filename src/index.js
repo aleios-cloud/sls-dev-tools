@@ -7,7 +7,6 @@ import {
   helpModal,
   regionWizardModal,
   stackWizardModal,
-  promptMfaModal,
 } from "./modals";
 
 import { Map } from "./components";

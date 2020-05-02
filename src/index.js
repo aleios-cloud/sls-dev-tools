@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 import AWS from "aws-sdk";
 import { logo, dateFormats, DASHBOARD_FOCUS_INDEX } from "./constants";
-import { helpModal } from "./modals/helpModal";
-import { eventRegistryModal } from "./modals/eventRegistryModal";
-import { eventInjectionModal } from "./modals/eventInjectionModal";
+import {
+  eventRegistryModal,
+  eventInjectionModal,
+  helpModal,
+  regionWizardModal,
+  stackWizardModal,
+} from "./modals";
 
 import { Map } from "./components";
-import { resourceTable } from "./components/resourceTable";
+import { ResourceTable } from "./components/resourceTable";
 import Serverless from "./services/serverless";
 import { DurationBarChart } from "./components/durationBarChart";
 import { getLambdaMetrics } from "./services/lambdaMetrics";
@@ -18,6 +22,7 @@ import { getLogEvents } from "./services/awsCloudwatchLogs";
 import { regionWizardModal } from "./modals/regionWizardModal";
 import { stackWizardModal } from "./modals/stackWizardModal";
 import { promptMfaModal } from "./modals/promptMfaModal";
+
 import updateNotifier from "./utils/updateNotifier";
 
 const blessed = require("blessed");
@@ -135,7 +140,12 @@ if (program.region) {
 }
 
 function getEventBuses() {
-  return eventBridge.listEventBuses().promise();
+  return eventBridge
+    .listEventBuses()
+    .promise()
+    .catch((error) => {
+      console.error(error);
+    });
 }
 
 function injectEvent(event) {
@@ -151,9 +161,10 @@ function injectEvent(event) {
 class Main {
   constructor() {
     this.focusIndex = 0;
+    // eslint-disable-next-line new-cap
     this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.durationBarChart = new DurationBarChart(this, cloudwatchLogs, true);
-    this.resourceTable = new resourceTable(
+    this.resourceTable = new ResourceTable(
       this,
       screen,
       program,
@@ -175,7 +186,7 @@ class Main {
       wholeNumbersOnly: true,
       legend: { width: 50 },
     });
-    this.map = new Map(this.layoutGrid, program, this.updateRegion);
+    this.map = new Map(this.layoutGrid, program, Main.updateRegion);
     this.eventBridgeTree = this.layoutGrid.set(8, 9, 4, 3, contrib.tree, {
       label: "Event Bridges",
       style: {
@@ -398,20 +409,21 @@ class Main {
   }
 
   async updateResourcesInformation() {
-    await this.resourceTable.updateData();
+    this.resourceTable.updateData();
     const eventBridgeResources = await getEventBuses();
-    const busNames = eventBridgeResources.EventBuses.map((o) => o.Name).reduce(
-      (eventBridges, bus) => {
+    if (eventBridgeResources) {
+      const busNames = eventBridgeResources.EventBuses.map(
+        (o) => o.Name
+      ).reduce((eventBridges, bus) => {
         eventBridges[bus] = {};
         return eventBridges;
-      },
-      {}
-    );
+      }, {});
 
-    this.eventBridgeTree.setData({
-      extended: true,
-      children: busNames,
-    });
+      this.eventBridgeTree.setData({
+        extended: true,
+        children: busNames,
+      });
+    }
   }
 
   changeFocus() {
@@ -512,7 +524,7 @@ class Main {
     }
   }
 
-  updateRegion(region) {
+  static updateRegion(region) {
     program.region = region;
     AWS.config.region = region;
     updateAWSServices();

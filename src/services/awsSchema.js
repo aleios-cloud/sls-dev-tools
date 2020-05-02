@@ -1,7 +1,8 @@
 function getSchema(api, registry, schema) {
   return api
     .describeSchema({ RegistryName: registry, SchemaName: schema })
-    .promise();
+    .promise()
+    .catch((error) => console.error(error));
 }
 
 function handleAWSEvent(schemas) {

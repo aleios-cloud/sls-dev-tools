@@ -6,10 +6,10 @@ import { ModalTitle } from "../components/modalTitle";
 const blessed = require("blessed");
 
 function promptMfaModal(callback, screen) {
-  
   const mfaLayout = new ModalLayout(screen, 112, 15, true);
 
   let currentTextbox = 0;
+  const textboxes = [];
 
   const closeModal = () => {
     mfaLayout.destroy();
@@ -32,8 +32,6 @@ function promptMfaModal(callback, screen) {
     }
     screen.render();
   };
-
-  const textboxes = [];
 
   new ModalTitle(mfaLayout, 110, "Enter your MFA Token");
 
@@ -62,13 +60,11 @@ function promptMfaModal(callback, screen) {
   );
 
   mfaLayout.focus();
-
   selectTextbox(0);
-  
   screen.render();
 
   mfaLayout.key(["enter"], () => {
-      //this is the submit button
+    // this is the submit button
     if (currentTextbox === 1) {
       closeModal();
     } else {
@@ -99,5 +95,5 @@ function promptMfaModal(callback, screen) {
 }
 
 module.exports = {
-    promptMfaModal,
+  promptMfaModal,
 };

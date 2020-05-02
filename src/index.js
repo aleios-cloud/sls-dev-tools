@@ -7,6 +7,7 @@ import {
   helpModal,
   regionWizardModal,
   stackWizardModal,
+  promptMfaModal,
 } from "./modals";
 
 import { Map } from "./components";
@@ -54,6 +55,43 @@ program
   .option("--sam", "use the SAM framework to execute commands")
   .parse(process.argv);
 
+const screen = blessed.screen({ smartCSR: true });
+screen.key(["q", "C-c"], () => process.exit(0));
+const profile = program.profile || "default";
+const location = program.location || process.cwd();
+let provider = "";
+if (program.sam) {
+  provider = "SAM";
+} else {
+  provider = "serverlessFramework";
+  const SLS = new Serverless(location);
+  if (!program.stage) {
+    program.stage = SLS.getStage();
+  }
+  if (!program.stackName) {
+    program.stackName = SLS.getStackName(program.stage);
+  }
+  if (!program.region) {
+    program.region = SLS.getRegion();
+  }
+}
+
+let cloudformation;
+let cloudwatch;
+let cloudwatchLogs;
+let eventBridge;
+let schemas;
+let lambda;
+
+function updateAWSServices() {
+  cloudformation = new AWS.CloudFormation();
+  cloudwatch = new AWS.CloudWatch();
+  cloudwatchLogs = new AWS.CloudWatchLogs();
+  eventBridge = new AWS.EventBridge();
+  schemas = new AWS.Schemas();
+  lambda = new AWS.Lambda();
+}
+
 function getMfaToken(serial, callback) {
   promptMfaModal(callback, screen);
 }
@@ -90,43 +128,6 @@ function getAWSCredentials() {
     });
   }
   return new AWS.SharedIniFileCredentials({ profile: "default" });
-}
-
-const screen = blessed.screen({ smartCSR: true });
-screen.key(["q", "C-c"], () => process.exit(0));
-const profile = program.profile || "default";
-const location = program.location || process.cwd();
-let provider = "";
-if (program.sam) {
-  provider = "SAM";
-} else {
-  provider = "serverlessFramework";
-  const SLS = new Serverless(location);
-  if (!program.stage) {
-    program.stage = SLS.getStage();
-  }
-  if (!program.stackName) {
-    program.stackName = SLS.getStackName(program.stage);
-  }
-  if (!program.region) {
-    program.region = SLS.getRegion();
-  }
-}
-
-let cloudformation;
-let cloudwatch;
-let cloudwatchLogs;
-let eventBridge;
-let schemas;
-let lambda;
-
-function updateAWSServices() {
-  cloudformation = new AWS.CloudFormation();
-  cloudwatch = new AWS.CloudWatch();
-  cloudwatchLogs = new AWS.CloudWatchLogs();
-  eventBridge = new AWS.EventBridge();
-  schemas = new AWS.Schemas();
-  lambda = new AWS.Lambda();
 }
 
 if (program.region) {

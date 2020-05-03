@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 
 import NoDefaultMemory from './rules/best_practices/no-default-memory'
+import NoDefaultTimeout from './rules/best_practices/no-default-timeout'
 import { getStackResources } from "../services/stackResources";
 
 const infoLog = chalk.greenBright;
@@ -21,7 +22,7 @@ class GuardianCI {
         }
         this.AWS = AWS;
         this.stackName = stackName;
-        this.checksToRun = [NoDefaultMemory];
+        this.checksToRun = [NoDefaultMemory, NoDefaultTimeout];
         this.failingChecks = [];
 
 
@@ -86,6 +87,7 @@ class GuardianCI {
         console.log("Analysing Resources...")
         await this.initResources()
         for (const Check of this.checksToRun) {
+            console.group()
             const check = new Check(this.AWS, this.stackName, this.stackFunctions)
             process.stdout.write(infoLog(`   > ${check.name}... `));
             const checkResult = await check.run();
@@ -93,6 +95,7 @@ class GuardianCI {
             if (!checkResult) {
                 this.failingChecks = [...this.failingChecks, check]
             }
+            console.groupEnd()
         }
         console.groupEnd()
 
@@ -102,11 +105,10 @@ class GuardianCI {
 
         let overallResult = true;
         this.failingChecks.forEach(failingCheck => {
-            console.log(fail(failingCheck.name));
+            console.log(fail('   > ' + failingCheck.name));
             console.log(failingCheck.failureMessage);
             console.log(failingCheck.rulePage);
             console.table(failingCheck.failingResources);
-            console.groupEnd()
             overallResult = false;
         })
         console.groupEnd()

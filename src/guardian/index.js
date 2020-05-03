@@ -1,4 +1,10 @@
 import NoDefaultMemory from './rules/best_practices/no-default-memory'
+import chalk from 'chalk';
+
+const infoLog = chalk.greenBright;
+const titleLog = chalk.greenBright.underline.bold;
+const fail = chalk.redBright;
+const failTitleLog = chalk.redBright.underline.bold;
 
 class GuardianCI {
     constructor(AWS, stackName) {

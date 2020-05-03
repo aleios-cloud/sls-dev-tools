@@ -1,6 +1,6 @@
 class NoDefaultMemory {
   constructor(AWS, stackName, stackFunctions) { 
-        this.name = "no-default-memory "
+        this.name = "no-default-memory"
         this.AWS = AWS;
         this.stackName = stackName;
         this.stackFunctions = stackFunctions

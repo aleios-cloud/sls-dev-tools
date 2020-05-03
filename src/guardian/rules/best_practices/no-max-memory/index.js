@@ -1,6 +1,6 @@
 class NoMaximumMemory {
   constructor(AWS, stackName, stackFunctions) { 
-        this.name = "no-max-memory "
+        this.name = "no-max-memory"
         this.AWS = AWS;
         this.stackName = stackName;
         this.stackFunctions = stackFunctions

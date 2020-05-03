@@ -109,11 +109,12 @@ class GuardianCI {
 
         let overallResult = true;
         this.failingChecks.forEach(failingCheck => {
-            console.log(fail('   > ' + failingCheck.name));
+            console.group(fail('> ' + failingCheck.name));
             console.log(failingCheck.failureMessage);
             console.log(failingCheck.rulePage);
             console.table(failingCheck.failingResources);
             overallResult = false;
+            console.groupEnd();
         })
         console.groupEnd()
 

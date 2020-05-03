@@ -549,32 +549,26 @@ function promptRegion() {
   });
 }
 
-async function getAwsCreds() {
+function startTool() {
   const creds = getAWSCredentials();
 
-  (async () => {
-    await creds
-      .getPromise()
-      .then(() => {
-        AWS.config.credentials = creds;
-        updateAWSServices();
+  creds
+    .getPromise()
+    .then(() => {
+      AWS.config.credentials = creds;
+      updateAWSServices();
 
-        if (!program.region) {
-          promptRegion();
-        } else if (!program.stackName) {
-          promptStackName();
-        } else {
-          new Main().render();
-        }
-      })
-      .catch((error) => {
-        console.log(JSON.stringify(creds), "error:", error);
-      });
-  })();
-}
-
-async function startTool() {
-  await getAwsCreds();
+      if (!program.region) {
+        promptRegion();
+      } else if (!program.stackName) {
+        promptStackName();
+      } else {
+        new Main().render();
+      }
+    })
+    .catch((error) => {
+      console.log(JSON.stringify(creds), "error:", error);
+    });
 }
 
 startTool();

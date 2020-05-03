@@ -5,6 +5,7 @@ import NoDefaultTimeout from './rules/best_practices/no-default-timeout'
 import NoMaximumTimeout from './rules/best_practices/no-max-timeout'
 import NoMaximumMemory from './rules/best_practices/no-max-memory'
 import NoIdenticalCode from './rules/best_practices/no-identical-code'
+import NoSharedRoles from './rules/best_practices/no-shared-roles'
 import { getStackResources } from "../services/stackResources";
 
 const infoLog = chalk.greenBright;
@@ -25,7 +26,14 @@ class GuardianCI {
         }
         this.AWS = AWS;
         this.stackName = stackName;
-        this.checksToRun = [NoDefaultMemory, NoDefaultTimeout, NoMaximumTimeout, NoMaximumMemory, NoIdenticalCode];
+        this.checksToRun = [
+            NoDefaultMemory,
+            NoDefaultTimeout,
+            NoMaximumTimeout,
+            NoMaximumMemory,
+            NoIdenticalCode,
+            NoSharedRoles,
+        ];
         this.failingChecks = [];
 
 
@@ -71,12 +79,15 @@ class GuardianCI {
         console.log(chalk.greenBright(`
          ‗‗‗‗‗‗‗‗‗‗‗‗‗‗‗†‗‗‗‗‗‗‗‗‗‗‗‗‗‗
                         ╿
+                       ▓▓▓
+                     ▓▓▓▓▓▓▓
+                 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+                ▓▔▔▔▔▔▔▔▓▔▔▔▔▔▔▔▓
+                ▓▁▁▁▁▁▁▁▓▁▁▁▁▁▁▁▓
                 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-                ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-                ▓       ▓       ▓
-                ▓       ▓       ▓
-                ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  
-                ╿               ╿
+                 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  
+                 ╿             ╿
+                 ▔             ▔
                   sls-dev-tools        
                     GUARDIAN
 

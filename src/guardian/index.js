@@ -92,7 +92,8 @@ class GuardianCI {
         for (const Check of this.checksToRun) {
             console.group()
             const check = new Check(this.AWS, this.stackName, this.stackFunctions)
-            process.stdout.write(infoLog(`   > ${check.name}... `));
+            const padCheckName = checkName => " ".repeat((20 - checkName.length))
+            process.stdout.write(infoLog(`   > ${check.name}...${padCheckName(check.name)}`));
             const checkResult = await check.run();
             console.log(checkResult ? "✅" : "❌")
             if (!checkResult) {

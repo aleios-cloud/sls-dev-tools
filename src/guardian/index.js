@@ -21,7 +21,7 @@ class GuardianCI {
         this.stackName = stackName;
     }
     async runChecks() {
-        console.log(`
+        console.log(chalk.greenBright(`
          ‗‗‗‗‗‗‗‗‗‗‗‗‗‗‗†‗‗‗‗‗‗‗‗‗‗‗‗‗‗
                         ╿
                 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
@@ -33,15 +33,25 @@ class GuardianCI {
                   sls-dev-tools        
                     GUARDIAN
 
-        `)
+        `))
         if (this.exitCode != 0) {
             return;
         }
-        console.log(" > Running checks")
+        console.group(titleLog(" > Running checks"))
         const check1 = new NoDefaultMemory(this.AWS, this.stackName)
-        process.stdout.write(`   > ${check1.name}... `);
+        process.stdout.write(infoLog(`   > ${check1.name}... `));
         const check1Result = await check1.run();
         console.log(check1Result ? "✅" : "❌")
+        console.groupEnd()
+
+        if(!check1Result) {
+            console.group(chalk.blueBright.underline(failTitleLog(" > Failing Checks")))
+            console.log(fail(check1.name));
+            console.log(fail(check1.failureMessage));
+            console.log(infoLog(check1.rulePage));
+            console.table(check1.failingResources);
+            console.groupEnd()
+        }
 
         if(!check1Result) {
             this.exitCode = 1;

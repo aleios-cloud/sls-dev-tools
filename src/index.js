@@ -567,7 +567,7 @@ function startTool() {
       }
     })
     .catch((error) => {
-      console.log(JSON.stringify(creds), "error:", error);
+      console.error(error);
     });
 }
 

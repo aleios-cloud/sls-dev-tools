@@ -4,6 +4,7 @@ import NoDefaultMemory from './rules/best_practices/no-default-memory'
 import NoDefaultTimeout from './rules/best_practices/no-default-timeout'
 import NoMaximumTimeout from './rules/best_practices/no-max-timeout'
 import NoMaximumMemory from './rules/best_practices/no-max-memory'
+import NoIdenticalCode from './rules/best_practices/no-identical-code'
 import { getStackResources } from "../services/stackResources";
 
 const infoLog = chalk.greenBright;
@@ -24,7 +25,7 @@ class GuardianCI {
         }
         this.AWS = AWS;
         this.stackName = stackName;
-        this.checksToRun = [NoDefaultMemory, NoDefaultTimeout, NoMaximumTimeout, NoMaximumMemory];
+        this.checksToRun = [NoDefaultMemory, NoDefaultTimeout, NoMaximumTimeout, NoMaximumMemory, NoIdenticalCode];
         this.failingChecks = [];
 
 

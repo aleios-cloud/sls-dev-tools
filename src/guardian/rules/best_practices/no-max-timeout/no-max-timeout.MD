@@ -5,7 +5,7 @@ Having it set at the maximum is rarely appropriate, unless processing a lot of d
 The default is 3 seconds in AWS, but 6 with the Serverless Framework.
 The maximum allowed value is 900 seconds.
 
-Having it set at the maximum can allow inefficient code to be released and can lead to expensive cloud bills via "Denial of Wallet" attacks.
+Having it set at the maximum can allow inefficient code to be released, increased billed duration in case of code errors and can lead to expensive cloud bills via "Denial of Wallet" attacks.
 
 < 5 seconds is generally suitable for API endpoints.
 

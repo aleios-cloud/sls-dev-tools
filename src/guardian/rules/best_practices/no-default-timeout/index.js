@@ -9,7 +9,7 @@ class NoDefaultTimeout {
         this.defaultTimeoutServerlessFramework = 6;
         this.failingResources = [];
         this.failureMessage = "The following functions have their timeout set as default."
-        this.rulePage = "See x for impact and how to to resolve."
+        this.rulePage = "See (https://github.com/Theodo-UK/sls-dev-tools/blob/guardian-ci/src/guardian/rules/best_practices/no-default-timeout/no-default-timeout.MD) for impact and how to to resolve."
   }
 
   hasDefaultTimeout(lambdaFunction) {

@@ -7,7 +7,7 @@ class NoIdenticalCode {
         this.result;
         this.failingResources = [];
         this.failureMessage = "The following functions have identical deployment code repeated in 1 or more other functions.";
-        this.rulePage = "See x for impact and how to to resolve.";
+        this.rulePage = "See (https://github.com/Theodo-UK/sls-dev-tools/blob/guardian-ci/src/guardian/rules/best_practices/no-identical-code/no-identical-code.MD) for impact and how to to resolve.";
         this.codeShasEncountered = {};
   }
 

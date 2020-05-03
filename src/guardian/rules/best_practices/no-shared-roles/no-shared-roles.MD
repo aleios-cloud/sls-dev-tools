@@ -1,4 +1,4 @@
-# No Functions Have Share IAM Roles (no-shared-roles)
+# No Functions Have Shared IAM Roles (no-shared-roles)
 
 IAM Roles allow granular access control to be specified per function.
 To ensure least privilege, one role should be used per function so that the underlying policy can be configured correctly.

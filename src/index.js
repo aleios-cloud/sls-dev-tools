@@ -7,6 +7,7 @@ import {
   helpModal,
   regionWizardModal,
   stackWizardModal,
+  promptMfaModal,
 } from "./modals";
 
 import { Map } from "./components";
@@ -19,6 +20,7 @@ import {
   checkLogsForErrors,
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
+
 import updateNotifier from "./utils/updateNotifier";
 
 const blessed = require("blessed");
@@ -54,26 +56,6 @@ program
   .option("--sam", "use the SAM framework to execute commands")
   .parse(process.argv);
 
-function getAWSCredentials() {
-  if (program.profile) {
-    process.env.AWS_SDK_LOAD_CONFIG = 1;
-    return new AWS.SharedIniFileCredentials({ profile: program.profile });
-  }
-  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-    return new AWS.Credentials({
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      sessionToken: process.env.AWS_SESSION_TOKEN,
-    });
-  }
-  if (process.env.AWS_PROFILE) {
-    return new AWS.SharedIniFileCredentials({
-      profile: process.env.AWS_PROFILE,
-    });
-  }
-  return new AWS.SharedIniFileCredentials({ profile: "default" });
-}
-
 const screen = blessed.screen({ smartCSR: true });
 screen.key(["q", "C-c"], () => process.exit(0));
 const profile = program.profile || "default";
@@ -95,8 +77,6 @@ if (program.sam) {
   }
 }
 
-AWS.config.credentials = getAWSCredentials();
-
 let cloudformation;
 let cloudwatch;
 let cloudwatchLogs;
@@ -111,6 +91,44 @@ function updateAWSServices() {
   eventBridge = new AWS.EventBridge();
   schemas = new AWS.Schemas();
   lambda = new AWS.Lambda();
+}
+
+function getMfaToken(serial, callback) {
+  promptMfaModal(callback, screen);
+}
+
+function getAWSCredentials() {
+  if (program.profile) {
+    process.env.AWS_SDK_LOAD_CONFIG = 1;
+    return new AWS.SharedIniFileCredentials({
+      profile: program.profile,
+      tokenCodeFn: getMfaToken,
+      callback: (err) => {
+        if (err) {
+          console.error(`SharedIniFileCreds Error: ${err}`);
+        }
+      },
+    });
+  }
+  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    return new AWS.Credentials({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      sessionToken: process.env.AWS_SESSION_TOKEN,
+    });
+  }
+  if (process.env.AWS_PROFILE) {
+    return new AWS.SharedIniFileCredentials({
+      profile: process.env.AWS_PROFILE,
+      tokenCodeFn: getMfaToken,
+      callback: (err) => {
+        if (err) {
+          console.error(`SharedIniFileCreds Error: ${err}`);
+        }
+      },
+    });
+  }
+  return new AWS.SharedIniFileCredentials({ profile: "default" });
 }
 
 if (program.region) {
@@ -533,13 +551,25 @@ function promptRegion() {
 }
 
 function startTool() {
-  if (!program.region) {
-    promptRegion();
-  } else if (!program.stackName) {
-    promptStackName();
-  } else {
-    new Main().render();
-  }
+  const creds = getAWSCredentials();
+
+  creds
+    .getPromise()
+    .then(() => {
+      AWS.config.credentials = creds;
+      updateAWSServices();
+
+      if (!program.region) {
+        promptRegion();
+      } else if (!program.stackName) {
+        promptStackName();
+      } else {
+        new Main().render();
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 }
 
 startTool();

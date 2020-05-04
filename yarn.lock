@@ -1216,9 +1216,9 @@ bindings@^1.5.0:
     file-uri-to-path "1.0.0"
 
 blessed-contrib@^4.8.17:
-  version "4.8.19"
-  resolved "https://registry.yarnpkg.com/blessed-contrib/-/blessed-contrib-4.8.19.tgz#95029ad574bfb901366b1b3a58da21c0e4804920"
-  integrity sha512-g2EVkuCd8r46XVI+pgGuTYK0MGKOn30slJTUlV4m/1d/THIb4lUbY2S+yAtqiJ1q3IFu5TfwURb9/eAKZtJLNQ==
+  version "4.8.20"
+  resolved "https://registry.yarnpkg.com/blessed-contrib/-/blessed-contrib-4.8.20.tgz#687f151ef85307fa43eaec53297fa54ef2a9e241"
+  integrity sha512-jLLXR9pjjm/T2jY0Q8OCCpuDquWiMULkPyT8YNaiLUR0j1MchTQK/Q7SiuD63jn9ekn9BrohwP1Kom/FylmeHQ==
   dependencies:
     ansi-term ">=0.0.2"
     chalk "^1.1.0"

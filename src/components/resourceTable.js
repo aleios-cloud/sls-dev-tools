@@ -29,7 +29,7 @@ class ResourceTable {
   ) {
     this.application = application;
     this.lambdaFunctions = {};
-    this.fullFunctioNames = {};
+    this.fullFunctionNames = {};
     this.latestLambdaFunctionsUpdateTimestamp = -1;
     this.program = program;
     this.cloudformation = cloudformation;
@@ -54,7 +54,7 @@ class ResourceTable {
   }
 
   getFullFunctionName(abbreviatedFunctionName) {
-    return this.fullFunctioNames[abbreviatedFunctionName];
+    return this.fullFunctionNames[abbreviatedFunctionName];
   }
 
   isOnFocus() {
@@ -263,7 +263,7 @@ class ResourceTable {
         `${this.program.stackName}-`,
         ""
       );
-      this.fullFunctioNames[shortenedFuncName] = funcName;
+      this.fullFunctionNames[shortenedFuncName] = funcName;
       let timeout = "?";
       let memory = "?";
       let funcRuntime = "?";

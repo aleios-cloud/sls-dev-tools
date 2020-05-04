@@ -30,7 +30,8 @@ class ResourceTable {
     cloudformation,
     lambda,
     cloudwatch,
-    cloudwatchLogs
+    cloudwatchLogs,
+    apiGateway
   ) {
     this.application = application;
     this.lambdaFunctions = {};
@@ -43,7 +44,13 @@ class ResourceTable {
     this.table.rows.on("select", (item) => {
       if (item.data[0] === this.funcName) {
         if (item.data[4].substring(0, 6) === "nodejs") {
-          relayModal(screen, this.application);
+          relayModal(
+            screen,
+            this.application,
+            apiGateway,
+            this.lambdaFunctions[this.fullFuncName],
+            program
+          );
         } else {
           errorModal(screen, this.application);
         }

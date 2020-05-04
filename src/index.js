@@ -153,7 +153,8 @@ class Main {
       cloudformation,
       lambda,
       cloudwatch,
-      cloudwatchLogs
+      cloudwatchLogs,
+      apiGateway
     );
     this.invocationsLineGraph = this.layoutGrid.set(2, 0, 6, 6, contrib.line, {
       maxY: 0,

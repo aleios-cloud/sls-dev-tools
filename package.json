@@ -49,7 +49,7 @@
     ]
   },
   "description": "The Dev Tools for the Serverless World",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "src/index.js",
   "directories": {
     "lib": "lib"

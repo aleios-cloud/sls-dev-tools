@@ -79,7 +79,8 @@ class Main {
       this.cloudformation,
       this.lambda,
       this.cloudwatch,
-      this.cloudwatchLogs
+      this.cloudwatchLogs,
+      this.apiGateway
     );
     this.invocationsLineGraph = this.layoutGrid.set(2, 0, 6, 6, contrib.line, {
       maxY: 0,

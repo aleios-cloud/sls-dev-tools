@@ -3,7 +3,11 @@ import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
 import { Loader } from "../components/loader";
 
-const relayModal = (screen, application) => {
+async function createRelay(apiGateway, fullLambda, program) {
+  await apiGateway.createWebsocket(fullLambda, program);
+}
+
+const relayModal = (screen, application, apiGateway, fullLambda, program) => {
   const relayLayout = new ModalLayout(screen, 112, 20, true);
 
   const numBoxes = 2;
@@ -59,13 +63,9 @@ const relayModal = (screen, application) => {
       console.log("Setting up Relay...");
       const loader = new Loader(screen, 5, 20);
       loader.load("Please wait");
-      // Simulate loading time/API callback
-      setTimeout(() => {
-        loader.stop();
-        loader.destroy();
-        application.setRelayActive(true);
-        console.log("Relay setup complete");
-      }, 3000);
+      createRelay(apiGateway, fullLambda, program);
+      loader.stop();
+      loader.destroy();
     }
     closeModal();
   });

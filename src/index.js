@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 import AWS from "aws-sdk";
 import { logo, dateFormats, DASHBOARD_FOCUS_INDEX } from "./constants";
-import { helpModal } from "./modals/helpModal";
-import { eventRegistryModal } from "./modals/eventRegistryModal";
-import { eventInjectionModal } from "./modals/eventInjectionModal";
+import {
+  eventRegistryModal,
+  eventInjectionModal,
+  helpModal,
+  regionWizardModal,
+  stackWizardModal,
+  promptMfaModal,
+} from "./modals";
 
 import { Map } from "./components";
-import { resourceTable } from "./components/resourceTable";
+import { ResourceTable } from "./components/resourceTable";
 import Serverless from "./services/serverless";
 import { DurationBarChart } from "./components/durationBarChart";
 import { getLambdaMetrics } from "./services/lambdaMetrics";
@@ -15,8 +20,7 @@ import {
   checkLogsForErrors,
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
-import { regionWizardModal } from "./modals/regionWizardModal";
-import { stackWizardModal } from "./modals/stackWizardModal";
+
 import updateNotifier from "./utils/updateNotifier";
 
 const blessed = require("blessed");
@@ -52,26 +56,6 @@ program
   .option("--sam", "use the SAM framework to execute commands")
   .parse(process.argv);
 
-function getAWSCredentials() {
-  if (program.profile) {
-    process.env.AWS_SDK_LOAD_CONFIG = 1;
-    return new AWS.SharedIniFileCredentials({ profile: program.profile });
-  }
-  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-    return new AWS.Credentials({
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      sessionToken: process.env.AWS_SESSION_TOKEN,
-    });
-  }
-  if (process.env.AWS_PROFILE) {
-    return new AWS.SharedIniFileCredentials({
-      profile: process.env.AWS_PROFILE,
-    });
-  }
-  return new AWS.SharedIniFileCredentials({ profile: "default" });
-}
-
 const screen = blessed.screen({ smartCSR: true });
 screen.key(["q", "C-c"], () => process.exit(0));
 const profile = program.profile || "default";
@@ -93,8 +77,6 @@ if (program.sam) {
   }
 }
 
-AWS.config.credentials = getAWSCredentials();
-
 let cloudformation;
 let cloudwatch;
 let cloudwatchLogs;
@@ -111,13 +93,56 @@ function updateAWSServices() {
   lambda = new AWS.Lambda();
 }
 
+function getMfaToken(serial, callback) {
+  promptMfaModal(callback, screen);
+}
+
+function getAWSCredentials() {
+  if (program.profile) {
+    process.env.AWS_SDK_LOAD_CONFIG = 1;
+    return new AWS.SharedIniFileCredentials({
+      profile: program.profile,
+      tokenCodeFn: getMfaToken,
+      callback: (err) => {
+        if (err) {
+          console.error(`SharedIniFileCreds Error: ${err}`);
+        }
+      },
+    });
+  }
+  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    return new AWS.Credentials({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      sessionToken: process.env.AWS_SESSION_TOKEN,
+    });
+  }
+  if (process.env.AWS_PROFILE) {
+    return new AWS.SharedIniFileCredentials({
+      profile: process.env.AWS_PROFILE,
+      tokenCodeFn: getMfaToken,
+      callback: (err) => {
+        if (err) {
+          console.error(`SharedIniFileCreds Error: ${err}`);
+        }
+      },
+    });
+  }
+  return new AWS.SharedIniFileCredentials({ profile: "default" });
+}
+
 if (program.region) {
   AWS.config.region = program.region;
   updateAWSServices();
 }
 
 function getEventBuses() {
-  return eventBridge.listEventBuses().promise();
+  return eventBridge
+    .listEventBuses()
+    .promise()
+    .catch((error) => {
+      console.error(error);
+    });
 }
 
 function injectEvent(event) {
@@ -133,9 +158,10 @@ function injectEvent(event) {
 class Main {
   constructor() {
     this.focusIndex = 0;
+    // eslint-disable-next-line new-cap
     this.layoutGrid = new contrib.grid({ rows: 12, cols: 12, screen });
     this.durationBarChart = new DurationBarChart(this, cloudwatchLogs, true);
-    this.resourceTable = new resourceTable(
+    this.resourceTable = new ResourceTable(
       this,
       screen,
       program,
@@ -157,7 +183,7 @@ class Main {
       wholeNumbersOnly: true,
       legend: { width: 50 },
     });
-    this.map = new Map(this.layoutGrid, program, this.updateRegion);
+    this.map = new Map(this.layoutGrid, program, Main.updateRegion);
     this.eventBridgeTree = this.layoutGrid.set(8, 9, 4, 3, contrib.tree, {
       label: "Event Bridges",
       style: {
@@ -380,20 +406,21 @@ class Main {
   }
 
   async updateResourcesInformation() {
-    await this.resourceTable.updateData();
+    this.resourceTable.updateData();
     const eventBridgeResources = await getEventBuses();
-    const busNames = eventBridgeResources.EventBuses.map((o) => o.Name).reduce(
-      (eventBridges, bus) => {
+    if (eventBridgeResources) {
+      const busNames = eventBridgeResources.EventBuses.map(
+        (o) => o.Name
+      ).reduce((eventBridges, bus) => {
         eventBridges[bus] = {};
         return eventBridges;
-      },
-      {}
-    );
+      }, {});
 
-    this.eventBridgeTree.setData({
-      extended: true,
-      children: busNames,
-    });
+      this.eventBridgeTree.setData({
+        extended: true,
+        children: busNames,
+      });
+    }
   }
 
   changeFocus() {
@@ -494,7 +521,7 @@ class Main {
     }
   }
 
-  updateRegion(region) {
+  static updateRegion(region) {
     program.region = region;
     AWS.config.region = region;
     updateAWSServices();
@@ -524,13 +551,25 @@ function promptRegion() {
 }
 
 function startTool() {
-  if (!program.region) {
-    promptRegion();
-  } else if (!program.stackName) {
-    promptStackName();
-  } else {
-    new Main().render();
-  }
+  const creds = getAWSCredentials();
+
+  creds
+    .getPromise()
+    .then(() => {
+      AWS.config.credentials = creds;
+      updateAWSServices();
+
+      if (!program.region) {
+        promptRegion();
+      } else if (!program.stackName) {
+        promptStackName();
+      } else {
+        new Main().render();
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 }
 
 startTool();

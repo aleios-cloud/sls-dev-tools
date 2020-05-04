@@ -29,7 +29,7 @@ class InvocationCountLCD {
         count + numberOfInvocationsOnPeriod,
       0
     );
-    const limitNumber = Math.pow(10, this.numberOfDigits) - 1;
+    const limitNumber = 10 ** this.numberOfDigits - 1;
     if (invocationCount > limitNumber) {
       limitNumber.concat(limitNumber);
       this.lcd.setDisplay(limitNumber.concat("+"));

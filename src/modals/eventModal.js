@@ -1,4 +1,4 @@
-import { eventInjectionModal } from "./eventInjectionModal";
+import { eventInjectionModal } from "./index";
 import {
   ModalTitle,
   Box,

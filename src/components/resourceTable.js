@@ -29,6 +29,7 @@ class ResourceTable {
   ) {
     this.application = application;
     this.lambdaFunctions = {};
+    this.fullFunctioNames = {};
     this.latestLambdaFunctionsUpdateTimestamp = -1;
     this.program = program;
     this.cloudformation = cloudformation;
@@ -53,7 +54,7 @@ class ResourceTable {
   }
 
   getFullFunctionName(abbreviatedFunctionName) {
-    return `${this.program.stackName}-${abbreviatedFunctionName}`;
+    return this.fullFunctioNames[abbreviatedFunctionName];
   }
 
   isOnFocus() {
@@ -258,6 +259,11 @@ class ResourceTable {
     this.table.data = lambdaFunctionResources.map((lam) => {
       const funcName = lam.PhysicalResourceId;
       const func = this.lambdaFunctions[funcName];
+      const shortenedFuncName = lam.PhysicalResourceId.replace(
+        `${this.program.stackName}-`,
+        ""
+      );
+      this.fullFunctioNames[shortenedFuncName] = funcName;
       let timeout = "?";
       let memory = "?";
       let funcRuntime = "?";
@@ -271,7 +277,7 @@ class ResourceTable {
       // Max memory is 3008 MB, align values with whitespace
       memory = padString(memory, 4);
       return [
-        lam.PhysicalResourceId.replace(`${this.program.stackName}-`, ""),
+        shortenedFuncName,
         moment(lam.LastUpdatedTimestamp).format("MMMM Do YYYY, h:mm:ss a"),
         `${memory} MB`,
         `${timeout} secs`,

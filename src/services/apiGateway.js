@@ -1,9 +1,21 @@
 class ApiGateway {
-  constructor(AWS) {
+  constructor(AWS, lambda) {
     this.apiGateway = new AWS.ApiGatewayV2();
+    this.lambda = lambda;
   }
 
   createWebsocket(fullLambda, program) {
+    this.lambda.addPermission(
+      {
+        FunctionName: fullLambda.FunctionArn,
+        Action: "lambda:InvokeFunction",
+        Principal: "apigateway.amazonaws.com",
+        StatementId: `relay-dev-${Date.now()}`,
+      },
+      (permissionError) => {
+        if (permissionError) console.log(permissionError);
+      }
+    );
     const params = {
       Name: `${fullLambda.FunctionName}-relay`,
       ProtocolType: "WEBSOCKET",

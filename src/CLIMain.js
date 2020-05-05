@@ -48,7 +48,7 @@ class Main {
     this.eventBridge = new AWS.EventBridge();
     this.schemas = new AWS.Schemas();
     this.lambda = new AWS.Lambda();
-    this.apiGateway = new ApiGateway(AWS);
+    this.apiGateway = new ApiGateway(AWS, this.lambda);
 
     if (this.program.region) {
       AWS.config.region = this.program.region;

@@ -1,4 +1,4 @@
-import { eventSchemaModal } from "./eventSchemaModal";
+import { eventSchemaModal } from "./index";
 import { Box } from "../components/box";
 import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
@@ -15,8 +15,7 @@ function updateRegistryTable(api, table) {
     }
   });
 }
-
-export const eventRegistryModal = (
+const eventRegistryModal = (
   screen,
   eventBridge,
   application,
@@ -68,4 +67,8 @@ export const eventRegistryModal = (
     // Discard modal
     closeModal();
   });
+};
+
+module.exports = {
+  eventRegistryModal,
 };

@@ -1,3 +1,10 @@
-export { eventRegistryModal } from "./eventRegistryModal";
-export { helpModal } from "./helpModal";
 export { eventInjectionModal } from "./eventInjectionModal";
+export { eventModal } from "./eventModal";
+export { eventRegistryModal } from "./eventRegistryModal";
+export { eventSchemaModal } from "./eventSchemaModal";
+export { helpModal } from "./helpModal";
+export { lambdaInvokeModal } from "./lambdaInvokeModal";
+export { lambdaStatisticsModal } from "./lambdaStatisticsModal";
+export { regionWizardModal } from "./regionWizardModal";
+export { stackWizardModal } from "./stackWizardModal";
+export { promptMfaModal } from "./promptMfaModal";

@@ -48,7 +48,8 @@ class Main {
     this.eventBridge = new AWS.EventBridge();
     this.schemas = new AWS.Schemas();
     this.lambda = new AWS.Lambda();
-    this.apiGateway = new ApiGateway(AWS, this.lambda);
+    this.iam = new AWS.IAM();
+    this.apiGateway = new ApiGateway(AWS);
 
     if (this.program.region) {
       AWS.config.region = this.program.region;
@@ -80,7 +81,8 @@ class Main {
       this.lambda,
       this.cloudwatch,
       this.cloudwatchLogs,
-      this.apiGateway
+      this.apiGateway,
+      this.iam
     );
     this.invocationsLineGraph = this.layoutGrid.set(2, 0, 6, 6, contrib.line, {
       maxY: 0,

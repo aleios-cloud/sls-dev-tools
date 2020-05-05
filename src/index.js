@@ -104,6 +104,7 @@ function getAWSCredentials() {
       callback: (err) => {
         if (err) {
           console.error(`SharedIniFileCreds Error: ${err}`);
+          process.exit(0);
         }
       },
     });
@@ -122,6 +123,7 @@ function getAWSCredentials() {
       callback: (err) => {
         if (err) {
           console.error(`SharedIniFileCreds Error: ${err}`);
+          process.exit(0);
         }
       },
     });
@@ -371,6 +373,7 @@ class Main {
 
   async render() {
     setInterval(() => {
+      console.log(process.memoryUsage());
       this.map.updateMap();
       this.updateResourcesInformation();
       this.updateGraphs();

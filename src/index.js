@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 import AWS from "aws-sdk";
-import { logo, dateFormats, DASHBOARD_FOCUS_INDEX } from "./constants";
+import {
+  awsRegionLocations,
+  logo,
+  dateFormats,
+  DASHBOARD_FOCUS_INDEX,
+} from "./constants";
 import {
   eventRegistryModal,
   eventInjectionModal,
@@ -20,7 +25,6 @@ import {
   checkLogsForErrors,
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
-
 import checkForUpdates from "./utils/updateNotifier";
 
 const blessed = require("blessed");
@@ -562,7 +566,11 @@ function startTool() {
       AWS.config.credentials = creds;
       updateAWSServices();
 
-      if (!program.region) {
+      if (
+        !awsRegionLocations
+          .map((region) => region.label)
+          .includes(program.region)
+      ) {
         promptRegion();
       } else if (!program.stackName) {
         promptStackName();

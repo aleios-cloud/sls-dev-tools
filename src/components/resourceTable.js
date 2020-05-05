@@ -48,6 +48,7 @@ class ResourceTable {
             screen,
             this.application,
             apiGateway,
+            lambda,
             this.lambdaFunctions[this.fullFuncName],
             program
           );

@@ -53,6 +53,14 @@ class ResourceTable {
     this.setKeypresses();
   }
 
+  updateAPIs(profile, cloudformation, lambda, cloudwatch, cloudwatchLogs) {
+    this.profile = profile;
+    this.cloudformation = cloudformation;
+    this.lambda = lambda;
+    this.cloudwatch = cloudwatch;
+    this.cloudwatchLogs = cloudwatchLogs;
+  }
+
   getFullFunctionName(abbreviatedFunctionName) {
     return this.fullFunctionNames[abbreviatedFunctionName];
   }

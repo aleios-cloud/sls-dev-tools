@@ -13,19 +13,40 @@ const titleLog = chalk.greenBright.underline.bold;
 const fail = chalk.redBright;
 const failTitleLog = chalk.redBright.underline.bold;
 
+function getAWSCredentials(AWS, program) {
+  if (program.profile) {
+    process.env.AWS_SDK_LOAD_CONFIG = 1;
+    return new AWS.SharedIniFileCredentials({ profile: program.profile });
+  }
+  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    return new AWS.Credentials({
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      sessionToken: process.env.AWS_SESSION_TOKEN,
+    });
+  }
+  if (process.env.AWS_PROFILE) {
+    return new AWS.SharedIniFileCredentials({
+      profile: process.env.AWS_PROFILE,
+    });
+  }
+  return new AWS.SharedIniFileCredentials({ profile: "default" });
+}
+
 class GuardianCI {
-  constructor(AWS, stackName) {
+  constructor(AWS, program) {
+    AWS.config.credentials = getAWSCredentials(AWS, program);
     this.exitCode = 0;
     if (!AWS) {
       console.error("Invalid AWS SDK");
       this.exitCode = 1;
     }
-    if (!stackName) {
+    if (!program.stackName) {
       console.error("Invalid Cloudformation Stack Name");
       this.exitCode = 1;
     }
     this.AWS = AWS;
-    this.stackName = stackName;
+    this.stackName = program.stackName;
     this.checksToRun = [
       NoDefaultMemory,
       NoDefaultTimeout,

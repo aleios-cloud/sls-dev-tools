@@ -1,14 +1,22 @@
 const fs = require("fs");
 
-function addLayerToLambda(lambdaApi, functionName, layerArn, callback) {
+function addLayerToLambda(lambdaApi, functionName, layerArn, resolve, reject) {
   const params = {
     FunctionName: functionName,
     Layers: [layerArn],
   };
-  lambdaApi.updateFunctionConfiguration(params, callback);
+  lambdaApi.updateFunctionConfiguration(params, (err) => {
+    if (err) {
+      console.error(err);
+      reject();
+    }
+    console.log("Relay layer added");
+    resolve();
+  });
 }
 
-function createAndAddLambdaLayer(lambdaApi, functionName, callback) {
+function createAndAddLambdaLayer(lambdaApi, functionName) {
+  console.log("Uploading Lamba Layer...");
   let data;
   try {
     data = fs.readFileSync("src/resources/layer.zip");
@@ -22,15 +30,17 @@ function createAndAddLambdaLayer(lambdaApi, functionName, callback) {
     },
     LayerName: "test-node10-layer",
   };
-
-  lambdaApi.publishLayerVersion(params, (err, layer) => {
-    if (err) {
-      console.error(err);
-    } else {
-      console.log("Layer uploaded. Adding to function...");
-      const arn = layer.LayerVersionArn;
-      addLayerToLambda(lambdaApi, functionName, arn, callback);
-    }
+  return new Promise((resolve, reject) => {
+    lambdaApi.publishLayerVersion(params, (err, layer) => {
+      if (err) {
+        console.error(err);
+        reject();
+      } else {
+        console.log("Layer uploaded. Adding to function...");
+        const arn = layer.LayerVersionArn;
+        addLayerToLambda(lambdaApi, functionName, arn, resolve, reject);
+      }
+    });
   });
 }
 

@@ -31,7 +31,8 @@ class ResourceTable {
     lambda,
     cloudwatch,
     cloudwatchLogs,
-    apiGateway
+    apiGateway,
+    iam
   ) {
     this.application = application;
     this.lambdaFunctions = {};
@@ -50,7 +51,8 @@ class ResourceTable {
             apiGateway,
             lambda,
             this.lambdaFunctions[this.fullFuncName],
-            program
+            program,
+            iam
           );
         } else {
           errorModal(screen, this.application);
@@ -66,6 +68,7 @@ class ResourceTable {
     this.location = location;
     this.type = RESOURCE_TABLE_TYPE.LAMBDA;
     this.lambda = lambda;
+    this.iam = iam;
     this.screen = screen;
     this.cloudwatch = cloudwatch;
     this.cloudwatchLogs = cloudwatchLogs;

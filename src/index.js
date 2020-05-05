@@ -105,6 +105,7 @@ let cloudwatchLogs;
 let eventBridge;
 let schemas;
 let lambda;
+let iam;
 let apiGateway;
 
 function updateAWSServices() {
@@ -114,7 +115,8 @@ function updateAWSServices() {
   eventBridge = new AWS.EventBridge();
   schemas = new AWS.Schemas();
   lambda = new AWS.Lambda();
-  apiGateway = new ApiGateway(AWS, lambda);
+  iam = new AWS.IAM();
+  apiGateway = new ApiGateway(AWS);
 }
 
 if (program.region) {
@@ -154,7 +156,8 @@ class Main {
       lambda,
       cloudwatch,
       cloudwatchLogs,
-      apiGateway
+      apiGateway,
+      iam
     );
     this.invocationsLineGraph = this.layoutGrid.set(2, 0, 6, 6, contrib.line, {
       maxY: 0,

@@ -1,7 +1,7 @@
 import { Box } from "../components/box";
 import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
-import { createRelay, setupLambdaLayer } from "../services";
+import { createRelay } from "../services";
 
 const relayModal = (
   screen,
@@ -9,7 +9,8 @@ const relayModal = (
   apiGateway,
   lambdaApi,
   fullLambda,
-  program
+  program,
+  iam
 ) => {
   const relayLayout = new ModalLayout(screen, 112, 20, true);
 
@@ -63,8 +64,7 @@ const relayModal = (
     // If yes selected, begin Relay setup
     if (currentBox === 0) {
       // setup Relay
-      setupLambdaLayer(screen, lambdaApi, fullLambda.FunctionName);
-      createRelay(apiGateway, fullLambda, program, screen);
+      createRelay(apiGateway, fullLambda, program, screen, lambdaApi, iam);
     }
     closeModal();
   });

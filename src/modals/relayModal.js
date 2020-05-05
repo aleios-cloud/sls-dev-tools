@@ -1,11 +1,7 @@
 import { Box } from "../components/box";
 import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
-import { Loader } from "../components/loader";
-
-async function createRelay(apiGateway, fullLambda, program) {
-  await apiGateway.createWebsocket(fullLambda, program);
-}
+import { createRelay } from "../services";
 
 const relayModal = (screen, application, apiGateway, fullLambda, program) => {
   const relayLayout = new ModalLayout(screen, 112, 20, true);
@@ -60,12 +56,7 @@ const relayModal = (screen, application, apiGateway, fullLambda, program) => {
     // If yes selected, begin Relay setup
     if (currentBox === 0) {
       // setup Relay
-      console.log("Setting up Relay...");
-      const loader = new Loader(screen, 5, 20);
-      loader.load("Please wait");
-      createRelay(apiGateway, fullLambda, program);
-      loader.stop();
-      loader.destroy();
+      createRelay(apiGateway, fullLambda, program, screen);
     }
     closeModal();
   });

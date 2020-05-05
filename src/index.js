@@ -270,9 +270,7 @@ class Main {
     this.prevError = {};
     // Store events from cloudwatchLogs
     this.events = [];
-    // Allows use of .bell() function for notifications
-    this.notifier = new blessed.Program();
-
+    // Check if there's an npm update available
     checkForUpdates();
   }
 

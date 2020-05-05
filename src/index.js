@@ -375,7 +375,6 @@ class Main {
 
   async render() {
     setInterval(() => {
-      console.log(process.memoryUsage());
       this.map.updateMap();
       this.updateResourcesInformation();
       this.updateGraphs();

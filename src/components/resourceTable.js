@@ -145,10 +145,12 @@ class ResourceTable {
       case RESOURCE_TABLE_TYPE.LAMBDA:
         this.type = RESOURCE_TABLE_TYPE.ALL_RESOURCES;
         this.table.setLabel("<-           All Resources          ->");
+        this.table.options.columnWidth = [50, 30];
         break;
       case RESOURCE_TABLE_TYPE.ALL_RESOURCES:
         this.type = RESOURCE_TABLE_TYPE.LAMBDA;
         this.table.setLabel("<-         Lambda Functions         ->");
+        this.table.options.columnWidth = [30, 30, 10, 10, 20];
         break;
       default:
         return 0;
@@ -293,7 +295,7 @@ class ResourceTable {
     this.table.data = resources.map((resource) => {
       const resourceName = resource.LogicalResourceId;
       const resourceType = resource.ResourceType.replace("AWS::", "");
-      return [resourceName, this.program.region, resourceType];
+      return [resourceName, resourceType];
     });
     this.updateAllResourcesTableRows();
   }
@@ -348,7 +350,7 @@ class ResourceTable {
 
   updateAllResourcesTableRows() {
     this.table.setData({
-      headers: ["logical", "region", "type"],
+      headers: ["logical", "type"],
       data: this.table.data,
     });
   }

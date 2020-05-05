@@ -12,7 +12,8 @@ const helpModal = (screen, application) => {
     ["q", "Close the application"],
     ["d", "Deploys the selected lambda function"],
     ["s", "Deploys all the lambda functions within the stack"],
-    ["Arrows", "Used to select from list, by default the function list"],
+    ["Up/Down Arrows", "Select entry in list, by default the function list"],
+    ["Right/Left Arrows", "Switch between resource tables"],
     ["Tab", "Used to change focus between selected windows"],
     ["i", "Invoke a lambda or inject an event into an event bus"],
     ["r", "Open the EventBridge Registry window for the selected event bus"],
@@ -29,8 +30,12 @@ const helpModal = (screen, application) => {
     ["-i, --interval <interval>", "interval of graphs, in seconds"],
     ["-p, --profile <profile>", "aws profile name to use"],
     ["-h, --help", "output usage information"],
+    ["-l, --location <location>", "location of your serverless project"],
+    ["-s, --stage <stage>", "If --sls is set, use this stage"],
+    ["--sls", "use the serverless framework to execute commands"],
+    ["--sam", "use the SAM framework to execute commands"],
   ];
-  const helpLayout = new ModalLayout(screen, 112, 27, true);
+  const helpLayout = new ModalLayout(screen, 112, 35, true);
 
   blessed.listtable({
     parent: helpLayout,
@@ -41,7 +46,7 @@ const helpModal = (screen, application) => {
     border: "line",
     pad: 2,
     width: 110,
-    height: 20,
+    height: 29,
     style: {
       border: { fg: "green" },
       header: { fg: "bright-green", bold: true, underline: true },

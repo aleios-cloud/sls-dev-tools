@@ -21,7 +21,7 @@ import {
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
 
-import updateNotifier from "./utils/updateNotifier";
+import checkForUpdates from "./utils/updateNotifier";
 
 const blessed = require("blessed");
 const contrib = require("blessed-contrib");
@@ -37,8 +37,6 @@ try {
 } catch (e) {
   // No config provided
 }
-
-updateNotifier();
 
 program.version(packageJson.version);
 program
@@ -274,6 +272,8 @@ class Main {
     this.events = [];
     // Allows use of .bell() function for notifications
     this.notifier = new blessed.Program();
+
+    checkForUpdates();
   }
 
   setKeypresses() {

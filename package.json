@@ -13,7 +13,8 @@
     "node-emoji": "^1.10.0",
     "open": "^7.0.3",
     "prop-types": "^15.7.2",
-    "update-notifier": "^4.1.0"
+    "update-notifier": "^4.1.0",
+    "ws": "^7.2.5"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.5",

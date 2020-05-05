@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 import AWS from "aws-sdk";
-import { logo, dateFormats, DASHBOARD_FOCUS_INDEX } from "./constants";
+import {
+  awsRegionLocations,
+  logo,
+  dateFormats,
+  DASHBOARD_FOCUS_INDEX,
+} from "./constants";
 import {
   eventRegistryModal,
   eventInjectionModal,
@@ -20,7 +25,6 @@ import {
   checkLogsForErrors,
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
-
 import checkForUpdates from "./utils/updateNotifier";
 
 const blessed = require("blessed");
@@ -104,6 +108,7 @@ function getAWSCredentials() {
       callback: (err) => {
         if (err) {
           console.error(`SharedIniFileCreds Error: ${err}`);
+          process.exit(0);
         }
       },
     });
@@ -122,6 +127,7 @@ function getAWSCredentials() {
       callback: (err) => {
         if (err) {
           console.error(`SharedIniFileCreds Error: ${err}`);
+          process.exit(0);
         }
       },
     });
@@ -369,6 +375,7 @@ class Main {
 
   async render() {
     setInterval(() => {
+      console.log(process.memoryUsage());
       this.map.updateMap();
       this.updateResourcesInformation();
       this.updateGraphs();
@@ -557,7 +564,11 @@ function startTool() {
       AWS.config.credentials = creds;
       updateAWSServices();
 
-      if (!program.region) {
+      if (
+        !awsRegionLocations
+          .map((region) => region.label)
+          .includes(program.region)
+      ) {
         promptRegion();
       } else if (!program.stackName) {
         promptStackName();

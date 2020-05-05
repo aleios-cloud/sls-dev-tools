@@ -114,7 +114,7 @@ function updateAWSServices() {
   eventBridge = new AWS.EventBridge();
   schemas = new AWS.Schemas();
   lambda = new AWS.Lambda();
-  apiGateway = new ApiGateway(AWS);
+  apiGateway = new ApiGateway(AWS, lambda);
 }
 
 if (program.region) {

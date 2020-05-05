@@ -1,4 +1,5 @@
 import { Loader } from "../components/loader";
+import { createAndAddLambdaLayer } from "./lambdaLayers";
 
 const WebSocket = require("ws");
 
@@ -29,6 +30,25 @@ async function createRelay(apiGateway, fullLambda, program, screen) {
   loader.destroy();
 }
 
+async function setupLambdaLayer(screen, lambdaApi, functionName) {
+  console.log("Uploading Lamba Layer...");
+  const loader = new Loader(screen, 5, 20);
+  loader.load("Please wait");
+  const callback = (err, updatedConfig) => {
+    if (err) {
+      console.error(err);
+    } else {
+      console.log(
+        `Layer ${updatedConfig.Layers[0].Arn} added to function ${updatedConfig.FunctionName}`
+      );
+      loader.stop();
+      loader.destroy();
+    }
+  };
+  createAndAddLambdaLayer(lambdaApi, functionName, callback);
+}
+
 module.exports = {
   createRelay,
+  setupLambdaLayer,
 };

@@ -1,6 +1,7 @@
 class ApiGateway {
   constructor(AWS) {
     this.apiGateway = new AWS.ApiGatewayV2();
+    this.ssm = new AWS.SSM();
   }
 
   createWebsocket(fullLambda, program, stage) {
@@ -56,8 +57,28 @@ class ApiGateway {
                               console.error(deployError, deployError.stack);
                               reject();
                             } else {
-                              console.log("Relay API Deployed");
-                              resolve(`${createData.ApiEndpoint}/${stage}`);
+                              console.log(
+                                `${createData.ApiId}.execute-api.${program.region}.amazonaws.com/${program.stage}`
+                              );
+                              const ssmParams = {
+                                Name: `${fullLambda.FunctionName}-relay-websocket-endpoint`,
+                                Value: `${createData.ApiId}.execute-api.${program.region}.amazonaws.com/${program.stage}`,
+                              };
+                              this.ssm.putParameter(
+                                ssmParams,
+                                (ssmError, ssmData) => {
+                                  if (ssmError) {
+                                    console.log(ssmError, ssmError.stack);
+                                    reject();
+                                  } else {
+                                    console.log(ssmData);
+                                    console.log("Relay API Deployed");
+                                    resolve(
+                                      `${createData.ApiEndpoint}/${stage}`
+                                    );
+                                  }
+                                }
+                              );
                             }
                           }
                         );

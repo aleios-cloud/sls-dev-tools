@@ -23,10 +23,10 @@ function updateStackNames(api, table, screen) {
 }
 
 const stackWizardModal = (screen, cloudformation, application) => {
-  let stack = "";
   const wizardLayout = new ModalLayout(screen, 112, 27, true);
 
   const closeModal = () => {
+    application.returnFocus();
     wizardLayout.destroy();
   };
 
@@ -45,11 +45,7 @@ const stackWizardModal = (screen, cloudformation, application) => {
   stackTable.focus();
 
   stackTable.key(["enter"], () => {
-    stack = stackTable.ritems[stackTable.selected];
-    application.program.stackName = stack;
     closeModal();
-    application.returnFocus();
-    application.render();
   });
 
   screen.render();

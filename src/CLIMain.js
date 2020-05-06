@@ -285,11 +285,27 @@ class Main {
   }
 
   promptStackName() {
-    stackWizardModal(this.screen, this.cloudformation, this);
+    const stackTable = stackWizardModal(this.screen, this.cloudformation, this);
+    stackTable.key(["enter"], () => {
+      this.program.stackName = stackTable.ritems[stackTable.selected];
+      this.render();
+    });
   }
 
-  promptegion() {
-    regionWizardModal(this.screen, this);
+  promptRegion() {
+    const regionTable = regionWizardModal(this.screen, this);
+    regionTable.key(["enter"], () => {
+      this.program.region = regionTable.ritems[regionTable.selected];
+      AWS.config.region = this.program.region;
+      this.updateAWSServices();
+      this.map = new Map(this.layoutGrid, this.program, this);
+      this.focusList[2] = this.map.map;
+      if (!this.program.stackName) {
+        this.promptStackName();
+      } else {
+        this.render();
+      }
+    });
   }
 
   updateAWSServices() {

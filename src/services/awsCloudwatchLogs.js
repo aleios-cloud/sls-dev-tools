@@ -8,8 +8,7 @@ function getEventsFromStreams(logGroupName, logStreamNames, cloudwatchLogsAPI) {
     .filterLogEvents(params)
     .promise()
     .catch((err) => {
-      console.log(err);
-      return null;
+      console.error(err);
     });
 }
 
@@ -18,8 +17,7 @@ function getStreams(api, params) {
     .describeLogStreams(params)
     .promise()
     .catch((err) => {
-      console.log(err);
-      return null;
+      console.error(err);
     });
 }
 

@@ -19,7 +19,7 @@ function createAndAddLambdaLayer(lambdaApi, functionName) {
   console.log("Uploading Lamba Layer...");
   let data;
   try {
-    data = fs.readFileSync("src/resources/layer.zip");
+    data = fs.readFileSync("resources/layer.zip");
   } catch (err) {
     console.error(err);
   }

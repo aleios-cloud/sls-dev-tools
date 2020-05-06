@@ -5,9 +5,9 @@ function invokeLambda(awsLambdaApi, functionName, payload) {
     Payload: payload,
   };
   awsLambdaApi.invoke(params, (err, data) => {
-    if (err) console.error(err, err.stack);
+    if (err) console.log(err, err.stack);
     // an error occurred
-    else console.log(data.Payload); // successful response
+    else console.log(data); // successful response
   });
 }
 

@@ -59,11 +59,10 @@ sls-dev-tools is currently being actively maintained. If you find a problem with
 - [Shortcuts to AWS Console](#shortcuts-to-aws-console)
 - [Changing region using the map](#changing-region-using-the-map)
 - [Shortcuts](#shortcuts)
-- [Error Notifications](#error-notifications)
 
 [A note on AWS API calls and pricing](#a-note-on-aws-api-calls-and-pricing)\
 [Libs](#libs)\
-[Contributors ✨](#contributors-)
+[Contributors ✨](#contributors-✨)
 
 ## Installation
 
@@ -196,12 +195,6 @@ Shortcuts
 - Pressing "r" while selecting an event bus will open the event registry. Select a event schema to edit the event properties, and inject it on that bus.
 - Pressing "l" will display a box with more statistics on the selected lambda
 ```
-
-## Error notifications
-
-The tool will notify you when the Lambda you're monitoring errors.
-
-![pushNotification](./img/pushNotification.gif)
 
 # A note on AWS API calls and pricing
 

@@ -1,5 +1,3 @@
-const notifier = require("node-notifier");
-
 function updateLogContentsFromEvents(log, events) {
   if (!events || events.length === 0) {
     log.setContent("ERROR: No log streams found for this function.");
@@ -32,11 +30,8 @@ function checkLogsForErrors(events, application) {
     latestError.errorId !== application.prevError.errorId &&
     latestError.logId === application.prevError.logId
   ) {
-    notifier.notify({
-      title: "sls-dev-tools: Recent lambda error",
-      message: "Check the dashboard logs for details",
-      sound: true,
-    });
+    application.notifier.bell();
+    console.log("Recent lambda error. Check logs for details");
   }
 
   application.setPrevError(latestError);

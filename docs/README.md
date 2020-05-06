@@ -135,12 +135,6 @@ Shortcuts
 - Pressing "l" will display a box with more statistics on the selected lambda
 ```
 
-## Error notifications
-
-The tool will notify you when the Lambda you're monitoring errors.
-
-![pushNotification](./assets/pushNotification.gif)
-
 # A note on AWS API calls and pricing
 
 This tool does make use of the AWS API to get metrics. Authentication is handled implicitly via the AWS NodeJS SDK. Pricing around Cloudwatch is designed for scale, but be warned that this tool is making calls to AWS.

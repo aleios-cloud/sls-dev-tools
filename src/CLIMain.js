@@ -103,7 +103,7 @@ class Main {
       wholeNumbersOnly: true,
       legend: { width: 50 },
     });
-    this.map = new Map(this.layoutGrid, this.program, Main.updateRegion);
+    this.map = new Map(this.layoutGrid, this.program, this);
     this.eventBridgeTree = this.layoutGrid.set(8, 9, 4, 3, contrib.tree, {
       label: "Event Bridges",
       style: {
@@ -274,10 +274,10 @@ class Main {
       });
   }
 
-  injectEvent(event) {
+  static injectEvent(event, eventBridgeAPI) {
     const params = { Entries: [] };
     params.Entries.push(event);
-    this.eventBridge.putEvents(params, (err, data) => {
+    eventBridgeAPI.putEvents(params, (err, data) => {
       if (err) console.error(err, err.stack);
       // an error occurred
       else console.log(data); // successful response
@@ -285,29 +285,11 @@ class Main {
   }
 
   promptStackName() {
-    const stackTable = stackWizardModal(
-      this.screen,
-      this.program,
-      this.cloudformation
-    );
-    stackTable.key(["enter"], () => {
-      this.program.stackName = this.stackTable.ritems[stackTable.selected];
-      //   new Main().render(); todo fix
-    });
+    stackWizardModal(this.screen, this.cloudformation, this);
   }
 
-  promptRegion() {
-    const regionTable = regionWizardModal(this.screen, this.program);
-    regionTable.key(["enter"], () => {
-      this.program.region = regionTable.ritems[regionTable.selected];
-      AWS.config.region = this.program.region;
-      this.updateAWSServices();
-      if (!this.program.stackName) {
-        this.promptStackName();
-      } else {
-        // new Main().render(); todo fix
-      }
-    });
+  promptegion() {
+    regionWizardModal(this.screen, this);
   }
 
   updateAWSServices() {
@@ -378,7 +360,7 @@ class Main {
           this.screen,
           selectedEventBridge,
           this,
-          this.injectEvent,
+          Main.injectEvent,
           previousEvent,
           this.schemas
         );
@@ -403,7 +385,7 @@ class Main {
           selectedEventBridge,
           this,
           this.schemas,
-          this.injectEvent
+          Main.injectEvent
         );
       }
       return 0;
@@ -439,7 +421,7 @@ class Main {
         this.cloudwatch
       );
       getLogEvents(
-        `/aws/this.lambda/${this.resourceTable.fullFuncName}`,
+        `/aws/lambda/${this.resourceTable.fullFuncName}`,
         this.cloudwatchLogs
       ).then((data) => {
         this.events = data;
@@ -574,7 +556,7 @@ class Main {
     }
   }
 
-  static updateRegion(region) {
+  updateRegion(region) {
     this.program.region = region;
     AWS.config.region = region;
     this.updateAWSServices();

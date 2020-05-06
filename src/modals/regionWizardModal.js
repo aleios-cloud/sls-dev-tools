@@ -9,13 +9,12 @@ function updateRegionTable(table) {
   table.setItems(regions);
 }
 
-const regionWizardModal = (screen, program) => {
+const regionWizardModal = (screen, application) => {
   let region = "";
   const wizardLayout = new ModalLayout(screen, 112, 27, true);
 
   const closeModal = () => {
     wizardLayout.destroy();
-    program.region = region;
   };
 
   new ModalTitle(wizardLayout, 110, "Select your region");
@@ -34,7 +33,14 @@ const regionWizardModal = (screen, program) => {
 
   regionTable.key(["enter"], () => {
     region = regionTable.ritems[regionTable.selected];
+    application.updateRegion(region);
     closeModal();
+    application.returnFocus();
+    if (!application.program.stackName) {
+      application.promptStackName();
+    } else {
+      application.render();
+    }
   });
 
   screen.render();

@@ -7,14 +7,20 @@ function getEventsFromStreams(logGroupName, logStreamNames, cloudwatchLogsAPI) {
   return cloudwatchLogsAPI
     .filterLogEvents(params)
     .promise()
-    .catch(() => null);
+    .catch((err) => {
+      console.log(err);
+      return null;
+    });
 }
 
 function getStreams(api, params) {
   return api
     .describeLogStreams(params)
     .promise()
-    .catch(() => null);
+    .catch((err) => {
+      console.log(err);
+      return null;
+    });
 }
 
 async function getLogEvents(logGroupName, cloudwatchLogsAPI) {

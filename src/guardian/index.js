@@ -60,6 +60,11 @@ class GuardianCI {
     this.resourceIDs = [];
     this.allFunctions = [];
     this.stackFunctions = [];
+
+    this.config = program.slsDevToolsConfig.guardian;
+    if (this.config) {
+      this.ignoreConfig = this.config.ignore;
+    }
   }
 
   async getAllLambdaFunctions() {
@@ -101,6 +106,24 @@ class GuardianCI {
     );
   }
 
+  ignoreCheck(check) {
+    if (this.ignoreConfig[check.name] === true) {
+      return true;
+    }
+    if (Date.parse(this.ignoreConfig[check.name]) > Date.now()) {
+      return true;
+    }
+    return false;
+  }
+
+  ignoreArns(check, stackFunctions) {
+    const arns = this.ignoreConfig[check.name];
+    if (arns instanceof Array) {
+      return stackFunctions.filter((func) => !arns.includes(func.FunctionArn));
+    }
+    return stackFunctions;
+  }
+
   async runChecks() {
     console.log(
       chalk.greenBright(`
@@ -131,6 +154,11 @@ class GuardianCI {
     for (const Check of this.checksToRun) {
       console.group();
       const check = new Check(this.AWS, this.stackName, this.stackFunctions);
+      if (this.ignoreConfig) {
+        if (this.ignoreCheck(check)) continue;
+      }
+      const filteredStack = this.ignoreArns(check, this.stackFunctions);
+      check.stackFunctions = filteredStack;
       const padCheckName = (checkName) => " ".repeat(20 - checkName.length);
       process.stdout.write(
         infoLog(`   > ${check.name}...${padCheckName(check.name)}`)

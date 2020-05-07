@@ -14,7 +14,7 @@ function addRelayPermissions(lambda, iam, fullLambda, stage) {
         }
       }
     );
-    const ssmRoleName = `${stage}-ssm-${Date.now()}`;
+    const ssmRoleName = `${stage}-${Date.now()}`;
     iam.createPolicy(
       {
         PolicyDocument: JSON.stringify({
@@ -22,7 +22,11 @@ function addRelayPermissions(lambda, iam, fullLambda, stage) {
           Statement: [
             {
               Effect: "Allow",
-              Action: ["ssm:PutParameter", "ssm:GetParameter"],
+              Action: [
+                "ssm:PutParameter",
+                "ssm:GetParameter",
+                "execute-api:ManageConnections",
+              ],
               Resource: "*",
             },
           ],

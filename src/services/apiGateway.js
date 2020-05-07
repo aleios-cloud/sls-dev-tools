@@ -57,28 +57,21 @@ class ApiGateway {
                               console.error(deployError, deployError.stack);
                               reject();
                             } else {
-                              console.log(
-                                `${createData.ApiId}.execute-api.${program.region}.amazonaws.com/${program.stage}`
-                              );
                               const ssmParams = {
                                 Name: `${fullLambda.FunctionName}-relay-websocket-endpoint`,
-                                Value: `${createData.ApiId}.execute-api.${program.region}.amazonaws.com/${program.stage}`,
+                                Value: `${createData.ApiId}.execute-api.${program.region}.amazonaws.com/${stage}`,
+                                Type: "String",
+                                Overwrite: true,
                               };
-                              this.ssm.putParameter(
-                                ssmParams,
-                                (ssmError, ssmData) => {
-                                  if (ssmError) {
-                                    console.log(ssmError, ssmError.stack);
-                                    reject();
-                                  } else {
-                                    console.log(ssmData);
-                                    console.log("Relay API Deployed");
-                                    resolve(
-                                      `${createData.ApiEndpoint}/${stage}`
-                                    );
-                                  }
+                              this.ssm.putParameter(ssmParams, (ssmError) => {
+                                if (ssmError) {
+                                  console.log(ssmError, ssmError.stack);
+                                  reject();
+                                } else {
+                                  console.log("Relay API Deployed");
+                                  resolve(`${createData.ApiEndpoint}/${stage}`);
                                 }
-                              );
+                              });
                             }
                           }
                         );

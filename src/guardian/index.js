@@ -61,7 +61,9 @@ class GuardianCI {
     this.allFunctions = [];
     this.stackFunctions = [];
 
-    this.config = program.slsDevToolsConfig.guardian;
+    if (program.slsDevToolsConfig) {
+      this.config = program.slsDevToolsConfig.guardian;
+    }
     if (this.config) {
       this.ignoreConfig = this.config.ignore;
     }
@@ -117,9 +119,13 @@ class GuardianCI {
   }
 
   ignoreArns(check, stackFunctions) {
-    const arns = this.ignoreConfig[check.name];
-    if (arns instanceof Array) {
-      return stackFunctions.filter((func) => !arns.includes(func.FunctionArn));
+    if (this.ignoreConfig) {
+      const arns = this.ignoreConfig[check.name];
+      if (arns instanceof Array) {
+        return stackFunctions.filter(
+          (func) => !arns.includes(func.FunctionArn)
+        );
+      }
     }
     return stackFunctions;
   }

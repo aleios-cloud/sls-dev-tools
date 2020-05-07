@@ -4,6 +4,7 @@ function addLayerToLambda(lambdaApi, functionName, layerArn, resolve, reject) {
   const params = {
     FunctionName: functionName,
     Layers: [layerArn],
+    Runtime: "provided",
   };
   lambdaApi.updateFunctionConfiguration(params, (err) => {
     if (err) {

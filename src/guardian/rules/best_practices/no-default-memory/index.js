@@ -10,7 +10,7 @@ class NoDefaultMemory {
     this.failureMessage =
       "The following functions have their memory set as default.";
     this.rulePage =
-      "See (https://github.com/Theodo-UK/sls-dev-tools/blob/guardian-ci/src/guardian/rules/best_practices/no-default-memory/no-default-memory.MD) for impact and how to to resolve.";
+      "See (https://theodo-uk.github.io/sls-dev-tools/docs/no-default-memory) for impact and how to to resolve.";
   }
 
   hasDefaultMemory(lambdaFunction) {

@@ -9,7 +9,7 @@ class NoSharedRoles {
     this.failureMessage =
       "The following functions have roles used by 1 or more other functions.";
     this.rulePage =
-      "See (https://github.com/Theodo-UK/sls-dev-tools/blob/guardian-ci/src/guardian/rules/best_practices/no-shared-roles/no-shared-roles.MD) for impact and how to to resolve.";
+      "See (https://theodo-uk.github.io/sls-dev-tools/docs/no-shared-roles) for impact and how to to resolve.";
     this.IAMRolesEncountered = {};
   }
 

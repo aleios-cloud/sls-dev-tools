@@ -10,7 +10,7 @@ class NoMaximumMemory {
     this.failureMessage =
       "The following functions have their memory set to the maximum limit.";
     this.rulePage =
-      "See (https://github.com/Theodo-UK/sls-dev-tools/blob/guardian-ci/src/guardian/rules/best_practices/no-max-memory/no-max-memory.MD) for impact and how to to resolve.";
+      "See (https://theodo-uk.github.io/sls-dev-tools/docs/no-max-memory) for impact and how to to resolve.";
   }
 
   hasMaximumMemory(lambdaFunction) {

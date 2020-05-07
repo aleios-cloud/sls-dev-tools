@@ -92,6 +92,8 @@ const siteConfig = {
   // You may provide arbitrary config keys to be used as needed by your
   // template. For example, if you need your repo's URL...
   repoUrl: "https://github.com/Theodo-UK/sls-dev-tools",
+
+  gaTrackingId: "UA-165686306",
 };
 
 module.exports = siteConfig;

@@ -8,7 +8,6 @@ import {
 
 import { Map } from "./components";
 import { ResourceTable } from "./components/resourceTable";
-import Serverless from "./services/serverless";
 import { DurationBarChart } from "./components/durationBarChart";
 import { getLambdaMetrics } from "./services/lambdaMetrics";
 import {
@@ -17,6 +16,7 @@ import {
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
 import checkForUpdates from "./utils/updateNotifier";
+import { getAWSCredentials } from "./services";
 
 import {
   eventRegistryModal,
@@ -24,7 +24,6 @@ import {
   helpModal,
   regionWizardModal,
   stackWizardModal,
-  promptMfaModal,
 } from "./modals";
 
 const blessed = require("blessed");
@@ -46,22 +45,6 @@ class Main {
     this.eventBridge = new AWS.EventBridge();
     this.schemas = new AWS.Schemas();
     this.lambda = new AWS.Lambda();
-
-    if (this.program.sam) {
-      this.provider = "SAM";
-    } else {
-      this.provider = "serverlessFramework";
-      const SLS = new Serverless(this.location);
-      if (!this.program.stage) {
-        this.program.stage = SLS.getStage();
-      }
-      if (!this.program.stackName) {
-        this.program.stackName = SLS.getStackName(this.program.stage);
-      }
-      if (!this.program.region) {
-        this.program.region = SLS.getRegion();
-      }
-    }
 
     if (this.program.region) {
       AWS.config.region = this.program.region;
@@ -200,7 +183,7 @@ class Main {
   }
 
   init() {
-    const creds = this.getAWSCredentials();
+    const creds = getAWSCredentials(this.program.profile);
 
     return creds
       .getPromise()
@@ -223,46 +206,6 @@ class Main {
       .catch((error) => {
         console.error(error);
       });
-  }
-
-  getMfaToken(serial, callback) {
-    promptMfaModal(callback, this.screen);
-  }
-
-  getAWSCredentials() {
-    if (this.program.profile) {
-      process.env.AWS_SDK_LOAD_CONFIG = 1;
-      return new AWS.SharedIniFileCredentials({
-        profile: this.program.profile,
-        tokenCodeFn: this.getMfaToken,
-        callback: (err) => {
-          if (err) {
-            console.error(`SharedIniFileCreds Error: ${err}`);
-            process.exit(0);
-          }
-        },
-      });
-    }
-    if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-      return new AWS.Credentials({
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        sessionToken: process.env.AWS_SESSION_TOKEN,
-      });
-    }
-    if (process.env.AWS_PROFILE) {
-      return new AWS.SharedIniFileCredentials({
-        profile: process.env.AWS_PROFILE,
-        tokenCodeFn: this.getMfaToken,
-        callback: (err) => {
-          if (err) {
-            console.error(`SharedIniFileCreds Error: ${err}`);
-            process.exit(0);
-          }
-        },
-      });
-    }
-    return new AWS.SharedIniFileCredentials({ profile: "default" });
   }
 
   async getEventBuses() {

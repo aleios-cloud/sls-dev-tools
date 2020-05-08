@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-import AWS from "aws-sdk";
-
 import Serverless from "./services/serverless";
 import GuardianCI from "./guardian/index";
 import Main from "./CLIMain";
@@ -52,13 +50,9 @@ if (program.sam) {
   }
 }
 
-if (program.region) {
-  AWS.config.region = program.region;
-}
-
 function startTool() {
   if (program.ci) {
-    const guardian = new GuardianCI(AWS, program);
+    const guardian = new GuardianCI(program);
     guardian.runChecks().then((exitCode) => (process.exitCode = exitCode));
   } else {
     new Main(program);

@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import AWS from "aws-sdk";
 
 import NoDefaultMemory from "./rules/best_practices/no-default-memory";
 import NoDefaultTimeout from "./rules/best_practices/no-default-timeout";
@@ -6,36 +7,19 @@ import NoMaximumTimeout from "./rules/best_practices/no-max-timeout";
 import NoMaximumMemory from "./rules/best_practices/no-max-memory";
 import NoIdenticalCode from "./rules/best_practices/no-identical-code";
 import NoSharedRoles from "./rules/best_practices/no-shared-roles";
-import { getStackResources } from "../services/stackResources";
+import { getAWSCredentials, getStackResources } from "../services";
 
 const infoLog = chalk.greenBright;
 const titleLog = chalk.greenBright.underline.bold;
 const fail = chalk.redBright;
 const failTitleLog = chalk.redBright.underline.bold;
 
-function getAWSCredentials(AWS, program) {
-  if (program.profile) {
-    process.env.AWS_SDK_LOAD_CONFIG = 1;
-    return new AWS.SharedIniFileCredentials({ profile: program.profile });
-  }
-  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-    return new AWS.Credentials({
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      sessionToken: process.env.AWS_SESSION_TOKEN,
-    });
-  }
-  if (process.env.AWS_PROFILE) {
-    return new AWS.SharedIniFileCredentials({
-      profile: process.env.AWS_PROFILE,
-    });
-  }
-  return new AWS.SharedIniFileCredentials({ profile: "default" });
-}
-
 class GuardianCI {
-  constructor(AWS, program) {
-    AWS.config.credentials = getAWSCredentials(AWS, program);
+  constructor(program) {
+    AWS.config.credentials = getAWSCredentials(program.profile);
+    if (program.region) {
+      AWS.config.region = program.region;
+    }
     this.exitCode = 0;
     if (!AWS) {
       console.error("Invalid AWS SDK");
@@ -149,7 +133,7 @@ class GuardianCI {
 
         `)
     );
-    if (this.exitCode != 0) {
+    if (this.exitCode !== 0) {
       return;
     }
 

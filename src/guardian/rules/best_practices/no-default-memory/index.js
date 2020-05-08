@@ -4,7 +4,7 @@ class NoDefaultMemory {
     this.AWS = AWS;
     this.stackName = stackName;
     this.stackFunctions = stackFunctions;
-    this.result;
+    this.result = false;
     this.defaultMemory = 1024;
     this.failingResources = [];
     this.failureMessage =
@@ -14,7 +14,7 @@ class NoDefaultMemory {
   }
 
   hasDefaultMemory(lambdaFunction) {
-    return lambdaFunction.MemorySize == this.defaultMemory;
+    return lambdaFunction.MemorySize === this.defaultMemory;
   }
 
   async run() {

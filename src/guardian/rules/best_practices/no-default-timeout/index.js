@@ -4,7 +4,7 @@ class NoDefaultTimeout {
     this.AWS = AWS;
     this.stackName = stackName;
     this.stackFunctions = stackFunctions;
-    this.result;
+    this.result = false;
     this.defaultTimeoutAWS = 3;
     this.defaultTimeoutServerlessFramework = 6;
     this.failingResources = [];

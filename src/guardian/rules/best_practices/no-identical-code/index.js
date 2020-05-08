@@ -4,7 +4,7 @@ class NoIdenticalCode {
     this.AWS = AWS;
     this.stackName = stackName;
     this.stackFunctions = stackFunctions;
-    this.result;
+    this.result = false;
     this.failingResources = [];
     this.failureMessage =
       "The following functions have identical deployment code repeated in 1 or more other functions.";

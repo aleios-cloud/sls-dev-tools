@@ -4,7 +4,7 @@ class NoMaximumTimeout {
     this.AWS = AWS;
     this.stackName = stackName;
     this.stackFunctions = stackFunctions;
-    this.result;
+    this.result = false;
     this.maximumTimeout = 900;
     this.failingResources = [];
     this.failureMessage =
@@ -14,7 +14,7 @@ class NoMaximumTimeout {
   }
 
   hasMaximumTimeout(lambdaFunction) {
-    return lambdaFunction.Timeout == this.maximumTimeout;
+    return lambdaFunction.Timeout === this.maximumTimeout;
   }
 
   async run() {

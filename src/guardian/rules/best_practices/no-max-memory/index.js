@@ -4,7 +4,7 @@ class NoMaximumMemory {
     this.AWS = AWS;
     this.stackName = stackName;
     this.stackFunctions = stackFunctions;
-    this.result;
+    this.result = false;
     this.maxMemory = 3008;
     this.failingResources = [];
     this.failureMessage =
@@ -14,7 +14,7 @@ class NoMaximumMemory {
   }
 
   hasMaximumMemory(lambdaFunction) {
-    return lambdaFunction.MemorySize == this.maxMemory;
+    return lambdaFunction.MemorySize === this.maxMemory;
   }
 
   async run() {

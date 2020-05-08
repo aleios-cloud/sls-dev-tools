@@ -47,7 +47,9 @@ if (!program.region) {
 function startTool() {
   if (program.ci) {
     const guardian = new GuardianCI(program);
-    guardian.runChecks().then((exitCode) => (process.exitCode = exitCode));
+    guardian.runChecks().then((exitCode) => {
+      process.exitCode = exitCode;
+    });
   } else {
     new Main(program);
   }

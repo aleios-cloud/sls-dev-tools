@@ -7,7 +7,11 @@ import NoMaximumTimeout from "./rules/best_practices/no-max-timeout";
 import NoMaximumMemory from "./rules/best_practices/no-max-memory";
 import NoIdenticalCode from "./rules/best_practices/no-identical-code";
 import NoSharedRoles from "./rules/best_practices/no-shared-roles";
-import { getAWSCredentials, getStackResources } from "../services";
+import {
+  getAWSCredentials,
+  getStackResources,
+  getLambdaFunctions,
+} from "../services";
 
 const infoLog = chalk.greenBright;
 const titleLog = chalk.greenBright.underline.bold;
@@ -55,18 +59,7 @@ class GuardianCI {
 
   async getAllLambdaFunctions() {
     const lambda = new this.AWS.Lambda();
-    let marker;
-    let allFunctions = [];
-    while (true) {
-      const functions = await lambda
-        .listFunctions({ Marker: marker, MaxItems: 50 })
-        .promise();
-      allFunctions = [...allFunctions, ...functions.Functions];
-      if (!functions.NextMarker) {
-        break;
-      }
-      marker = functions.NextMarker;
-    }
+    const allFunctions = getLambdaFunctions(lambda);
     return allFunctions;
   }
 

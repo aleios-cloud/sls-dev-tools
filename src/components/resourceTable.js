@@ -6,6 +6,7 @@ import {
 import { getStackResources } from "../services/stackResources";
 import { padString } from "../utils/padString";
 import { lambdaStatisticsModal, lambdaInvokeModal } from "../modals";
+import { getLambdaFunctions } from "../services";
 
 const contrib = require("blessed-contrib");
 const open = require("open");
@@ -192,22 +193,7 @@ class ResourceTable {
   }
 
   async refreshLambdaFunctions() {
-    const allFunctions = [];
-    let marker;
-    let response = { NextMarker: true };
-    while (response.NextMarker) {
-      // eslint-disable-next-line no-await-in-loop
-      response = await this.lambda
-        .listFunctions({
-          Marker: marker,
-          MaxItems: 50,
-        })
-        .promise()
-        .catch((error) => console.error(error));
-      const functions = response.Functions;
-      allFunctions.push(...functions);
-      marker = response.NextMarker;
-    }
+    const allFunctions = await getLambdaFunctions(this.lambda);
     this.lambdaFunctions = allFunctions.reduce((map, func) => {
       // eslint-disable-next-line no-param-reassign
       map[func.FunctionName] = func;

@@ -66,7 +66,7 @@ sls-dev-tools is currently being actively maintained. If you find a problem with
 
 [A note on AWS API calls and pricing](#a-note-on-aws-api-calls-and-pricing)\
 [Libs](#libs)\
-[Contributors ✨](#contributors-✨)
+[Contributors ✨](#contributors-)
 
 ## Installation
 

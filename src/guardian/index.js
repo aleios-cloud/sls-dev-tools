@@ -86,11 +86,13 @@ class GuardianCI {
   }
 
   ignoreCheck(check) {
-    if (this.ignoreConfig[check.name] === true) {
-      return true;
-    }
-    if (Date.parse(this.ignoreConfig[check.name]) > Date.now()) {
-      return true;
+    if (this.ignoreConfig) {
+      if (this.ignoreConfig[check.name] === true) {
+        return true;
+      }
+      if (Date.parse(this.ignoreConfig[check.name]) > Date.now()) {
+        return true;
+      }
     }
     return false;
   }
@@ -134,24 +136,25 @@ class GuardianCI {
 
     console.log("Analysing Resources...");
     await this.initResources();
+    // eslint-disable-next-line no-restricted-syntax
     for (const Check of this.checksToRun) {
       console.group();
       const check = new Check(this.AWS, this.stackName, this.stackFunctions);
-      if (this.ignoreConfig) {
-        if (this.ignoreCheck(check)) continue;
+      if (!this.ignoreCheck(check)) {
+        const filteredStack = this.ignoreArns(check, this.stackFunctions);
+        check.stackFunctions = filteredStack;
+        const padCheckName = (checkName) => " ".repeat(20 - checkName.length);
+        process.stdout.write(
+          infoLog(`   > ${check.name}...${padCheckName(check.name)}`)
+        );
+        // eslint-disable-next-line no-await-in-loop
+        const checkResult = await check.run();
+        console.log(checkResult ? "✅" : "❌");
+        if (!checkResult) {
+          this.failingChecks = [...this.failingChecks, check];
+        }
+        console.groupEnd();
       }
-      const filteredStack = this.ignoreArns(check, this.stackFunctions);
-      check.stackFunctions = filteredStack;
-      const padCheckName = (checkName) => " ".repeat(20 - checkName.length);
-      process.stdout.write(
-        infoLog(`   > ${check.name}...${padCheckName(check.name)}`)
-      );
-      const checkResult = await check.run();
-      console.log(checkResult ? "✅" : "❌");
-      if (!checkResult) {
-        this.failingChecks = [...this.failingChecks, check];
-      }
-      console.groupEnd();
     }
     console.groupEnd();
 
@@ -176,6 +179,7 @@ class GuardianCI {
       this.exitCode = 1;
     }
 
+    // eslint-disable-next-line consistent-return
     return this.exitCode;
   }
 }

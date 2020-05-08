@@ -209,7 +209,7 @@ sls-dev-tools Guardian in a highly opinionated, highly configurable, automated b
 
 sls-dev-tools Guardian can run locally, on a CI Platform or in a scheduled task to help you build with best practices from day one and resolve problems before they arise.
 
-Documentation on each of the rules can be found ![here](https://theodo-uk.github.io/sls-dev-tools/docs/no-max-timeout)
+Documentation on each of the rules can be found [here](https://theodo-uk.github.io/sls-dev-toolsdocs/no-max-timeout)
 
 ### Usage
 

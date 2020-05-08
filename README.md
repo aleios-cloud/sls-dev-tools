@@ -99,7 +99,7 @@ If the tool isn't able to find the stack name or region in local files or in the
   -l, --location                location of your serverless project (default is current directory)
   --sls                         use the serverless framework to execute commands
   --sam                         use the SAM framework to execute commands
-  --guardian                    run CI checks on your project with sls-dev-tools Guardian
+  --ci                          run CI checks on your project with sls-dev-tools Guardian
 ```
 
 - The location option allows you to specify the serverless project directory you want to work on.

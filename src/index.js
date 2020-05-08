@@ -33,21 +33,15 @@ program
   .parse(process.argv);
 
 program.location = program.location || process.cwd();
-let provider = "";
-if (program.sam) {
-  provider = "SAM";
-} else {
-  provider = "serverlessFramework";
-  const SLS = new Serverless(program.location);
-  if (!program.stage) {
-    program.stage = SLS.getStage();
-  }
-  if (!program.stackName) {
-    program.stackName = SLS.getStackName(program.stage);
-  }
-  if (!program.region) {
-    program.region = SLS.getRegion();
-  }
+const SLS = new Serverless(program.location);
+if (!program.stage) {
+  program.stage = SLS.getStage();
+}
+if (!program.stackName) {
+  program.stackName = SLS.getStackName(program.stage);
+}
+if (!program.region) {
+  program.region = SLS.getRegion();
 }
 
 function startTool() {

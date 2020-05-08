@@ -37,8 +37,11 @@ class Main {
     this.screen = blessed.screen({ smartCSR: true });
     this.screen.key(["q", "C-c"], () => process.exit(0));
     this.location = this.program.location;
-    this.provider = "";
-
+    if (program.sam) {
+      this.provider = "SAM";
+    } else {
+      this.provider = "serverlessFramework";
+    }
     this.cloudformation = new AWS.CloudFormation();
     this.cloudwatch = new AWS.CloudWatch();
     this.cloudwatchLogs = new AWS.CloudWatchLogs();

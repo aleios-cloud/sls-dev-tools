@@ -1,3 +1,11 @@
 module.exports = {
-  deploymentArgs: '--capabilities CAPABILITY_IAM --s3-bucket deployment-bucket-name',
+  deploymentArgs:
+    "--capabilities CAPABILITY_IAM --s3-bucket deployment-bucket-name",
+  guardian: {
+    ignore: {
+      "no-default-memory": true, // global
+      "no-default-memory": ["arn1", "arn2", "arn3"], // ignore particular resources
+      "no-default-memory": "6 May 2020 09:00 GMT", // ignore until a particular date
+    },
+  },
 };

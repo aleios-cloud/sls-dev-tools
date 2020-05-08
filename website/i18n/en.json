@@ -5,6 +5,30 @@
     "previous": "Previous",
     "tagline": "Dev tools for the serverless world",
     "docs": {
+      "no-default-memory": {
+        "title": "no-default-memory",
+        "sidebar_label": "no-default-memory"
+      },
+      "no-default-timeout": {
+        "title": "no-default-timeout",
+        "sidebar_label": "no-default-timeout"
+      },
+      "no-identical-code": {
+        "title": "no-identical-code",
+        "sidebar_label": "no-identical-code"
+      },
+      "no-max-memory": {
+        "title": "no-max-memory",
+        "sidebar_label": "no-max-memory"
+      },
+      "no-max-timeout": {
+        "title": "no-max-timeout",
+        "sidebar_label": "no-max-timeout"
+      },
+      "no-shared-roles": {
+        "title": "no-shared-roles",
+        "sidebar_label": "no-shared-roles"
+      },
       "pricing": {
         "title": "Cloudwatch Pricing",
         "sidebar_label": "Cloudwatch Pricing"
@@ -19,7 +43,8 @@
     },
     "categories": {
       "Installation and Use": "Installation and Use",
-      "Pricing": "Pricing"
+      "Pricing": "Pricing",
+      "Guardian Rules": "Guardian Rules"
     }
   },
   "pages-strings": {

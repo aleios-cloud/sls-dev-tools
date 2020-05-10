@@ -267,7 +267,7 @@ class ResourceTable {
         funcRuntime = func.Runtime;
         timeout = func.Timeout.toString();
         memory = func.MemorySize.toString();
-        layersPresent = (func.Layers) ? "Y" : "N";
+        layersPresent = func.Layers ? "Y" : "N";
       }
       // Max timout is 900 seconds, align values with whitespace
       timeout = padString(timeout, 3);
@@ -279,7 +279,7 @@ class ResourceTable {
         `${memory} MB`,
         `${timeout} secs`,
         funcRuntime,
-        `${layersPresent}`
+        `${layersPresent}`,
       ];
     });
     this.updateLambdaTableRows();

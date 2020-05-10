@@ -40,10 +40,7 @@ const lambdaStatisticsModal = async (
     lambda
   );
 
-  const lambdaLayersTable = new LambdaLayersTable( 
-    lambdaLayersBox,
-    lambdaFuncInfo
-  );
+  const lambdaLayersTable = new LambdaLayersTable(lambdaLayersBox);
 
   const metrics = await getLambdaMetrics(application, lambdaName, cloudwatch);
   invocationCount.updateData(metrics);

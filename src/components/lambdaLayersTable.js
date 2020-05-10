@@ -1,10 +1,8 @@
 const contrib = require("blessed-contrib");
 
 class LambdaLayersTable {
-  constructor(parent, lambdaFuncInfo, lambdaName) {
+  constructor(parent) {
     this.parent = parent;
-    this.lambdaFuncInfo = lambdaFuncInfo;
-    this.lambdaName = lambdaName;
     this.table = this.generateTable();
   }
 
@@ -20,30 +18,22 @@ class LambdaLayersTable {
     return table;
   }
 
-  extractLayerInfo(lambdaFuncInfo) {
-    
-    if(lambdaFuncInfo.Layers) {
+  static extractLayerInfo(lambdaFuncInfo) {
+    if (lambdaFuncInfo.Layers) {
       return lambdaFuncInfo.Layers.map((layer) => {
-
-        const s = layer.Arn.split(':');
-        const layerName = s[s.length-2];
-        const layerVersion = s[s.length-1];
-        
-        return [
-          layerName,
-          layerVersion,
-        ]
+        const s = layer.Arn.split(":");
+        const layerName = s[s.length - 2];
+        const layerVersion = s[s.length - 1];
+        return [layerName, layerVersion];
       });
-    } else {
-      return [["-","-"]];
     }
+    return [["-", "-"]];
   }
 
   updateData(lambdaFuncInfo) {
-
     this.table.setData({
       headers: ["Name", "Version"],
-      data: this.extractLayerInfo(lambdaFuncInfo)
+      data: LambdaLayersTable.extractLayerInfo(lambdaFuncInfo),
     });
   }
 }

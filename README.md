@@ -8,11 +8,9 @@
 [![Follow](https://img.shields.io/twitter/follow/SlsDevTools?style=social)](https://twitter.com/SlsDevTools)
 ![Maintained](https://img.shields.io/maintenance/yes/2020.svg)
 [![CircleCI](https://circleci.com/gh/Theodo-UK/sls-dev-tools.svg?style=svg)](https://circleci.com/gh/Theodo-UK/sls-dev-tools)
-
+[![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/Theodo-UK/sls-dev-tools.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Theodo-UK/sls-dev-tools/context:javascript)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-
 [![All Contributors](https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat-square)](#contributors-)
-
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The Developer Tools for the Serverless World - think Chrome Dev Tools but for Serverless.

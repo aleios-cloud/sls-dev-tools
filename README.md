@@ -59,10 +59,14 @@ sls-dev-tools is currently being actively maintained. If you find a problem with
 - [Shortcuts to AWS Console](#shortcuts-to-aws-console)
 - [Changing region using the map](#changing-region-using-the-map)
 - [Shortcuts](#shortcuts)
+- [Guardian](#guardian)
+  - [Usage](#usage-1)
+  - [Configuring Rules](#configuring-rules)
+  - [Contributing Rules](#contributing-rules)
 
 [A note on AWS API calls and pricing](#a-note-on-aws-api-calls-and-pricing)\
 [Libs](#libs)\
-[Contributors ✨](#contributors-✨)
+[Contributors ✨](#contributors-)
 
 ## Installation
 
@@ -95,6 +99,7 @@ If the tool isn't able to find the stack name or region in local files or in the
   -l, --location                location of your serverless project (default is current directory)
   --sls                         use the serverless framework to execute commands
   --sam                         use the SAM framework to execute commands
+  --ci                          run CI checks on your project with sls-dev-tools Guardian
 ```
 
 - The location option allows you to specify the serverless project directory you want to work on.
@@ -195,6 +200,43 @@ Shortcuts
 - Pressing "r" while selecting an event bus will open the event registry. Select a event schema to edit the event properties, and inject it on that bus.
 - Pressing "l" will display a box with more statistics on the selected lambda
 ```
+
+## Guardian
+
+![guardian](./img/guardian.jpeg)
+
+sls-dev-tools Guardian in a highly opinionated, highly configurable, automated best-practice audit tool for Serverless architectures. Like all sls-dev-tools it's framework agnostic and can be run in one simple command.
+
+sls-dev-tools Guardian can run locally, on a CI Platform or in a scheduled task to help you build with best practices from day one and resolve problems before they arise.
+
+### Usage
+
+To run sls-dev-tools Guardian use the same command structure, but pass the —ci option:
+
+- `sls-dev-tools --ci [-l {YOUR_PROJECT_LOCATION}] [-p {PROFILE}] [-n {YOUR_STACK_NAME}] [-r {YOUR_REGION}] [-t {START_TIME}] [-i {INTERVAL}]`
+
+![guardianUse](./img/guardianUse.png)
+
+### Configuring rules
+
+sls-dev-tools is intended to be opinionated, but when that opinion does not match your expectations rules can be ignored on a per resource or global level.
+
+To ignore a rule add a guardian section to your slsdevtools.config.js file
+
+```jsx
+module.exports = {
+  deploymentArgs: '--capabilities CAPABILITY_IAM --s3-bucket deployment-bucket-name',
+	guardian: {
+		ignore: {
+			"no-max-memory": true, // global
+      "no-max-memory": ["arn-1234"] // per resource
+      "no-max-memory": "1 May 2020 09:00 GMT" // ignore until a particular date
+    }
+	}
+};
+```
+
+Rules can be ignored globally, per resource or until a specific date (e.g. delay checking this for 1 month).
 
 # A note on AWS API calls and pricing
 

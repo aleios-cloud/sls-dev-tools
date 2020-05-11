@@ -124,7 +124,7 @@ const eventInjectionModal = (
     // Inject event or select field for entry
     if (currentTextbox === 4) {
       updateEventValues();
-      injectEvent(event);
+      injectEvent(event, application.eventBridge);
       closeModal();
     } else if (currentTextbox === 5) {
       openEventRegistryModal();

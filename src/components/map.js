@@ -3,14 +3,14 @@ import { awsRegionLocations } from "../constants";
 const contrib = require("blessed-contrib");
 
 class Map {
-  constructor(layoutGrid, program, updateRegion) {
+  constructor(layoutGrid, program, application) {
     this.layoutGrid = layoutGrid;
     this.program = program;
     this.map = this.generateMap();
     this.flashMarker = false;
     this.markerLocation = program.region;
     this.selectedLocation = undefined;
-    this.updateRegion = updateRegion;
+    this.application = application;
     this.map.key(["up"], () => {
       this.updateSelectedPosition(false);
     });
@@ -42,7 +42,9 @@ class Map {
           awsRegionLocations[this.currentLocation].label
         })`;
         this.selectedLocation = undefined;
-        this.updateRegion(awsRegionLocations[this.currentLocation].label);
+        this.application.updateRegion(
+          awsRegionLocations[this.currentLocation].label
+        );
         console.log(
           `Welcome to ${awsRegionLocations[this.currentLocation].label}`
         );

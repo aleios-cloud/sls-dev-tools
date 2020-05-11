@@ -1,6 +1,14 @@
 {
   "docs": {
     "Installation and Use": ["README"],
-    "Pricing": ["pricing"]
+    "Pricing": ["pricing"],
+    "Guardian Rules": [
+      "no-max-timeout",
+      "no-max-memory",
+      "no-shared-roles",
+      "no-identical-code",
+      "no-default-memory",
+      "no-default-timeout"
+    ]
   }
 }

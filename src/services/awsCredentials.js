@@ -2,11 +2,10 @@ import AWS from "aws-sdk";
 
 import { promptMfaModal } from "../modals";
 
-function getMfaToken(serial, callback) {
-  promptMfaModal(callback, this.screen);
-}
-
-function getAWSCredentials(profile, tokenFn = getMfaToken) {
+function getAWSCredentials(
+  profile,
+  tokenFn = () => console.error("In-tool MFA not supported for Guardian")
+) {
   if (profile) {
     process.env.AWS_SDK_LOAD_CONFIG = 1;
     return new AWS.SharedIniFileCredentials({

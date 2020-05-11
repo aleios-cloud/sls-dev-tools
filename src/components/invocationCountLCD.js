@@ -1,7 +1,7 @@
 const contrib = require("blessed-contrib");
 
 class InvocationCountLCD {
-  constructor(parent, width, height, numberOfDigits = 3) {
+  constructor(parent, width, height, numberOfDigits = 4) {
     this.parent = parent;
     this.numberOfDigits = numberOfDigits;
     this.width = width;

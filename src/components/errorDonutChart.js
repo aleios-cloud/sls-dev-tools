@@ -1,11 +1,13 @@
 const contrib = require("blessed-contrib");
 
 class ErrorDonutChart {
-  constructor(application, layout, cloudwatch) {
+  constructor(application, layout, cloudwatch, width, height) {
     this.application = application;
     this.layout = layout;
-    this.chart = this.generateChart();
     this.cloudwatch = cloudwatch;
+    this.width = width;
+    this.height = height;
+    this.chart = this.generateChart();
   }
 
   generateChart() {
@@ -15,6 +17,10 @@ class ErrorDonutChart {
       arcWidth: 10,
       spacing: 4,
       remainColor: "green",
+      border: "line",
+      style: { fg: "green", border: { fg: "green" } },
+      width: this.width,
+      height: this.height,
     });
     this.layout.append(donutChart);
     return donutChart;

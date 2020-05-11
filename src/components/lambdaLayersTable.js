@@ -1,8 +1,10 @@
 const contrib = require("blessed-contrib");
 
 class LambdaLayersTable {
-  constructor(parent) {
+  constructor(parent, width, height) {
     this.parent = parent;
+    this.width = width;
+    this.height = height;
     this.table = this.generateTable();
   }
 
@@ -12,7 +14,10 @@ class LambdaLayersTable {
       interactive: false,
       label: "Lambda Layers",
       columnWidth: [20, 30],
-      padding: { top: 1 },
+      border: "line",
+      style: { fg: "green", border: { fg: "green" } },
+      width: this.width,
+      height: this.height,
     });
     this.parent.append(table);
     return table;

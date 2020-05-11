@@ -84,7 +84,8 @@ class ResourceTable {
           this.getCurrentlyOnHoverFullLambdaName(),
           this.cloudwatchLogs,
           this.cloudwatch,
-          this.lambda
+          this.lambda,
+          this.lambdaFunctions[this.getCurrentlyOnHoverFullLambdaName()]
         );
       }
       return 0;
@@ -173,7 +174,7 @@ class ResourceTable {
       fg: "green",
       label: "<-         Lambda Functions         ->",
       columnSpacing: 1,
-      columnWidth: [30, 30, 10, 10, 20],
+      columnWidth: [30, 30, 10, 10, 20, 10],
       style: {
         border: {
           fg: "yellow",
@@ -263,10 +264,12 @@ class ResourceTable {
       let timeout = "?";
       let memory = "?";
       let funcRuntime = "?";
+      let layersPresent = "?";
       if (func) {
         funcRuntime = func.Runtime;
         timeout = func.Timeout.toString();
         memory = func.MemorySize.toString();
+        layersPresent = func.Layers ? "Y" : "N";
       }
       // Max timout is 900 seconds, align values with whitespace
       timeout = padString(timeout, 3);
@@ -278,6 +281,7 @@ class ResourceTable {
         `${memory} MB`,
         `${timeout} secs`,
         funcRuntime,
+        `${layersPresent}`,
       ];
     });
     this.updateLambdaTableRows();
@@ -377,7 +381,7 @@ class ResourceTable {
     }
 
     this.table.setData({
-      headers: ["logical", "updated", "memory", "timeout", "runtime"],
+      headers: ["logical", "updated", "memory", "timeout", "runtime", "layers"],
       data: lambdaFunctionsWithDeploymentIndicator,
     });
 

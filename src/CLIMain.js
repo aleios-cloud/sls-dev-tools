@@ -107,6 +107,7 @@ class Main {
       interactive: true,
       scrollbar: { bg: "blue" },
       mouse: true,
+      alwaysScroll: true,
     });
     this.consoleLogs = this.layoutGrid.set(8, 6, 4, 3, blessed.log, {
       fg: "green",
@@ -115,6 +116,7 @@ class Main {
       interactive: true,
       scrollbar: { bg: "blue" },
       mouse: true,
+      alwaysScroll: true,
     });
     this.titleBox = this.layoutGrid.set(0, 0, 2, 6, blessed.box, {
       tags: true,

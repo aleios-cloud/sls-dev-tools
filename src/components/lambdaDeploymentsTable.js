@@ -1,10 +1,11 @@
 const contrib = require("blessed-contrib");
 
 class LambdaDeploymentsTable {
-  constructor(parent, lambda, lambdaName) {
+  constructor(parent, lambda, width, height) {
     this.parent = parent;
     this.lambda = lambda;
-    this.lambdaName = lambdaName;
+    this.width = width;
+    this.height = height;
     this.table = this.generateTable();
   }
 
@@ -14,7 +15,10 @@ class LambdaDeploymentsTable {
       interactive: false,
       label: "Deployment History",
       columnWidth: [10, 40],
-      padding: { top: 1 },
+      border: "line",
+      style: { fg: "green", border: { fg: "green" } },
+      width: this.width,
+      height: this.height,
     });
     this.parent.append(table);
     return table;

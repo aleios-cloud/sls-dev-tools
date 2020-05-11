@@ -1,11 +1,20 @@
 const contrib = require("blessed-contrib");
 
 class DurationBarChart {
-  constructor(application, cloudwatchLogs, isInGridLayout, layout) {
+  constructor(
+    application,
+    cloudwatchLogs,
+    isInGridLayout,
+    layout,
+    width,
+    height
+  ) {
     this.application = application;
     this.cloudwatchLogs = cloudwatchLogs;
     this.isInGridLayout = isInGridLayout;
     this.layout = layout;
+    this.width = width;
+    this.height = height;
     this.chart = this.generateChart();
   }
 
@@ -27,6 +36,10 @@ class DurationBarChart {
         durationBarChartOptions
       );
     }
+    durationBarChartOptions.width = this.width;
+    durationBarChartOptions.height = this.height;
+    durationBarChartOptions.border = "line";
+    durationBarChartOptions.style = { fg: "green", border: { fg: "green" } };
     const durationBarChart = contrib.bar(durationBarChartOptions);
     if (this.layout) {
       this.layout.append(durationBarChart);

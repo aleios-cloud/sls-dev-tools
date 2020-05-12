@@ -16,7 +16,7 @@ import {
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
 import checkForUpdates from "./utils/updateNotifier";
-import { getAWSCredentialsHQ } from "./services";
+import { getAWSCredentials } from "./services";
 
 import {
   eventRegistryModal,
@@ -188,7 +188,7 @@ class Main {
   }
 
   init() {
-    const creds = getAWSCredentialsHQ(this.program.profile, this.screen);
+    const creds = getAWSCredentials(this.program.profile);
 
     return creds
       .getPromise()

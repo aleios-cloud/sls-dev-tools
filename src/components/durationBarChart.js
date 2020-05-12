@@ -47,10 +47,15 @@ class DurationBarChart {
     return durationBarChart;
   }
 
-  setBarChartDataFromLogContent(lambdaLogContent) {
+  setBarChartDataFromEvents(events) {
     const regex = /RequestId:(\s)*(\w|-)*(\s)*Duration:(\s)*(\d|\.)*(\s)*ms/gm;
-    // Extract reports from the server logs
-    const matches = lambdaLogContent.match(regex);
+    let matches = [];
+    events.forEach((event) => {
+      const match = event.message.match(regex);
+      if (match) {
+        matches = matches.concat(match);
+      }
+    });
     const splits = [];
     if (matches !== null) {
       for (let i = 0; i < matches.length; i++) {
@@ -66,7 +71,7 @@ class DurationBarChart {
   }
 
   async updateData() {
-    this.setBarChartDataFromLogContent(this.application.lambdaLog.content);
+    this.setBarChartDataFromEvents(this.application.events);
   }
 }
 

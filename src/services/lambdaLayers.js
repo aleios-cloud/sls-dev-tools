@@ -45,6 +45,20 @@ function createAndAddLambdaLayer(lambdaApi, functionName) {
   });
 }
 
+function removeLambdaLayer(lambdaApi, lambdaName) {
+  const params = {
+    FunctionName: lambdaName,
+    Runtime: "nodejs10.x",
+  };
+  lambdaApi.updateFunctionConfiguration(params, (err, data) => {
+    if (err) {
+      console.error(err);
+    }
+    console.log(data);
+  });
+}
+
 module.exports = {
   createAndAddLambdaLayer,
+  removeLambdaLayer,
 };

@@ -30,6 +30,7 @@ program
   .option("--sls", "use the serverless framework to execute commands")
   .option("--sam", "use the SAM framework to execute commands")
   .option("-c, --ci", "ci mode for sls-dev-guardian checks")
+  .option("--mfa <mfa>", "mfa token for profiles with mfa authentication")
   .parse(process.argv);
 
 program.location = program.location || process.cwd();

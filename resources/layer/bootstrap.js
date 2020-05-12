@@ -151,7 +151,7 @@ async function nextInvocation() {
 async function invokeResponse(result, context, relaySetup) {
   const payload = JSON.stringify(result === undefined ? null : result);
   if (relaySetup) {
-    await relayResponse(payload)
+    await relayResponse(payload);
   }
   const res = await request({
     method: "POST",
@@ -168,7 +168,7 @@ async function invokeResponse(result, context, relaySetup) {
 function invokeError(err, context, relaySetup) {
   return postError(
     `${RUNTIME_PATH}/invocation/${context.awsRequestId}/error`,
-    err, 
+    err,
     relaySetup
   );
 }
@@ -177,7 +177,7 @@ async function postError(path, err, relaySetup) {
   const lambdaErr = toLambdaErr(err);
   const payload = JSON.stringify(lambdaErr);
   if (relaySetup) {
-    await relayResponse(payload)
+    await relayResponse(payload);
   }
   const res = await request({
     method: "POST",
@@ -254,12 +254,12 @@ async function relayResponse(payload) {
     .promise();
   return new Promise((resolve, reject) => {
     const apigatewaymanagementapi = new AWS.ApiGatewayManagementApi({
-      apiVersion: '2018-11-29',
-      endpoint: websocketEndpoint,
+      apiVersion: "2018-11-29",
+      endpoint: websocketEndpoint.Parameter.Value,
     });
     apigatewaymanagementapi.postToConnection(
       {
-        ConnectionId: connectionId,
+        ConnectionId: connectionId.Parameter.Value,
         Data: payload,
       },
       (err, data) => {
@@ -268,7 +268,7 @@ async function relayResponse(payload) {
           reject(err);
         }
         resolve(data);
-      },
+      }
     );
   });
 }

@@ -41,54 +41,59 @@ async function tryProcessEvents(handler) {
   }
 }
 
-async function setupListeningStation(connectionId) {
+async function setupRelay(connectionId, context) {
   const ssm = new AWS.SSM();
   await ssm
     .putParameter({
-      Name: `${process.env.AWS_LAMBDA_FUNCTION_NAME}-relay-connection-id`,
+      Name: `${AWS_LAMBDA_FUNCTION_NAME}-relay-connection-id`,
       Value: connectionId,
       Overwrite: true,
       Type: "String",
     })
-    .promise();
-  return {
-    statusCode: 200,
-    body: JSON.stringify(
-      {
-        message: "Relay setup success",
-      },
-      null,
-      2
-    ),
-  };
+    .promise()
+    .catch((err) => console.log(err));
+
+  await invokeResponse(
+    {
+      statusCode: 200,
+      body: JSON.stringify(
+        {
+          message: "success",
+        },
+        null,
+        2
+      ),
+    },
+    context,
+    false
+  );
 }
 
 async function processEvents(handler) {
+  let relaySetup = false;
   while (true) {
     const { event, context } = await nextInvocation();
-
-    if (event.requestContex && event.requestContext.connectionId) {
-      console.log("in relay setup");
+    if (event.requestContext && event.requestContext.connectionId) {
       // websocket connect
-      const resp = await setupRelay(event.requestContext.connectionId);
-      return resp;
-    }
+      await setupRelay(event.requestContext.connectionId, context);
+      relaySetup = true;
+    } else {
+      let result;
+      try {
+        result = await handler(event, context);
+      } catch (e) {
+        await invokeError(e, context, relaySetup);
+        continue;
+      }
+      const callbackUsed = context[CALLBACK_USED];
 
-    let result;
-    try {
-      result = await handler(event, context);
-    } catch (e) {
-      await invokeError(e, context);
-      continue;
-    }
-    const callbackUsed = context[CALLBACK_USED];
+      await invokeResponse(result, context, relaySetup);
 
-    await invokeResponse(result, context);
-
-    if (callbackUsed && context.callbackWaitsForEmptyEventLoop) {
-      return process.prependOnceListener("beforeExit", () =>
-        tryProcessEvents(handler)
-      );
+      if (callbackUsed && context.callbackWaitsForEmptyEventLoop) {
+        return process.prependOnceListener("beforeExit", () =>
+          tryProcessEvents(handler)
+        );
+      }
     }
   }
 }
@@ -143,11 +148,15 @@ async function nextInvocation() {
   return { event, context };
 }
 
-async function invokeResponse(result, context) {
+async function invokeResponse(result, context, relaySetup) {
+  const payload = JSON.stringify(result === undefined ? null : result);
+  if (relaySetup) {
+    await relayResponse(payload)
+  }
   const res = await request({
     method: "POST",
     path: `${RUNTIME_PATH}/invocation/${context.awsRequestId}/response`,
-    body: JSON.stringify(result === undefined ? null : result),
+    body: payload,
   });
   if (res.statusCode !== 202) {
     throw new Error(
@@ -156,15 +165,20 @@ async function invokeResponse(result, context) {
   }
 }
 
-function invokeError(err, context) {
+function invokeError(err, context, relaySetup) {
   return postError(
     `${RUNTIME_PATH}/invocation/${context.awsRequestId}/error`,
-    err
+    err, 
+    relaySetup
   );
 }
 
-async function postError(path, err) {
+async function postError(path, err, relaySetup) {
   const lambdaErr = toLambdaErr(err);
+  const payload = JSON.stringify(lambdaErr);
+  if (relaySetup) {
+    await relayResponse(payload)
+  }
   const res = await request({
     method: "POST",
     path,
@@ -172,7 +186,7 @@ async function postError(path, err) {
       "Content-Type": "application/json",
       "Lambda-Runtime-Function-Error-Type": lambdaErr.errorType,
     },
-    body: JSON.stringify(lambdaErr),
+    body: payload,
   });
   if (res.statusCode !== 202) {
     throw new Error(`Unexpected ${path} response: ${JSON.stringify(res)}`);
@@ -224,6 +238,39 @@ function getHandler() {
         result.then(resolve, reject);
       }
     });
+}
+
+async function relayResponse(payload) {
+  const ssm = new AWS.SSM();
+  const connectionId = await ssm
+    .getParameter({
+      Name: `${AWS_LAMBDA_FUNCTION_NAME}-relay-connection-id`,
+    })
+    .promise();
+  const websocketEndpoint = await ssm
+    .getParameter({
+      Name: `${AWS_LAMBDA_FUNCTION_NAME}-relay-websocket-endpoint`,
+    })
+    .promise();
+  return new Promise((resolve, reject) => {
+    const apigatewaymanagementapi = new AWS.ApiGatewayManagementApi({
+      apiVersion: '2018-11-29',
+      endpoint: websocketEndpoint,
+    });
+    apigatewaymanagementapi.postToConnection(
+      {
+        ConnectionId: connectionId,
+        Data: payload,
+      },
+      (err, data) => {
+        if (err) {
+          console.log(err);
+          reject(err);
+        }
+        resolve(data);
+      },
+    );
+  });
 }
 
 function request(options) {

@@ -188,7 +188,7 @@ class Main {
   }
 
   init() {
-    const creds = getAWSCredentials(this.program.profile);
+    const creds = getAWSCredentials(this.program.profile, this.screen);
 
     return creds
       .getPromise()

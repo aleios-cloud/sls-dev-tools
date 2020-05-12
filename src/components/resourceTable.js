@@ -11,8 +11,7 @@ import {
   relayModal,
   errorModal,
 } from "../modals";
-import { getLambdaFunctions } from "../services";
-
+import { getLambdaFunctions, removeLambdaLayer } from "../services";
 
 const contrib = require("blessed-contrib");
 const open = require("open");
@@ -169,6 +168,19 @@ class ResourceTable {
         this.application.isModalOpen === false
       ) {
         return this.deployStack();
+      }
+      return 0;
+    });
+    this.screen.key(["c"], () => {
+      if (
+        this.isOnFocus() &&
+        this.isLambdaTable() &&
+        this.application.isModalOpen === false
+      ) {
+        return removeLambdaLayer(
+          this.lambda,
+          this.getCurrentlyOnHoverFullLambdaName()
+        );
       }
       return 0;
     });

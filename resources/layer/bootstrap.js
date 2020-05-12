@@ -4,6 +4,8 @@ const RUNTIME_PATH = "/2018-06-01/runtime";
 
 const CALLBACK_USED = Symbol("CALLBACK_USED");
 
+const AWS = require("aws-sdk");
+
 const {
   AWS_LAMBDA_FUNCTION_NAME,
   AWS_LAMBDA_FUNCTION_VERSION,
@@ -39,9 +41,38 @@ async function tryProcessEvents(handler) {
   }
 }
 
+async function setupListeningStation(connectionId) {
+  const ssm = new AWS.SSM();
+  await ssm
+    .putParameter({
+      Name: `${process.env.AWS_LAMBDA_FUNCTION_NAME}-relay-connection-id`,
+      Value: connectionId,
+      Overwrite: true,
+      Type: "String",
+    })
+    .promise();
+  return {
+    statusCode: 200,
+    body: JSON.stringify(
+      {
+        message: "Relay setup success",
+      },
+      null,
+      2
+    ),
+  };
+}
+
 async function processEvents(handler) {
   while (true) {
     const { event, context } = await nextInvocation();
+
+    if (event.requestContex && event.requestContext.connectionId) {
+      console.log("in relay setup");
+      // websocket connect
+      const resp = await setupRelay(event.requestContext.connectionId);
+      return resp;
+    }
 
     let result;
     try {

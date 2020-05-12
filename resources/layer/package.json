@@ -1,0 +1,9 @@
+{
+  "name": "layer",
+  "version": "1.0.0",
+  "main": "bootstrap.js",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "^2.674.0"
+  }
+}

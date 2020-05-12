@@ -2,20 +2,15 @@ import AWS from "aws-sdk";
 
 import { promptMfaModal } from "../modals";
 
-function getMfaToken(serial, callback) {
-  promptMfaModal(callback, this.screen);
-}
-
-function getAWSCredentials(profile) {
+function getAWSCredentials(profile, screen) {
   if (profile) {
     process.env.AWS_SDK_LOAD_CONFIG = 1;
     return new AWS.SharedIniFileCredentials({
       profile,
-      tokenCodeFn: getMfaToken,
+      tokenCodeFn: (serial, callback) => promptMfaModal(callback, screen),
       callback: (err) => {
         if (err) {
           console.error(`SharedIniFileCreds Error: ${err}`);
-          process.exit(0);
         }
       },
     });
@@ -30,11 +25,10 @@ function getAWSCredentials(profile) {
   if (process.env.AWS_PROFILE) {
     return new AWS.SharedIniFileCredentials({
       profile: process.env.AWS_PROFILE,
-      tokenCodeFn: getMfaToken,
+      tokenCodeFn: (serial, callback) => promptMfaModal(callback, screen),
       callback: (err) => {
         if (err) {
           console.error(`SharedIniFileCreds Error: ${err}`);
-          process.exit(0);
         }
       },
     });

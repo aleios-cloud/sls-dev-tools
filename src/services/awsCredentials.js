@@ -2,12 +2,11 @@ import AWS from "aws-sdk";
 
 import { promptMfaModal } from "../modals";
 
-function getAWSCredentials(profile, program, screen, isGuardian = false) {
+function getAWSCredentials(profile, program, screen) {
   let codeFn;
   if (program.mfa) {
-    const token = program.mfa;
-    codeFn = (serial, callback) => callback(null, token);
-  } else if (!isGuardian) {
+    codeFn = (serial, callback) => callback(null, program.mfa);
+  } else if (screen) {
     codeFn = (serial, callback) => promptMfaModal(callback, screen);
   } else {
     codeFn = () =>

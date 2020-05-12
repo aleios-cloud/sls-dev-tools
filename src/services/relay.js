@@ -10,7 +10,8 @@ async function createRelay(
   program,
   screen,
   lambda,
-  iam
+  iam,
+  application
 ) {
   const stage = "relay-dev";
   console.log("Setting up Relay...");
@@ -27,9 +28,11 @@ async function createRelay(
     const relay = new WebSocket(websocketAddress);
     relay.on("open", () => {
       console.log("Warning: Realtime logs will appear faster than CloudWatch");
+      application.setRelayActive(true);
+      application.lambdaLog.setContent("");
     });
     relay.on("message", (data) => {
-      console.log(data);
+      application.lambdaLog.log(data);
     });
     relay.on("close", () => {
       console.log("Relay Closed");

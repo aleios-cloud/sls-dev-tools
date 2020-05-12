@@ -64,7 +64,15 @@ const relayModal = (
     // If yes selected, begin Relay setup
     if (currentBox === 0) {
       // setup Relay
-      createRelay(apiGateway, fullLambda, program, screen, lambdaApi, iam);
+      createRelay(
+        apiGateway,
+        fullLambda,
+        program,
+        screen,
+        lambdaApi,
+        iam,
+        application
+      );
     }
     closeModal();
   });

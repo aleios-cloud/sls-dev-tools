@@ -397,7 +397,9 @@ class Main {
         cloudwatchLogs
       ).then((data) => {
         this.events = data;
-        updateLogContentsFromEvents(this.lambdaLog, this.events);
+        if (!this.relayActive) {
+          updateLogContentsFromEvents(this.lambdaLog, this.events);
+        }
         if (data) {
           checkLogsForErrors(this.events, this);
           this.setFirstLogsRetrieved(true);

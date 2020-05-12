@@ -20,7 +20,12 @@ const failTitleLog = chalk.redBright.underline.bold;
 
 class GuardianCI {
   constructor(program) {
-    AWS.config.credentials = getAWSCredentials(program.profile);
+    AWS.config.credentials = getAWSCredentials(
+      program.profile,
+      program,
+      null,
+      true
+    );
     if (program.region) {
       AWS.config.region = program.region;
     }

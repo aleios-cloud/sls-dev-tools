@@ -8,11 +8,8 @@ import {
   regionWizardModal,
   stackWizardModal,
 } from "./modals";
-
-import { Map } from "./components";
-import { ResourceTable } from "./components/resourceTable";
+import { Map, Log, DurationBarChart, ResourceTable } from "./components";
 import Serverless from "./services/serverless";
-import { DurationBarChart } from "./components/durationBarChart";
 import { getLambdaMetrics } from "./services/lambdaMetrics";
 import {
   updateLogContentsFromEvents,
@@ -179,22 +176,8 @@ class Main {
       },
     });
     this.eventBridgeTree.rows.interactive = false;
-    this.lambdaLog = this.layoutGrid.set(8, 0, 4, 6, blessed.log, {
-      fg: "green",
-      selectedFg: "green",
-      label: "Server Log",
-      interactive: true,
-      scrollbar: { bg: "blue" },
-      mouse: true,
-    });
-    this.consoleLogs = this.layoutGrid.set(8, 6, 4, 3, blessed.log, {
-      fg: "green",
-      selectedFg: "dark-green",
-      label: "Dashboard Logs",
-      interactive: true,
-      scrollbar: { bg: "blue" },
-      mouse: true,
-    });
+    this.lambdaLog = new Log(this.layoutGrid, "Server Log", 8, 0, 4, 6);
+    this.consoleLogs = new Log(this.layoutGrid, "Dashboard Logs", 8, 6, 4, 3);
     this.titleBox = this.layoutGrid.set(0, 0, 2, 6, blessed.box, {
       tags: true,
       content:
@@ -209,14 +192,14 @@ class Main {
     });
     this.setKeypresses();
     screen.on("resize", () => {
-      this.durationBarChart.chart("attach");
+      this.durationBarChart.chart.emit("attach");
       this.resourceTable.table.emit("attach");
       // errorsLine.emit('attach');
       this.titleBox.emit("attach");
       this.invocationsLineGraph.emit("attach");
       this.map.map = this.map.generateMap();
-      this.lambdaLog.emit("attach");
-      this.consoleLogs.emit("attach");
+      this.lambdaLog.datalog.emit("attach");
+      this.consoleLogs.datalog.emit("attach");
     });
     screen.title = "sls-dev-tools";
     this.interval = program.interval || 3600; // 1 hour
@@ -398,7 +381,7 @@ class Main {
       ).then((data) => {
         this.events = data;
         if (!this.relayActive) {
-          updateLogContentsFromEvents(this.lambdaLog, this.events);
+          updateLogContentsFromEvents(this.lambdaLog.datalog, this.events);
         }
         if (data) {
           checkLogsForErrors(this.events, this);

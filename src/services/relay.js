@@ -1,5 +1,5 @@
 import { Loader } from "../components/loader";
-import { createAndAddLambdaLayer } from "./lambdaLayers";
+import { setupLambdaLayer } from "./lambdaLayers";
 import { addRelayPermissions } from "./relayPermissions";
 
 const WebSocket = require("ws");
@@ -19,7 +19,7 @@ async function createRelay(
   loader.load("Please wait");
   try {
     await addRelayPermissions(lambda, iam, fullLambda, stage);
-    await createAndAddLambdaLayer(lambda, fullLambda.FunctionName);
+    await setupLambdaLayer(lambda, fullLambda);
     const websocketAddress = await apiGateway.createWebsocket(
       fullLambda,
       program,

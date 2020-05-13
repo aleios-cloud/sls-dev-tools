@@ -9,8 +9,11 @@
 ![Maintained](https://img.shields.io/maintenance/yes/2020.svg)
 [![CircleCI](https://circleci.com/gh/Theodo-UK/sls-dev-tools.svg?style=svg)](https://circleci.com/gh/Theodo-UK/sls-dev-tools)
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/Theodo-UK/sls-dev-tools.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Theodo-UK/sls-dev-tools/context:javascript)
+
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
 [![All Contributors](https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat-square)](#contributors-)
+
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The Developer Tools for the Serverless World - think Chrome Dev Tools but for Serverless.
@@ -60,7 +63,6 @@ sls-dev-tools is currently being actively maintained. If you find a problem with
 - [Guardian](#guardian)
   - [Usage](#usage-1)
   - [Configuring Rules](#configuring-rules)
-  - [Contributing Rules](#contributing-rules)
 
 [A note on AWS API calls and pricing](#a-note-on-aws-api-calls-and-pricing)\
 [Libs](#libs)\
@@ -117,7 +119,14 @@ sls-dev-tools works with the serverless framework by default, and can be used by
 
 To use the SAM framework, pass the `--sam` option when running the tool.
 
-When using the sam framework extra arguments for capabilities and s3 bucket must be added in the slsdevtools.config.js e.g. `--capabilities CAPABILITY_IAM --s3-bucket deployment-bucket-name` [Example SLS Dev Tools Config](slsdevtools.config.js.dist)
+When using the sam framework extra arguments for capabilities and s3 bucket must be added to your slsdevtools.config.js file e.g.
+
+```jsx
+module.exports = {
+  deploymentArgs:
+    "--capabilities CAPABILITY_IAM --s3-bucket deployment-bucket-name",
+};
+```
 
 ## Features
 
@@ -223,7 +232,6 @@ To ignore a rule add a guardian section to your slsdevtools.config.js file
 
 ```jsx
 module.exports = {
-  deploymentArgs: '--capabilities CAPABILITY_IAM --s3-bucket deployment-bucket-name',
 	guardian: {
 		ignore: {
 			"no-max-memory": true, // global

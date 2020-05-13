@@ -83,7 +83,7 @@ async function processEvents(handler) {
       try {
         result = await handler(event, context);
       } catch (e) {
-        await invokeError(e, context, relaySetup);
+        await invokeError(e, context);
         continue;
       }
       const callbackUsed = context[CALLBACK_USED];
@@ -166,20 +166,15 @@ async function invokeResponse(result, context, relaySetup) {
   }
 }
 
-function invokeError(err, context, relaySetup) {
+function invokeError(err, context) {
   return postError(
     `${RUNTIME_PATH}/invocation/${context.awsRequestId}/error`,
-    err,
-    relaySetup
+    err
   );
 }
 
-async function postError(path, err, relaySetup) {
+async function postError(path, err) {
   const lambdaErr = toLambdaErr(err);
-  const payload = JSON.stringify(lambdaErr);
-  if (relaySetup) {
-    await relayResponse(payload);
-  }
   const res = await request({
     method: "POST",
     path,
@@ -187,7 +182,7 @@ async function postError(path, err, relaySetup) {
       "Content-Type": "application/json",
       "Lambda-Runtime-Function-Error-Type": lambdaErr.errorType,
     },
-    body: payload,
+    body: JSON.stringify(lambdaErr),
   });
   if (res.statusCode !== 202) {
     throw new Error(`Unexpected ${path} response: ${JSON.stringify(res)}`);

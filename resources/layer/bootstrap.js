@@ -64,21 +64,19 @@ async function setupRelay(connectionId, context) {
         2
       ),
     },
-    context,
-    false
+    context
   );
 }
 
 async function processEvents(handler) {
-  let relaySetup = false;
   while (true) {
     const { event, context } = await nextInvocation();
     if (event.requestContext && event.requestContext.connectionId) {
       // websocket connect
       await setupRelay(event.requestContext.connectionId, context);
       console.log = relayResponse;
-      relaySetup = true;
     } else {
+      console.log = relayResponse;
       let result;
       try {
         result = await handler(event, context);
@@ -88,7 +86,9 @@ async function processEvents(handler) {
       }
       const callbackUsed = context[CALLBACK_USED];
 
-      await invokeResponse(result, context, relaySetup);
+      await invokeResponse(result, context);
+
+      await new Promise((r) => setTimeout(r, 1000));
 
       if (callbackUsed && context.callbackWaitsForEmptyEventLoop) {
         return process.prependOnceListener("beforeExit", () =>
@@ -149,15 +149,11 @@ async function nextInvocation() {
   return { event, context };
 }
 
-async function invokeResponse(result, context, relaySetup) {
-  const payload = JSON.stringify(result === undefined ? null : result);
-  if (relaySetup) {
-    await relayResponse(payload);
-  }
+async function invokeResponse(result, context) {
   const res = await request({
     method: "POST",
     path: `${RUNTIME_PATH}/invocation/${context.awsRequestId}/response`,
-    body: payload,
+    body: JSON.stringify(result === undefined ? null : result),
   });
   if (res.statusCode !== 202) {
     throw new Error(

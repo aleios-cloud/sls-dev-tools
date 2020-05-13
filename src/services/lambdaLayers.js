@@ -16,7 +16,7 @@ function addLayerToLambda(lambdaApi, functionName, layerArn, resolve, reject) {
   });
 }
 
-function createAndAddLambdaLayer(lambdaApi, functionName, resolve, reject) {
+function createAndAddLambdaLayer(lambdaApi, functionConfig, resolve, reject) {
   console.log("Uploading Lamba Layer...");
   let data;
   try {
@@ -30,6 +30,7 @@ function createAndAddLambdaLayer(lambdaApi, functionName, resolve, reject) {
     Content: {
       ZipFile: data,
     },
+    CompatibleRuntimes: [functionConfig.Runtime],
     LayerName: "test-node10-layer",
   };
 
@@ -40,7 +41,13 @@ function createAndAddLambdaLayer(lambdaApi, functionName, resolve, reject) {
     } else {
       console.log("Layer uploaded. Adding to function...");
       const arn = layer.LayerVersionArn;
-      addLayerToLambda(lambdaApi, functionName, arn, resolve, reject);
+      addLayerToLambda(
+        lambdaApi,
+        functionConfig.FunctionName,
+        arn,
+        resolve,
+        reject
+      );
     }
   });
 }
@@ -49,16 +56,17 @@ function setupLambdaLayer(lambdaApi, functionConfig) {
   // TODO: Determine required layer name using function runtime
   const requiredLayerName = "test-node10-layer";
   console.log("Searching for existing layer");
+  const params = {
+    CompatibleRuntime: functionConfig.Runtime,
+  };
   return new Promise((resolve, reject) => {
-    lambdaApi.listLayers({}, (err, data) => {
+    lambdaApi.listLayers(params, (err, data) => {
       if (err) {
         console.error(err);
         reject();
       } else {
-        let layerFound = false;
-        data.Layers.forEach((layer) => {
+        const layerFound = data.Layers.some((layer) => {
           if (layer.LayerName === requiredLayerName) {
-            layerFound = true;
             console.log("Existing layer found. Adding to function...");
             addLayerToLambda(
               lambdaApi,
@@ -67,16 +75,13 @@ function setupLambdaLayer(lambdaApi, functionConfig) {
               resolve,
               reject
             );
+            return true;
           }
+          return false;
         });
         if (!layerFound) {
           console.log("No existing layer found");
-          createAndAddLambdaLayer(
-            lambdaApi,
-            functionConfig.FunctionName,
-            resolve,
-            reject
-          );
+          createAndAddLambdaLayer(lambdaApi, functionConfig, resolve, reject);
         }
       }
     });

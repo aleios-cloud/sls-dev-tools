@@ -76,6 +76,7 @@ async function processEvents(handler) {
     if (event.requestContext && event.requestContext.connectionId) {
       // websocket connect
       await setupRelay(event.requestContext.connectionId, context);
+      console.log = relayResponse;
       relaySetup = true;
     } else {
       let result;

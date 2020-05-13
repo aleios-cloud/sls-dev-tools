@@ -53,7 +53,14 @@ sls-dev-tools works with the serverless framework by default, and can be used by
 
 To use the SAM framework, pass the `--sam` option when running the tool.
 
-When using the sam framework extra arguments for capabilities and s3 bucket must be added in the slsdevtools.config.js e.g. `--capabilities CAPABILITY_IAM --s3-bucket deployment-bucket-name` [Example SLS Dev Tools Config](slsdevtools.config.js.dist)
+When using the sam framework extra arguments for capabilities and s3 bucket must be added to your slsdevtools.config.js file e.g.
+
+```jsx
+module.exports = {
+  deploymentArgs:
+    "--capabilities CAPABILITY_IAM --s3-bucket deployment-bucket-name",
+};
+```
 
 ## Features
 
@@ -161,7 +168,6 @@ To ignore a rule add a guardian section to your slsdevtools.config.js file
 
 ```jsx
 module.exports = {
-  deploymentArgs: '--capabilities CAPABILITY_IAM --s3-bucket deployment-bucket-name',
 	guardian: {
 		ignore: {
 			"no-max-memory": true, // global

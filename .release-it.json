@@ -1,8 +1,5 @@
 {
   "github": {
     "release": true
-  },
-  "npm":{
-    "publishPath":"lib"
   }
 }

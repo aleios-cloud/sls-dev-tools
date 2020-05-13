@@ -4,3 +4,6 @@ export { ModalTitle } from "./modalTitle";
 export { submitButton } from "./submitButton";
 export { Box } from "./box";
 export { Map } from "./map";
+export { Log } from "./log";
+export { ResourceTable } from "./resourceTable";
+export { DurationBarChart } from "./durationBarChart";

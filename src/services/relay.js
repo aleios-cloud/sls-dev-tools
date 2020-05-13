@@ -29,7 +29,8 @@ async function createRelay(
     relay.on("open", () => {
       console.log("Warning: Realtime logs will appear faster than CloudWatch");
       application.setRelayActive(true);
-      application.lambdaLog.setContent("");
+      // Clear and reset logs
+      application.lambdaLog.generateLog();
     });
     relay.on("message", (data) => {
       application.lambdaLog.log(data);

@@ -21,7 +21,7 @@ import {
   helpModal,
   regionWizardModal,
   stackWizardModal,
-  disableRelayModal,
+  disableRelayWarningModal,
 } from "./modals";
 
 const blessed = require("blessed");
@@ -275,7 +275,7 @@ class Main {
     this.screen.unkey(["q", "C-c"]);
     this.screen.key(["q", "C-c"], () => {
       if (this.relayActive && !this.warningGiven) {
-        disableRelayModal(this.screen, this);
+        disableRelayWarningModal(this.screen, this);
       } else {
         process.exit(0);
       }

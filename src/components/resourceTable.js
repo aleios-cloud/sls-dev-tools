@@ -10,6 +10,7 @@ import {
   lambdaInvokeModal,
   relayModal,
   errorModal,
+  disableRelayModal,
 } from "../modals";
 import { getLambdaFunctions, removeLambdaLayer } from "../services";
 
@@ -46,18 +47,22 @@ class ResourceTable {
     this.fullFuncName = null;
     this.table.rows.on("select", (item) => {
       if (item.data[0] === this.funcName) {
-        if (item.data[4].substring(0, 6) === "nodejs") {
-          relayModal(
-            screen,
-            this.application,
-            apiGateway,
-            lambda,
-            this.lambdaFunctions[this.fullFuncName],
-            program,
-            iam
-          );
+        if (!application.relayActive) {
+          if (item.data[4].substring(0, 6) === "nodejs") {
+            relayModal(
+              screen,
+              this.application,
+              apiGateway,
+              lambda,
+              this.lambdaFunctions[this.fullFuncName],
+              program,
+              iam
+            );
+          } else {
+            errorModal(screen, this.application);
+          }
         } else {
-          errorModal(screen, this.application);
+          disableRelayModal(screen, this.application);
         }
       }
       [this.funcName] = item.data;

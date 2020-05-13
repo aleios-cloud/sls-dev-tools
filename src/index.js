@@ -7,6 +7,7 @@ import {
   helpModal,
   regionWizardModal,
   stackWizardModal,
+  disableRelayWarningModal,
 } from "./modals";
 import { Map, Log, DurationBarChart, ResourceTable } from "./components";
 import Serverless from "./services/serverless";
@@ -17,7 +18,6 @@ import {
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
 import updateNotifier from "./utils/updateNotifier";
-import { disableRelayModal } from "./modals/disableRelayModal";
 import { ApiGateway } from "./services";
 
 const blessed = require("blessed");
@@ -254,7 +254,7 @@ class Main {
     screen.unkey(["q", "C-c"]);
     screen.key(["q", "C-c"], () => {
       if (this.relayActive && !this.warningGiven) {
-        disableRelayModal(screen, this);
+        disableRelayWarningModal(screen, this);
       } else {
         process.exit(0);
       }

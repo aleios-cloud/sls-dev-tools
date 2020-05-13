@@ -9,3 +9,5 @@ export { regionWizardModal } from "./regionWizardModal";
 export { stackWizardModal } from "./stackWizardModal";
 export { relayModal } from "./relayModal";
 export { errorModal } from "./errorModal";
+export { disableRelayModal } from "./disableRelayModal";
+export { disableRelayWarningModal } from "./disableRelayWarningModal";

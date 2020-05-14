@@ -1,3 +1,5 @@
+import { RELAY_ID, RELAY_LAYER_ID } from "../constants";
+
 const fs = require("fs");
 
 function addLayerToLambda(
@@ -45,7 +47,7 @@ function createAndAddLambdaLayer(lambdaApi, functionConfig, resolve, reject) {
       ZipFile: data,
     },
     CompatibleRuntimes: [functionConfig.Runtime],
-    LayerName: "test-node10-layer",
+    LayerName: RELAY_LAYER_ID,
   };
 
   lambdaApi.publishLayerVersion(params, (err, layer) => {
@@ -62,7 +64,7 @@ function createAndAddLambdaLayer(lambdaApi, functionConfig, resolve, reject) {
 
 function setupLambdaLayer(lambdaApi, functionConfig) {
   // TODO: Determine required layer name using function runtime
-  const requiredLayerName = "test-node10-layer";
+  const requiredLayerName = RELAY_LAYER_ID;
   console.log("Searching for existing layer");
   const params = {
     CompatibleRuntime: functionConfig.Runtime,
@@ -96,9 +98,11 @@ function setupLambdaLayer(lambdaApi, functionConfig) {
   });
 }
 
-function resetLambdaLayers(lambdaApi, layers, lambdaName) {
+function removeLambdaLayer(lambdaApi, fullFunc) {
+  let layers = fullFunc.Layers || [];
+  layers = layers.filter((layer) => !layer.LayerArn.includes(RELAY_ID));
   const params = {
-    FunctionName: lambdaName,
+    FunctionName: fullFunc.FunctionName,
     Runtime: "nodejs10.x",
     Layers: layers,
   };
@@ -115,6 +119,6 @@ function resetLambdaLayers(lambdaApi, layers, lambdaName) {
 }
 
 module.exports = {
-  resetLambdaLayers,
+  removeLambdaLayer,
   setupLambdaLayer,
 };

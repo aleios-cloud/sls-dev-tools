@@ -1,6 +1,7 @@
 import { Loader } from "../components/loader";
-import { setupLambdaLayer, resetLambdaLayers } from "./lambdaLayers";
+import { setupLambdaLayer, removeLambdaLayer } from "./lambdaLayers";
 import { addRelayPermissions } from "./relayPermissions";
+import { RELAY_ID } from "../constants";
 
 const WebSocket = require("ws");
 
@@ -13,13 +14,11 @@ async function createRelay(
   iam,
   application
 ) {
-  const stage = "relay-dev";
+  const stage = `${RELAY_ID}-dev`;
   console.log("Setting up Relay...");
   const loader = new Loader(screen, 5, 20);
   loader.load("Please wait");
   try {
-    // Store snapshot of layers before adding relay
-    application.lambdaLayers[fullLambda.FunctionName] = fullLambda.Layers || [];
     await addRelayPermissions(lambda, iam, fullLambda, stage);
     await setupLambdaLayer(lambda, fullLambda);
     const websocketAddress = await apiGateway.createWebsocket(
@@ -54,11 +53,7 @@ async function takedownRelay(fullLambda, lambda, screen, application) {
   const loader = new Loader(screen, 5, 20);
   loader.load("Please wait");
   try {
-    resetLambdaLayers(
-      lambda,
-      application.lambdaLayers[fullLambda.FunctionName],
-      fullLambda.FunctionName
-    );
+    removeLambdaLayer(lambda, fullLambda);
     application.setRelayActive(false);
   } catch (e) {
     console.error("Relay Takedown Failure");

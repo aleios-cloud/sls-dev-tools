@@ -12,7 +12,7 @@ import {
   errorModal,
   disableRelayModal,
 } from "../modals";
-import { resetLambdaLayers } from "../services/lambdaLayers";
+import { removeLambdaLayer } from "../services/lambdaLayers";
 
 const contrib = require("blessed-contrib");
 const open = require("open");
@@ -177,8 +177,10 @@ class ResourceTable {
         this.isLambdaTable() &&
         this.application.isModalOpen === false
       ) {
-        // clear function of all layers and reset runtime
-        await resetLambdaLayers(this.lambda, [], this.fullFuncName);
+        await removeLambdaLayer(
+          this.lambda,
+          this.lambdaFunctions[this.fullFuncName]
+        );
       }
       return 0;
     });

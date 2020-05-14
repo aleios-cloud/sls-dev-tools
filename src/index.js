@@ -247,8 +247,6 @@ class Main {
     this.relayActive = false;
     // Allow the user the quit after receiving a warning
     this.warningGiven = false;
-    // Store the list of Lambda layers prior to adding Relay to a lambda
-    this.lambdaLayers = {};
   }
 
   setKeypresses() {

@@ -1,9 +1,23 @@
 const fs = require("fs");
 
-function addLayerToLambda(lambdaApi, functionName, layerArn, resolve, reject) {
+function addLayerToLambda(
+  lambdaApi,
+  functionConfig,
+  layerArn,
+  resolve,
+  reject
+) {
+  const layers = functionConfig.Layers;
+  let layerArns;
+  if (layers) {
+    layerArns = layers.map((layer) => layer.Arn);
+  } else {
+    layerArns = [];
+  }
+  layerArns.push(layerArn);
   const params = {
-    FunctionName: functionName,
-    Layers: [layerArn],
+    FunctionName: functionConfig.FunctionName,
+    Layers: layerArns,
     Runtime: "provided",
   };
   lambdaApi.updateFunctionConfiguration(params, (err) => {
@@ -41,13 +55,7 @@ function createAndAddLambdaLayer(lambdaApi, functionConfig, resolve, reject) {
     } else {
       console.log("Layer uploaded. Adding to function...");
       const arn = layer.LayerVersionArn;
-      addLayerToLambda(
-        lambdaApi,
-        functionConfig.FunctionName,
-        arn,
-        resolve,
-        reject
-      );
+      addLayerToLambda(lambdaApi, functionConfig, arn, resolve, reject);
     }
   });
 }
@@ -70,7 +78,7 @@ function setupLambdaLayer(lambdaApi, functionConfig) {
             console.log("Existing layer found. Adding to function...");
             addLayerToLambda(
               lambdaApi,
-              functionConfig.FunctionName,
+              functionConfig,
               layer.LatestMatchingVersion.LayerVersionArn,
               resolve,
               reject
@@ -88,20 +96,25 @@ function setupLambdaLayer(lambdaApi, functionConfig) {
   });
 }
 
-function removeLambdaLayer(lambdaApi, lambdaName) {
+function resetLambdaLayers(lambdaApi, layers, lambdaName) {
   const params = {
     FunctionName: lambdaName,
     Runtime: "nodejs10.x",
+    Layers: layers,
   };
-  lambdaApi.updateFunctionConfiguration(params, (err, data) => {
-    if (err) {
-      console.error(err);
-    }
-    console.log(data);
+  return new Promise((resolve, reject) => {
+    lambdaApi.updateFunctionConfiguration(params, (err, data) => {
+      if (err) {
+        console.error(err);
+        reject();
+      }
+      console.log(data);
+      resolve();
+    });
   });
 }
 
 module.exports = {
-  removeLambdaLayer,
+  resetLambdaLayers,
   setupLambdaLayer,
 };

@@ -12,7 +12,7 @@ import {
   errorModal,
   disableRelayModal,
 } from "../modals";
-import { removeLambdaLayer } from "../services/lambdaLayers";
+import { resetLambdaLayers } from "../services/lambdaLayers";
 
 const contrib = require("blessed-contrib");
 const open = require("open");
@@ -61,7 +61,12 @@ class ResourceTable {
             errorModal(screen, this.application);
           }
         } else {
-          disableRelayModal(screen, this.application);
+          disableRelayModal(
+            screen,
+            this.application,
+            this.lambda,
+            this.lambdaFunctions[this.fullFuncName]
+          );
         }
       }
       [this.funcName] = item.data;
@@ -166,16 +171,14 @@ class ResourceTable {
       }
       return 0;
     });
-    this.screen.key(["c"], () => {
+    this.screen.key(["c"], async () => {
       if (
         this.isOnFocus() &&
         this.isLambdaTable() &&
         this.application.isModalOpen === false
       ) {
-        return removeLambdaLayer(
-          this.lambda,
-          this.getCurrentlyOnHoverFullLambdaName()
-        );
+        // clear function of all layers and reset runtime
+        await resetLambdaLayers(this.lambda, [], this.fullFuncName);
       }
       return 0;
     });

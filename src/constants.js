@@ -1,3 +1,5 @@
+const packageJson = require("../package.json");
+
 export const logo = `
  ____  __    ____      ____  ____  _  _      ____  __    __   __    ____
 / ___)(  )  / ___) ___(    \\(  __)/ )( \\ ___(_  _)/  \\  /  \\ (  )  / ___)
@@ -43,3 +45,10 @@ export const DASHBOARD_FOCUS_INDEX = {
   RESOURCE_TABLE: 0,
   EVENT_BRIDGE_TREE: 1,
 };
+
+export const RELAY_ID = "sls-dev-tools-relay";
+// Layer names may not contain the "." character
+export const RELAY_LAYER_ID = `${RELAY_ID}-v${packageJson.version.replace(
+  /\./g,
+  "_"
+)}`;

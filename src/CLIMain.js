@@ -258,6 +258,8 @@ class Main {
     this.eventBridge = new AWS.EventBridge();
     this.schemas = new AWS.Schemas();
     this.lambda = new AWS.Lambda();
+    this.iam = new AWS.IAM();
+    this.apiGateway = new ApiGateway(AWS);
 
     if (this.resourceTable) {
       this.resourceTable.updateAPIs(
@@ -265,7 +267,9 @@ class Main {
         this.cloudformation,
         this.lambda,
         this.cloudwatch,
-        this.cloudwatchLogs
+        this.cloudwatchLogs,
+        this.apiGateway,
+        this.iam
       );
     }
   }

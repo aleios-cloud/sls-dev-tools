@@ -52,11 +52,11 @@ class ResourceTable {
             relayModal(
               screen,
               this.application,
-              apiGateway,
-              lambda,
+              this.apiGateway,
+              this.lambda,
               this.lambdaFunctions[this.fullFuncName],
               program,
-              iam
+              this.iam
             );
           } else {
             errorModal(screen, this.application);
@@ -76,18 +76,29 @@ class ResourceTable {
     this.type = RESOURCE_TABLE_TYPE.LAMBDA;
     this.lambda = lambda;
     this.iam = iam;
+    this.apiGateway = apiGateway;
     this.screen = screen;
     this.cloudwatch = cloudwatch;
     this.cloudwatchLogs = cloudwatchLogs;
     this.setKeypresses();
   }
 
-  updateAPIs(profile, cloudformation, lambda, cloudwatch, cloudwatchLogs) {
+  updateAPIs(
+    profile,
+    cloudformation,
+    lambda,
+    cloudwatch,
+    cloudwatchLogs,
+    apiGateway,
+    iam
+  ) {
     this.profile = profile;
     this.cloudformation = cloudformation;
     this.lambda = lambda;
     this.cloudwatch = cloudwatch;
     this.cloudwatchLogs = cloudwatchLogs;
+    this.apiGateway = apiGateway;
+    this.iam = iam;
   }
 
   getFullFunctionName(abbreviatedFunctionName) {

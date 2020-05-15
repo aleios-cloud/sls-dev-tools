@@ -1,9 +1,25 @@
+import { RELAY_ID, RELAY_LAYER_ID } from "../constants";
+
 const fs = require("fs");
 
-function addLayerToLambda(lambdaApi, functionName, layerArn, resolve, reject) {
+function addLayerToLambda(
+  lambdaApi,
+  functionConfig,
+  layerArn,
+  resolve,
+  reject
+) {
+  const layers = functionConfig.Layers;
+  let layerArns;
+  if (layers) {
+    layerArns = layers.map((layer) => layer.Arn);
+  } else {
+    layerArns = [];
+  }
+  layerArns.push(layerArn);
   const params = {
-    FunctionName: functionName,
-    Layers: [layerArn],
+    FunctionName: functionConfig.FunctionName,
+    Layers: layerArns,
     Runtime: "provided",
   };
   lambdaApi.updateFunctionConfiguration(params, (err) => {
@@ -31,7 +47,7 @@ function createAndAddLambdaLayer(lambdaApi, functionConfig, resolve, reject) {
       ZipFile: data,
     },
     CompatibleRuntimes: [functionConfig.Runtime],
-    LayerName: "test-node10-layer",
+    LayerName: RELAY_LAYER_ID,
   };
 
   lambdaApi.publishLayerVersion(params, (err, layer) => {
@@ -41,20 +57,14 @@ function createAndAddLambdaLayer(lambdaApi, functionConfig, resolve, reject) {
     } else {
       console.log("Layer uploaded. Adding to function...");
       const arn = layer.LayerVersionArn;
-      addLayerToLambda(
-        lambdaApi,
-        functionConfig.FunctionName,
-        arn,
-        resolve,
-        reject
-      );
+      addLayerToLambda(lambdaApi, functionConfig, arn, resolve, reject);
     }
   });
 }
 
 function setupLambdaLayer(lambdaApi, functionConfig) {
   // TODO: Determine required layer name using function runtime
-  const requiredLayerName = "test-node10-layer";
+  const requiredLayerName = RELAY_LAYER_ID;
   console.log("Searching for existing layer");
   const params = {
     CompatibleRuntime: functionConfig.Runtime,
@@ -70,7 +80,7 @@ function setupLambdaLayer(lambdaApi, functionConfig) {
             console.log("Existing layer found. Adding to function...");
             addLayerToLambda(
               lambdaApi,
-              functionConfig.FunctionName,
+              functionConfig,
               layer.LatestMatchingVersion.LayerVersionArn,
               resolve,
               reject
@@ -88,16 +98,25 @@ function setupLambdaLayer(lambdaApi, functionConfig) {
   });
 }
 
-function removeLambdaLayer(lambdaApi, lambdaName) {
+function removeLambdaLayer(lambdaApi, fullFunc) {
+  let layers = fullFunc.Layers || [];
+  console.log(layers);
+  layers = layers.filter((layer) => !layer.Arn.includes(RELAY_ID));
+  layers = layers.map((layer) => layer.Arn);
   const params = {
-    FunctionName: lambdaName,
+    FunctionName: fullFunc.FunctionName,
     Runtime: "nodejs10.x",
+    Layers: layers,
   };
-  lambdaApi.updateFunctionConfiguration(params, (err, data) => {
-    if (err) {
-      console.error(err);
-    }
-    console.log(data);
+  return new Promise((resolve, reject) => {
+    lambdaApi.updateFunctionConfiguration(params, (err, data) => {
+      if (err) {
+        console.error(err);
+        reject();
+      }
+      console.log(data);
+      resolve();
+    });
   });
 }
 

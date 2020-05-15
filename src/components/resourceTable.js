@@ -50,19 +50,24 @@ class ResourceTable {
         if (!application.relayActive) {
           if (item.data[4].substring(0, 6) === "nodejs") {
             relayModal(
-              screen,
+              this.screen,
               this.application,
               this.apiGateway,
               this.lambda,
               this.lambdaFunctions[this.fullFuncName],
-              program,
+              this.program,
               this.iam
             );
           } else {
             errorModal(screen, this.application);
           }
         } else {
-          disableRelayModal(screen, this.application);
+          disableRelayModal(
+            this.screen,
+            this.application,
+            this.lambda,
+            this.lambdaFunctions[this.getCurrentlyOnHoverFullLambdaName()]
+          );
         }
       }
       [this.funcName] = item.data;
@@ -187,15 +192,16 @@ class ResourceTable {
       }
       return 0;
     });
-    this.screen.key(["c"], () => {
+    this.screen.key(["c"], async () => {
       if (
         this.isOnFocus() &&
         this.isLambdaTable() &&
         this.application.isModalOpen === false
       ) {
-        return removeLambdaLayer(
+        // console.log(this.lambdaFunctions);
+        await removeLambdaLayer(
           this.lambda,
-          this.getCurrentlyOnHoverFullLambdaName()
+          this.lambdaFunctions[this.getCurrentlyOnHoverFullLambdaName()]
         );
       }
       return 0;

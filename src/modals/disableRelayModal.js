@@ -1,9 +1,9 @@
 import { Box } from "../components/box";
 import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
-import { Loader } from "../components/loader";
+import { takedownRelay } from "../services/relay";
 
-const disableRelayModal = (screen, application) => {
+const disableRelayModal = (screen, application, lambda, fullLambda) => {
   const disableRelayLayout = new ModalLayout(screen, 112, 20, true);
 
   const numBoxes = 2;
@@ -55,20 +55,9 @@ const disableRelayModal = (screen, application) => {
   disableRelayLayout.key(["enter"], () => {
     // If confirm selected, disable Relay layer
     if (currentBox === 0) {
-      const loader = new Loader(screen, 5, 30);
-      loader.load("Disabling Relay...");
-      // Simulate remove layers API callback
-      setTimeout(() => {
-        application.setRelayActive(false);
-        loader.stop();
-        loader.destroy();
-        console.log("Relay disabled");
-        closeModal();
-      }, 2000);
-    } else {
-      // Dismiss warning and allow user to quit
-      closeModal();
+      takedownRelay(fullLambda, lambda, screen, application);
     }
+    closeModal();
   });
 
   disableRelayLayout.key(["up"], () => {

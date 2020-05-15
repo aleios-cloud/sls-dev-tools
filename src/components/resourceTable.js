@@ -66,7 +66,8 @@ class ResourceTable {
             this.screen,
             this.application,
             this.lambda,
-            this.lambdaFunctions[this.getCurrentlyOnHoverFullLambdaName()]
+            this.lambdaFunctions[this.getCurrentlyOnHoverFullLambdaName()],
+            this.iam
           );
         }
       }

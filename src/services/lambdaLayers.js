@@ -100,7 +100,6 @@ function setupLambdaLayer(lambdaApi, functionConfig) {
 
 function removeLambdaLayer(lambdaApi, fullFunc) {
   let layers = fullFunc.Layers || [];
-  console.log(layers);
   layers = layers.filter((layer) => !layer.Arn.includes(RELAY_ID));
   layers = layers.map((layer) => layer.Arn);
   const params = {
@@ -109,12 +108,12 @@ function removeLambdaLayer(lambdaApi, fullFunc) {
     Layers: layers,
   };
   return new Promise((resolve, reject) => {
-    lambdaApi.updateFunctionConfiguration(params, (err, data) => {
+    lambdaApi.updateFunctionConfiguration(params, (err) => {
       if (err) {
         console.error(err);
         reject();
       }
-      console.log(data);
+      console.log("Relay layer removed");
       resolve();
     });
   });

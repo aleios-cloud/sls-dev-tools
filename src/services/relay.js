@@ -1,6 +1,9 @@
 import { Loader } from "../components/loader";
 import { setupLambdaLayer, removeLambdaLayer } from "./lambdaLayers";
-import { addRelayPermissions } from "./relayPermissions";
+import {
+  addRelayPermissions,
+  removeRelayPermissions,
+} from "./relayPermissions";
 import { RELAY_ID } from "../constants";
 
 const WebSocket = require("ws");
@@ -48,12 +51,14 @@ async function createRelay(
   loader.destroy();
 }
 
-async function takedownRelay(fullLambda, lambda, screen, application) {
-  console.log("Removing relay...");
+async function takedownRelay(fullLambda, lambda, screen, application, iam) {
+  console.log("Disabling relay...");
   const loader = new Loader(screen, 5, 20);
   loader.load("Please wait");
   try {
-    removeLambdaLayer(lambda, fullLambda);
+    await removeLambdaLayer(lambda, fullLambda);
+    await removeRelayPermissions(lambda, iam, fullLambda);
+    console.log("Relay Successfully Disabled");
     application.setRelayActive(false);
   } catch (e) {
     console.error("Relay Takedown Failure");

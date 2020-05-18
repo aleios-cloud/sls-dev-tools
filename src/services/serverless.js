@@ -20,6 +20,10 @@ class Serverless {
     }
   }
 
+  getFunctionConfig(functionName) {
+    return this.config.functions[functionName];
+  }
+
   getStage() {
     if (typeof this.config !== "object") {
       return "dev";

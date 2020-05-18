@@ -7,6 +7,7 @@ import { getStackResources } from "../services/stackResources";
 import { padString } from "../utils/padString";
 import { lambdaStatisticsModal, lambdaInvokeModal } from "../modals";
 import { getLambdaFunctions } from "../services";
+import { abbreviateFunction } from "../utils/abbreviateFunction";
 
 const contrib = require("blessed-contrib");
 const open = require("open");
@@ -256,9 +257,9 @@ class ResourceTable {
     this.table.data = lambdaFunctionResources.map((lam) => {
       const funcName = lam.PhysicalResourceId;
       const func = this.lambdaFunctions[funcName];
-      const shortenedFuncName = lam.PhysicalResourceId.replace(
-        `${this.program.stackName}-`,
-        ""
+      const shortenedFuncName = abbreviateFunction(
+        lam.PhysicalResourceId,
+        this.program.stackName
       );
       this.fullFunctionNames[shortenedFuncName] = funcName;
       let timeout = "?";

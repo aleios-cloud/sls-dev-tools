@@ -1,5 +1,7 @@
+import { abbreviateFunction } from "../../../../utils/abbreviateFunction";
+
 class NoDefaultTimeout {
-  constructor(AWS, stackName, stackFunctions) {
+  constructor(AWS, stackName, stackFunctions, SLS) {
     this.name = "no-default-timeout";
     this.AWS = AWS;
     this.stackName = stackName;
@@ -8,6 +10,7 @@ class NoDefaultTimeout {
     this.defaultTimeoutAWS = 3;
     this.defaultTimeoutServerlessFramework = 6;
     this.failingResources = [];
+    this.SLS = SLS;
     this.failureMessage =
       "The following functions have their timeout set as default.";
     this.rulePage =
@@ -15,10 +18,15 @@ class NoDefaultTimeout {
   }
 
   hasDefaultTimeout(lambdaFunction) {
-    return [
-      this.defaultTimeoutAWS,
-      this.defaultTimeoutServerlessFramework,
-    ].includes(lambdaFunction.Timeout);
+    const shortenedName = abbreviateFunction(
+      lambdaFunction.FunctionName,
+      this.stackName
+    );
+    return (
+      [this.defaultTimeoutAWS, this.defaultTimeoutServerlessFramework].includes(
+        lambdaFunction.Timeout
+      ) && !this.SLS.getFunctionConfig(shortenedName).timeout
+    );
   }
 
   async run() {

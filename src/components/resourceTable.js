@@ -47,7 +47,7 @@ class ResourceTable {
     this.fullFuncName = null;
     this.table.rows.on("select", (item) => {
       if (item.data[0] === this.funcName) {
-        if (!application.relayActive) {
+        if (!application.relayActive[this.fullFuncName]) {
           if (item.data[4].substring(0, 6) === "nodejs") {
             relayModal(
               this.screen,

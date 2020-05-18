@@ -10,6 +10,7 @@ import { Map, Log, DurationBarChart, ResourceTable } from "./components";
 import { getLambdaMetrics } from "./services/lambdaMetrics";
 import {
   updateLogContentsFromEvents,
+  updateLogContentsFromRelay,
   checkLogsForErrors,
 } from "./services/processEventLogs";
 import { getLogEvents } from "./services/awsCloudwatchLogs";
@@ -169,11 +170,13 @@ class Main {
     this.notifier = new blessed.Program();
 
     // Monitor active relay layers
-    this.relayActive = false;
+    this.relayActive = {};
     // Allow the user the quit after receiving a warning
     this.warningGiven = false;
     // Store of relay api ids
     this.relayApis = {};
+    // Store messages received from relay per function
+    this.relayLogs = {};
 
     checkForUpdates();
 
@@ -280,7 +283,7 @@ class Main {
     // Overwrite quit keybinds to perform safety checks
     this.screen.unkey(["q", "C-c"]);
     this.screen.key(["q", "C-c"], () => {
-      if (this.relayActive && !this.warningGiven) {
+      if (this.isRelayActive() && !this.warningGiven) {
         disableRelayWarningModal(this.screen, this);
       } else {
         process.exit(0);
@@ -378,8 +381,15 @@ class Main {
     this.prevError = value;
   }
 
-  setRelayActive(value) {
-    this.relayActive = value;
+  setRelayActive(lambda, value) {
+    this.relayActive[lambda] = value;
+  }
+
+  isRelayActive() {
+    if (Object.values(this.relayActive).includes(true)) {
+      return true;
+    }
+    return false;
   }
 
   setWarningGiven(value) {
@@ -411,8 +421,13 @@ class Main {
         this.cloudwatchLogs
       ).then((data) => {
         this.events = data;
-        if (!this.relayActive) {
+        if (!this.relayActive[this.resourceTable.fullFuncName]) {
           updateLogContentsFromEvents(this.lambdaLog.datalog, this.events);
+        } else {
+          updateLogContentsFromRelay(
+            this.lambdaLog.datalog,
+            this.relayLogs[this.resourceTable.fullFuncName]
+          );
         }
         if (data) {
           checkLogsForErrors(this.events, this);

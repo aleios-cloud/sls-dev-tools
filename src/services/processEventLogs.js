@@ -9,6 +9,17 @@ function updateLogContentsFromEvents(log, events) {
   }
 }
 
+function updateLogContentsFromRelay(log, events) {
+  if (events) {
+    log.setContent("");
+    events.forEach((event) => {
+      log.log(event);
+    });
+  } else {
+    log.setContent("No Relay logs for this function this session");
+  }
+}
+
 function checkLogsForErrors(events, application) {
   let logId = "";
   if (events.length > 0) {
@@ -39,5 +50,6 @@ function checkLogsForErrors(events, application) {
 
 module.exports = {
   updateLogContentsFromEvents,
+  updateLogContentsFromRelay,
   checkLogsForErrors,
 };

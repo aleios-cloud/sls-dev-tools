@@ -34,12 +34,13 @@ async function createRelay(
     const relay = new WebSocket(websocketAddress);
     relay.on("open", () => {
       console.log("Warning: Realtime logs will appear faster than CloudWatch");
-      application.setRelayActive(true);
-      // Clear and reset logs
-      application.lambdaLog.generateLog();
+      application.setRelayActive(fullLambda.FunctionName, true);
     });
     relay.on("message", (data) => {
-      application.lambdaLog.log(data);
+      if (!application.relayLogs[fullLambda.FunctionName]) {
+        application.relayLogs[fullLambda.FunctionName] = [];
+      }
+      application.relayLogs[fullLambda.FunctionName].push(data);
     });
     relay.on("close", () => {
       console.log("Relay Closed");
@@ -72,7 +73,7 @@ async function takedownRelay(
     await removeLambdaLayer(lambda, fullLambda);
     await removeRelayPermissions(lambda, iam, fullLambda);
     console.log("Relay Successfully Disabled");
-    application.setRelayActive(false);
+    application.setRelayActive(fullLambda.FunctionName, false);
   } catch (e) {
     console.error("Relay Takedown Failure");
     console.error(e);

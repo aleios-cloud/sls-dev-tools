@@ -386,7 +386,7 @@ class Main {
   }
 
   isRelayActive() {
-    if (Object.values(this.relayActive).indexOf(true) > -1) {
+    if (Object.values(this.relayActive).includes(true)) {
       return true;
     }
     return false;

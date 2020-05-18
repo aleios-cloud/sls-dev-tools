@@ -172,6 +172,8 @@ class Main {
     this.relayActive = false;
     // Allow the user the quit after receiving a warning
     this.warningGiven = false;
+    // Store of relay api ids
+    this.relayApis = {};
 
     checkForUpdates();
 
@@ -382,6 +384,10 @@ class Main {
 
   setWarningGiven(value) {
     this.warningGiven = value;
+  }
+
+  setRelayApis(lambdaName, apiDetails) {
+    this.relayApis[lambdaName] = apiDetails;
   }
 
   async render() {

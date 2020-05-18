@@ -32,58 +32,129 @@ class ApiGateway {
                   RouteKey: "$connect",
                   Target: `integrations/${integrationData.IntegrationId}`,
                 };
-                this.apiGateway.createRoute(routeParams, (routeError) => {
-                  if (routeError) {
-                    console.error(routeError, routeError.stack);
-                    reject();
-                  } else {
-                    const stageParams = {
-                      ApiId: createData.ApiId,
-                      StageName: stage,
-                    };
-                    this.apiGateway.createStage(stageParams, (stageError) => {
-                      if (stageError) {
-                        console.error(stageError, stageError.stack);
-                        reject();
-                      } else {
-                        const deployParams = {
-                          ApiId: createData.ApiId,
-                          StageName: stage,
-                        };
-                        this.apiGateway.createDeployment(
-                          deployParams,
-                          (deployError) => {
-                            if (deployError) {
-                              console.error(deployError, deployError.stack);
-                              reject();
-                            } else {
-                              const ssmParams = {
-                                Name: `${fullLambda.FunctionName}-relay-websocket-endpoint`,
-                                Value: `${createData.ApiId}.execute-api.${program.region}.amazonaws.com/${stage}`,
-                                Type: "String",
-                                Overwrite: true,
-                              };
-                              this.ssm.putParameter(ssmParams, (ssmError) => {
-                                if (ssmError) {
-                                  console.log(ssmError, ssmError.stack);
-                                  reject();
-                                } else {
-                                  console.log("Relay API Deployed");
-                                  resolve(`${createData.ApiEndpoint}/${stage}`);
-                                }
-                              });
+                this.apiGateway.createRoute(
+                  routeParams,
+                  (routeError, routeData) => {
+                    if (routeError) {
+                      console.error(routeError, routeError.stack);
+                      reject();
+                    } else {
+                      const stageParams = {
+                        ApiId: createData.ApiId,
+                        StageName: stage,
+                      };
+                      this.apiGateway.createStage(stageParams, (stageError) => {
+                        if (stageError) {
+                          console.error(stageError, stageError.stack);
+                          reject();
+                        } else {
+                          const deployParams = {
+                            ApiId: createData.ApiId,
+                            StageName: stage,
+                          };
+                          this.apiGateway.createDeployment(
+                            deployParams,
+                            (deployError, deployData) => {
+                              if (deployError) {
+                                console.error(deployError, deployError.stack);
+                                reject();
+                              } else {
+                                const ssmParams = {
+                                  Name: `${fullLambda.FunctionName}-relay-websocket-endpoint`,
+                                  Value: `${createData.ApiId}.execute-api.${program.region}.amazonaws.com/${stage}`,
+                                  Type: "String",
+                                  Overwrite: true,
+                                };
+                                this.ssm.putParameter(ssmParams, (ssmError) => {
+                                  if (ssmError) {
+                                    console.log(ssmError, ssmError.stack);
+                                    reject();
+                                  } else {
+                                    console.log("Relay API Deployed");
+                                    resolve({
+                                      Address: `${createData.ApiEndpoint}/${stage}`,
+                                      ApiId: createData.ApiId,
+                                      IntegrationId:
+                                        integrationData.IntegrationId,
+                                      RouteId: routeData.RouteId,
+                                      StageName: stage,
+                                      DeploymentId: deployData.DeploymentId,
+                                    });
+                                  }
+                                });
+                              }
                             }
-                          }
-                        );
-                      }
-                    });
+                          );
+                        }
+                      });
+                    }
                   }
-                });
+                );
               }
             }
           );
         }
       });
+    });
+  }
+
+  deleteWebsocket(fullLambda, socket) {
+    const { ApiId } = socket;
+    const { DeploymentId } = socket;
+    const { IntegrationId } = socket;
+    const { RouteId } = socket;
+    const { StageName } = socket;
+    return new Promise((resolve, reject) => {
+      this.ssm.deleteParameter(
+        { Name: `${fullLambda.FunctionName}-relay-websocket-endpoint` },
+        (ssmError) => {
+          if (ssmError) {
+            console.error(ssmError);
+            reject();
+          }
+          this.apiGateway.deleteStage({ ApiId, StageName }, (stageError) => {
+            if (stageError) {
+              console.error(stageError);
+              reject();
+            }
+            this.apiGateway.deleteDeployment(
+              { ApiId, DeploymentId },
+              (deployError) => {
+                if (deployError) {
+                  console.error(deployError);
+                  reject();
+                }
+                this.apiGateway.deleteRoute(
+                  { ApiId, RouteId },
+                  (routeError) => {
+                    if (routeError) {
+                      console.error(routeError);
+                      reject();
+                    }
+                    this.apiGateway.deleteIntegration(
+                      { ApiId, IntegrationId },
+                      (integrationError) => {
+                        if (integrationError) {
+                          console.error(integrationError);
+                          reject();
+                        }
+                        this.apiGateway.deleteApi({ ApiId }, (apiError) => {
+                          if (apiError) {
+                            console.error(apiError);
+                            reject();
+                          }
+                          console.log("Relay API Removed");
+                          resolve();
+                        });
+                      }
+                    );
+                  }
+                );
+              }
+            );
+          });
+        }
+      );
     });
   }
 }

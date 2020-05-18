@@ -24,11 +24,13 @@ async function createRelay(
   try {
     await addRelayPermissions(lambda, iam, fullLambda, stage);
     await setupLambdaLayer(lambda, fullLambda);
-    const websocketAddress = await apiGateway.createWebsocket(
+    const websocketDetails = await apiGateway.createWebsocket(
       fullLambda,
       program,
       stage
     );
+    const websocketAddress = websocketDetails.Address;
+    application.setRelayApis(fullLambda.FunctionName, websocketDetails);
     const relay = new WebSocket(websocketAddress);
     relay.on("open", () => {
       console.log("Warning: Realtime logs will appear faster than CloudWatch");
@@ -51,11 +53,22 @@ async function createRelay(
   loader.destroy();
 }
 
-async function takedownRelay(fullLambda, lambda, screen, application, iam) {
+async function takedownRelay(
+  fullLambda,
+  lambda,
+  screen,
+  application,
+  iam,
+  apiGateway
+) {
   console.log("Disabling relay...");
   const loader = new Loader(screen, 5, 20);
   loader.load("Please wait");
   try {
+    await apiGateway.deleteWebsocket(
+      fullLambda,
+      application.relayApis[fullLambda.FunctionName]
+    );
     await removeLambdaLayer(lambda, fullLambda);
     await removeRelayPermissions(lambda, iam, fullLambda);
     console.log("Relay Successfully Disabled");

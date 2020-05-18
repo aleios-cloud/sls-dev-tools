@@ -27,7 +27,7 @@ function addLayerToLambda(
       console.error(err);
       reject();
     }
-    console.log("Relay layer added");
+    console.log("Relay Layer Added");
     resolve();
   });
 }
@@ -113,7 +113,7 @@ function removeLambdaLayer(lambdaApi, fullFunc) {
         console.error(err);
         reject();
       }
-      console.log("Relay layer removed");
+      console.log("Relay Layer Removed");
       resolve();
     });
   });

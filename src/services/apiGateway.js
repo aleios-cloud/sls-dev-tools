@@ -112,50 +112,47 @@ class ApiGateway {
             console.error(ssmError);
             reject();
           }
-          this.apiGateway.deleteDeployment(
-            { ApiId, DeploymentId },
-            (deployError) => {
-              if (deployError) {
-                console.error(deployError);
-                reject();
-              }
-              this.apiGateway.deleteStage(
-                { ApiId, StageName },
-                (stageError) => {
-                  if (stageError) {
-                    console.error(stageError);
-                    reject();
-                  }
-                  this.apiGateway.deleteRoute(
-                    { ApiId, RouteId },
-                    (routeError) => {
-                      if (routeError) {
-                        console.error(routeError);
-                        reject();
-                      }
-                      this.apiGateway.deleteIntegration(
-                        { ApiId, IntegrationId },
-                        (integrationError) => {
-                          if (integrationError) {
-                            console.error(integrationError);
+          this.apiGateway.deleteStage({ ApiId, StageName }, (stageError) => {
+            if (stageError) {
+              console.error(stageError);
+              reject();
+            }
+            this.apiGateway.deleteDeployment(
+              { ApiId, DeploymentId },
+              (deployError) => {
+                if (deployError) {
+                  console.error(deployError);
+                  reject();
+                }
+                this.apiGateway.deleteRoute(
+                  { ApiId, RouteId },
+                  (routeError) => {
+                    if (routeError) {
+                      console.error(routeError);
+                      reject();
+                    }
+                    this.apiGateway.deleteIntegration(
+                      { ApiId, IntegrationId },
+                      (integrationError) => {
+                        if (integrationError) {
+                          console.error(integrationError);
+                          reject();
+                        }
+                        this.apiGateway.deleteApi({ ApiId }, (apiError) => {
+                          if (apiError) {
+                            console.error(apiError);
                             reject();
                           }
-                          this.apiGateway.deleteApi({ ApiId }, (apiError) => {
-                            if (apiError) {
-                              console.error(apiError);
-                              reject();
-                            }
-                            console.log("Relay API Removed");
-                            resolve();
-                          });
-                        }
-                      );
-                    }
-                  );
-                }
-              );
-            }
-          );
+                          console.log("Relay API Removed");
+                          resolve();
+                        });
+                      }
+                    );
+                  }
+                );
+              }
+            );
+          });
         }
       );
     });

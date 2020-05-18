@@ -67,7 +67,8 @@ class ResourceTable {
             this.application,
             this.lambda,
             this.lambdaFunctions[this.getCurrentlyOnHoverFullLambdaName()],
-            this.iam
+            this.iam,
+            this.apiGateway
           );
         }
       }

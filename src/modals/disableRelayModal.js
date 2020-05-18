@@ -3,7 +3,14 @@ import { ModalLayout } from "../components/modalLayout";
 import { ModalTitle } from "../components/modalTitle";
 import { takedownRelay } from "../services/relay";
 
-const disableRelayModal = (screen, application, lambda, fullLambda, iam) => {
+const disableRelayModal = (
+  screen,
+  application,
+  lambda,
+  fullLambda,
+  iam,
+  apiGateway
+) => {
   const disableRelayLayout = new ModalLayout(screen, 112, 20, true);
 
   const numBoxes = 2;
@@ -55,7 +62,7 @@ const disableRelayModal = (screen, application, lambda, fullLambda, iam) => {
   disableRelayLayout.key(["enter"], () => {
     // If confirm selected, disable Relay layer
     if (currentBox === 0) {
-      takedownRelay(fullLambda, lambda, screen, application, iam);
+      takedownRelay(fullLambda, lambda, screen, application, iam, apiGateway);
     }
     closeModal();
   });

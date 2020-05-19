@@ -23,6 +23,7 @@ import {
   regionWizardModal,
   stackWizardModal,
   disableRelayWarningModal,
+  expandedLogModal,
 } from "./modals";
 
 const blessed = require("blessed");
@@ -379,6 +380,17 @@ class Main {
         );
       }
       return 0;
+    });
+
+    this.screen.key(["m"], () => {
+      if (this.isModalOpen === false) {
+        expandedLogModal(
+          this.screen,
+          this,
+          "Dashboard Logs",
+          this.lambdaLog.datalog.content
+        );
+      }
     });
   }
 

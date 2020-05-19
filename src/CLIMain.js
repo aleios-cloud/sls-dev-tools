@@ -284,7 +284,20 @@ class Main {
     this.screen.unkey(["q", "C-c"]);
     this.screen.key(["q", "C-c"], () => {
       if (this.isRelayActive() && !this.warningGiven) {
-        disableRelayWarningModal(this.screen, this);
+        const activeFunctions = [];
+        Object.keys(this.relayActive).forEach((func) => {
+          if (this.relayActive[func]) {
+            activeFunctions.push(this.resourceTable.lambdaFunctions[func]);
+          }
+        });
+        disableRelayWarningModal(
+          this.screen,
+          this,
+          activeFunctions,
+          this.lambda,
+          this.iam,
+          this.apiGateway
+        );
       } else {
         process.exit(0);
       }

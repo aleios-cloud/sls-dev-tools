@@ -14,11 +14,22 @@ const expandedLogModal = (screen, application, title, content) => {
     screen.program.enableMouse();
   };
 
-  new ModalTitle(expandedLogLayout, "100%", title);
+  // Whether user can scroll the logs or click and drag to select text
+  let canScroll = false;
+
+  const modalTitle = new ModalTitle(expandedLogLayout, "100%", "");
+
+  modalTitle.style = { fg: "yellow" };
+  modalTitle.content = `${title}`;
 
   const logBox = new ScrollableBox(expandedLogLayout, "100%", "89%", content);
 
-  new Box(expandedLogLayout, "99%", 4, "ESC to close");
+  new Box(
+    expandedLogLayout,
+    "99%",
+    4,
+    "ESC to close || t to toggle between text selection and scrolling"
+  );
 
   logBox.focus();
 
@@ -27,8 +38,19 @@ const expandedLogModal = (screen, application, title, content) => {
     closeModal();
   });
 
-  // Enables text selection, but disables scrolling
-  // screen.program.disableMouse();
+  logBox.key(["t"], () => {
+    if (canScroll) {
+      // Enables text selection, but disables scrolling
+      screen.program.disableMouse();
+      canScroll = false;
+      modalTitle.content = `${title} - SELECTABLE`;
+    } else {
+      // Enables scrolling, but disables text selection
+      screen.program.enableMouse();
+      canScroll = true;
+      modalTitle.content = `${title} - SCROLLABLE`;
+    }
+  });
 };
 
 module.exports = {

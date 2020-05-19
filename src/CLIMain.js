@@ -153,7 +153,6 @@ class Main {
       this.resourceTable.table,
       this.eventBridgeTree,
       this.map.map,
-      this.lambdaLog,
     ];
     this.resourceTable.table.focus();
     this.returnFocus();

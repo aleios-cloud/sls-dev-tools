@@ -25,7 +25,7 @@ class NoDefaultTimeout {
     return (
       [this.defaultTimeoutAWS, this.defaultTimeoutServerlessFramework].includes(
         lambdaFunction.Timeout
-      ) && !this.SLS.getFunctionConfig(shortenedName).timeout
+      ) && !this.SLS.getTimeout(shortenedName)
     );
   }
 

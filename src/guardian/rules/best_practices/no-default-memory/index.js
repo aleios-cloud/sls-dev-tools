@@ -23,7 +23,7 @@ class NoDefaultMemory {
     );
     return (
       lambdaFunction.MemorySize === this.defaultMemory &&
-      !this.SLS.getFunctionConfig(shortenedName).memorySize
+      !this.SLS.getMemorySize(shortenedName)
     );
   }
 

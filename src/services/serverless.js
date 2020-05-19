@@ -21,7 +21,26 @@ class Serverless {
   }
 
   getFunctionConfig(functionName) {
-    return this.config.functions[functionName];
+    if (this.config && this.config.functions) {
+      return this.config.functions[functionName];
+    }
+    return undefined;
+  }
+
+  getTimeout(functionName) {
+    const config = this.getFunctionConfig(functionName);
+    if (config && config.timeout) {
+      return config.timeout;
+    }
+    return undefined;
+  }
+
+  getMemorySize(functionName) {
+    const config = this.getFunctionConfig(functionName);
+    if (config && config.memorySize) {
+      return config.memorySize;
+    }
+    return undefined;
   }
 
   getStage() {

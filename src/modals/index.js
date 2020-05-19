@@ -12,3 +12,4 @@ export { relayModal } from "./relayModal";
 export { errorModal } from "./errorModal";
 export { disableRelayModal } from "./disableRelayModal";
 export { disableRelayWarningModal } from "./disableRelayWarningModal";
+export { expandedLogModal } from "./expandedLogModal";

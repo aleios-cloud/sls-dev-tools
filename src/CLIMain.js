@@ -23,6 +23,7 @@ import {
   regionWizardModal,
   stackWizardModal,
   disableRelayWarningModal,
+  expandedLogModal,
 } from "./modals";
 
 const blessed = require("blessed");
@@ -152,6 +153,7 @@ class Main {
       this.resourceTable.table,
       this.eventBridgeTree,
       this.map.map,
+      this.lambdaLog,
     ];
     this.resourceTable.table.focus();
     this.returnFocus();
@@ -379,6 +381,17 @@ class Main {
         );
       }
       return 0;
+    });
+
+    this.screen.key(["m"], () => {
+      if (this.isModalOpen === false) {
+        expandedLogModal(
+          this.screen,
+          this,
+          "Dashboard Logs",
+          this.lambdaLog.datalog.content
+        );
+      }
     });
   }
 

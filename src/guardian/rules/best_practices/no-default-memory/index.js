@@ -1,5 +1,7 @@
+import { abbreviateFunction } from "../../../../utils/abbreviateFunction";
+
 class NoDefaultMemory {
-  constructor(AWS, stackName, stackFunctions) {
+  constructor(AWS, stackName, stackFunctions, SLS) {
     this.name = "no-default-memory";
     this.AWS = AWS;
     this.stackName = stackName;
@@ -7,6 +9,7 @@ class NoDefaultMemory {
     this.result = false;
     this.defaultMemory = 1024;
     this.failingResources = [];
+    this.SLS = SLS;
     this.failureMessage =
       "The following functions have their memory set as default.";
     this.rulePage =
@@ -14,7 +17,14 @@ class NoDefaultMemory {
   }
 
   hasDefaultMemory(lambdaFunction) {
-    return lambdaFunction.MemorySize === this.defaultMemory;
+    const shortenedName = abbreviateFunction(
+      lambdaFunction.FunctionName,
+      this.stackName
+    );
+    return (
+      lambdaFunction.MemorySize === this.defaultMemory &&
+      !this.SLS.getMemorySize(shortenedName)
+    );
   }
 
   async run() {

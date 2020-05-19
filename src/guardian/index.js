@@ -12,6 +12,7 @@ import {
   getStackResources,
   getLambdaFunctions,
 } from "../services";
+import Serverless from "../services/serverless";
 
 const infoLog = chalk.greenBright;
 const titleLog = chalk.greenBright.underline.bold;
@@ -55,6 +56,8 @@ class GuardianCI {
     if (this.config) {
       this.ignoreConfig = this.config.ignore;
     }
+
+    this.SLS = new Serverless(program.location);
   }
 
   async getAllLambdaFunctions() {
@@ -139,7 +142,12 @@ class GuardianCI {
     // eslint-disable-next-line no-restricted-syntax
     for (const Check of this.checksToRun) {
       console.group();
-      const check = new Check(this.AWS, this.stackName, this.stackFunctions);
+      const check = new Check(
+        this.AWS,
+        this.stackName,
+        this.stackFunctions,
+        this.SLS
+      );
       if (!this.ignoreCheck(check)) {
         const filteredStack = this.ignoreArns(check, this.stackFunctions);
         check.stackFunctions = filteredStack;

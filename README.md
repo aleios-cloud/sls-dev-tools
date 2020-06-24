@@ -263,6 +263,18 @@ The current list of calls made by the tool:
 - CloudWatchLogs: describeLogStreams, filterLogEvents
 - More may be added, check code for full list
 
+## AWS IAM Policy
+
+This tool needs these permissions to execute the features.
+
+| Action | Features |
+|:--| :-- |
+| `lambda:ListFunctions` | View, Guardian |
+| `cloudwatch:GetMetricData` | View |
+| `logs:DescribeLogStreams` | View |
+| `logs:FilterLogEvents` | View |
+| `events:ListEventBuses` | View |
+
 # Libs
 
 Heavily based off the amazing [blessed](https://github.com/chjj/blessed) and [blessed-contrib](https://github.com/yaronn/blessed-contrib) projects.

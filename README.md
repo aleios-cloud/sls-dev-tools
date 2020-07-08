@@ -11,9 +11,7 @@
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/Theodo-UK/sls-dev-tools.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Theodo-UK/sls-dev-tools/context:javascript)
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-
-[![All Contributors](https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat-square)](#contributors-)
-
+[![All Contributors](https://img.shields.io/badge/all_contributors-11-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The Developer Tools for the Serverless World - think Chrome Dev Tools but for Serverless.
@@ -300,12 +298,12 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/serkan-ozal"><img src="https://avatars1.githubusercontent.com/u/3143425?v=4" width="100px;" alt=""/><br /><sub><b>Serkan ÖZAL</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=serkan-ozal" title="Code">💻</a></td>
     <td align="center"><a href="http://www.artoliukkonen.net"><img src="https://avatars3.githubusercontent.com/u/683856?v=4" width="100px;" alt=""/><br /><sub><b>Arto Liukkonen</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=artoliukkonen" title="Code">💻</a></td>
     <td align="center"><a href="https://blog.james-mullen.me.uk"><img src="https://avatars3.githubusercontent.com/u/24397992?v=4" width="100px;" alt=""/><br /><sub><b>James Mullen</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=jnmullen" title="Code">💻</a></td>
+    <td align="center"><a href="https://evalphobia.dev/"><img src="https://avatars1.githubusercontent.com/u/2827521?v=4" width="100px;" alt=""/><br /><sub><b>evalphobia</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=evalphobia" title="Documentation">📖</a></td>
   </tr>
 </table>
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
-
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!

@@ -113,6 +113,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "evalphobia",
+      "name": "evalphobia",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/2827521?v=4",
+      "profile": "https://evalphobia.dev/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,

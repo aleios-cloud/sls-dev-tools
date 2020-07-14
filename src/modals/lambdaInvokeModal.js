@@ -6,6 +6,8 @@ import { invokeLambda } from "../services/invoke";
 
 const blessed = require("blessed");
 
+const wrapPayload = (payload) => JSON.stringify({ body: payload });
+
 const lambdaInvokeModal = (
   screen,
   application,
@@ -73,8 +75,9 @@ const lambdaInvokeModal = (
   new Box(
     lambdaInvokeLayout,
     110,
-    4,
-    "Arrow keys to select field | ENTER to toggle edit mode \nENTER on Submit to inject event | ESC to close"
+    6,
+    // eslint-disable-next-line quotes
+    'Arrow keys to select field | ENTER to toggle edit mode \n Note: payload wrapped {"body": {...}} \nENTER on Submit to inject event | ESC to close'
   );
 
   lambdaInvokeLayout.focus();
@@ -84,7 +87,11 @@ const lambdaInvokeModal = (
   lambdaInvokeLayout.key(["enter"], () => {
     // Inject event or select field for entry
     if (currentTextbox === 2) {
-      invokeLambda(awsLambdaApi, functionName, textboxes[1].getValue());
+      invokeLambda(
+        awsLambdaApi,
+        functionName,
+        wrapPayload(textboxes[1].getValue())
+      );
       closeModal();
     } else {
       textboxes[currentTextbox].focus();

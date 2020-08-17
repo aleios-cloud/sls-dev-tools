@@ -270,7 +270,7 @@ class Main {
 
     if (this.resourceTable) {
       this.resourceTable.updateAPIs(
-        this.profile,
+        this.program.profile,
         this.cloudformation,
         this.lambda,
         this.cloudwatch,

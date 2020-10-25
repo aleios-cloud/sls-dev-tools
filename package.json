@@ -8,7 +8,7 @@
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.17",
     "chalk": "^4.0.0",
-    "commander": "^5.0.0",
+    "commander": "^6.2.0",
     "js-yaml": "^3.13.1",
     "moment": "^2.24.0",
     "node-emoji": "^1.10.0",

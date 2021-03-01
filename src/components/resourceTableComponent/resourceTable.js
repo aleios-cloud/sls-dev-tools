@@ -1,18 +1,15 @@
-import {
-  DASHBOARD_FOCUS_INDEX,
-  DEPLOYMENT_STATUS,
-  RESOURCE_TABLE_TYPE,
-} from "../constants";
+import { DASHBOARD_FOCUS_INDEX, DEPLOYMENT_STATUS } from "../../constants";
 import {
   RESOURCE_TABLE_CONFIG,
+  RESOURCE_TABLE_TYPE,
   switchTableConfig,
-} from "./resourceTableComponent/resourceTableConfig";
-import { lambdaInvokeModal, lambdaStatisticsModal } from "../modals";
+} from "./resourceTableConfig";
+import { lambdaInvokeModal, lambdaStatisticsModal } from "../../modals";
 
-import { abbreviateFunction } from "../utils/abbreviateFunction";
-import { getLambdaFunctions } from "../services";
-import { getStackResources } from "../services/stackResources";
-import { padString } from "../utils/padString";
+import { abbreviateFunction } from "../../utils/abbreviateFunction";
+import { getLambdaFunctions } from "../../services";
+import { getStackResources } from "../../services/stackResources";
+import { padString } from "../../utils/padString";
 
 const contrib = require("blessed-contrib");
 const open = require("open");

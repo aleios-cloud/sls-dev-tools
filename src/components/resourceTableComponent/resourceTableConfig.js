@@ -1,4 +1,7 @@
-import RESOURCE_TABLE_TYPE from "../../constants";
+export const RESOURCE_TABLE_TYPE = {
+  LAMBDA: "LAMBDA",
+  ALL_RESOURCES: "ALL_RESOURCES",
+};
 
 export const RESOURCE_TABLE_CONFIG = {
   [RESOURCE_TABLE_TYPE.LAMBDA]: {

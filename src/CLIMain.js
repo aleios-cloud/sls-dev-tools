@@ -7,7 +7,7 @@ import {
 } from "./constants";
 
 import { Map } from "./components";
-import { ResourceTable } from "./components/resourceTable";
+import { ResourceTable } from "./components/resourceTableComponent/resourceTable";
 import { DurationBarChart } from "./components/durationBarChart";
 import { getLambdaMetrics } from "./services/lambdaMetrics";
 import {

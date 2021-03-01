@@ -1,13 +1,15 @@
+import { DASHBOARD_FOCUS_INDEX, DEPLOYMENT_STATUS } from "../../constants";
 import {
-  DEPLOYMENT_STATUS,
+  RESOURCE_TABLE_CONFIG,
   RESOURCE_TABLE_TYPE,
-  DASHBOARD_FOCUS_INDEX,
-} from "../constants";
-import { getStackResources } from "../services/stackResources";
-import { padString } from "../utils/padString";
-import { lambdaStatisticsModal, lambdaInvokeModal } from "../modals";
-import { getLambdaFunctions } from "../services";
-import { abbreviateFunction } from "../utils/abbreviateFunction";
+  switchTableConfig,
+} from "./resourceTableConfig";
+import { lambdaInvokeModal, lambdaStatisticsModal } from "../../modals";
+
+import { abbreviateFunction } from "../../utils/abbreviateFunction";
+import { getLambdaFunctions } from "../../services";
+import { getStackResources } from "../../services/stackResources";
+import { padString } from "../../utils/padString";
 
 const contrib = require("blessed-contrib");
 const open = require("open");
@@ -154,14 +156,10 @@ class ResourceTable {
   switchTable() {
     switch (this.type) {
       case RESOURCE_TABLE_TYPE.LAMBDA:
-        this.type = RESOURCE_TABLE_TYPE.ALL_RESOURCES;
-        this.table.setLabel("<-           All Resources          ->");
-        this.table.options.columnWidth = [50, 30];
+        switchTableConfig(this, RESOURCE_TABLE_TYPE.ALL_RESOURCES);
         break;
       case RESOURCE_TABLE_TYPE.ALL_RESOURCES:
-        this.type = RESOURCE_TABLE_TYPE.LAMBDA;
-        this.table.setLabel("<-         Lambda Functions         ->");
-        this.table.options.columnWidth = [30, 30, 10, 10, 20];
+        switchTableConfig(this, RESOURCE_TABLE_TYPE.LAMBDA);
         break;
       default:
         return 0;
@@ -173,9 +171,10 @@ class ResourceTable {
     return this.application.layoutGrid.set(0, 6, 4, 6, contrib.table, {
       keys: true,
       fg: "green",
-      label: "<-         Lambda Functions         ->",
+      label: RESOURCE_TABLE_CONFIG[RESOURCE_TABLE_TYPE.LAMBDA].label,
       columnSpacing: 1,
-      columnWidth: [30, 30, 10, 10, 20, 10],
+      columnWidth:
+        RESOURCE_TABLE_CONFIG[RESOURCE_TABLE_TYPE.LAMBDA].columnWidth,
       style: {
         border: {
           fg: "yellow",
@@ -206,8 +205,7 @@ class ResourceTable {
   async updateData() {
     const stackResources = await getStackResources(
       this.program.stackName,
-      this.cloudformation,
-      this.application.setData
+      this.cloudformation
     );
 
     if (stackResources) {

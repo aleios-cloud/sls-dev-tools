@@ -11,7 +11,9 @@
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/Theodo-UK/sls-dev-tools.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Theodo-UK/sls-dev-tools/context:javascript)
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
 [![All Contributors](https://img.shields.io/badge/all_contributors-11-orange.svg?style=flat-square)](#contributors-)
+
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 The Developer Tools for the Serverless World - think Chrome Dev Tools but for Serverless.
@@ -64,6 +66,10 @@ sls-dev-tools is currently being actively maintained. If you find a problem with
 
 [A note on AWS API calls and pricing](#a-note-on-aws-api-calls-and-pricing)\
 [Libs](#libs)\
+[Contributing to the Project](#contributing-to-the-project)
+
+- [Debugging](#debugging)
+
 [Contributors ✨](#contributors-)
 
 ## Installation
@@ -265,17 +271,30 @@ The current list of calls made by the tool:
 
 This tool needs these permissions to execute the features.
 
-| Action | Features |
-|:--| :-- |
-| `lambda:ListFunctions` | View, Guardian |
-| `cloudwatch:GetMetricData` | View |
-| `logs:DescribeLogStreams` | View |
-| `logs:FilterLogEvents` | View |
-| `events:ListEventBuses` | View |
+| Action                     | Features       |
+| :------------------------- | :------------- |
+| `lambda:ListFunctions`     | View, Guardian |
+| `cloudwatch:GetMetricData` | View           |
+| `logs:DescribeLogStreams`  | View           |
+| `logs:FilterLogEvents`     | View           |
+| `events:ListEventBuses`    | View           |
 
 # Libs
 
 Heavily based off the amazing [blessed](https://github.com/chjj/blessed) and [blessed-contrib](https://github.com/yaronn/blessed-contrib) projects.
+
+## Contributing to the Project
+
+### Debugging
+
+sls-dev-tools has a predefined debug configuration for Visual Studio Code. If you would like to use this, please follow these steps after cloning the repository:
+
+1. Build the project with source maps using `yarn build-maps`.
+2. Run the project with a node debugger attached using `yarn debug` plus any options that you would provide to the sls-dev-tools command.
+3. Navigate to VS Code's debug side panel, ensure that the 'Attach' configuration is selected in the dropdown next to the green 'Run' arrow.
+4. Press the green 'Run' arrow.
+
+Now you can add breakpoints throughout the source code and debug using VS Code's extensive debugging features.
 
 ## Contributors ✨
 
@@ -304,6 +323,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!

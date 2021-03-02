@@ -2,4 +2,4 @@ website
 img
 docs
 *.js.map
-lib/**/*.js
+lib/**/*.js.map

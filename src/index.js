@@ -6,6 +6,8 @@ import Main from "./CLIMain";
 const program = require("commander");
 const packageJson = require("../package.json");
 
+program.storeOptionsAsProperties();
+
 let slsDevToolsConfig;
 try {
   // eslint-disable-next-line global-require, import/no-dynamic-require

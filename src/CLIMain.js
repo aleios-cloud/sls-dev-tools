@@ -7,7 +7,7 @@ import {
 } from "./constants";
 
 import { Map } from "./components";
-import { ResourceTable } from "./components/resourceTable";
+import { ResourceTable } from "./components/resourceTableComponent/resourceTable";
 import { DurationBarChart } from "./components/durationBarChart";
 import { getLambdaMetrics } from "./services/lambdaMetrics";
 import {
@@ -103,7 +103,7 @@ class Main {
     this.lambdaLog = this.layoutGrid.set(8, 0, 4, 6, blessed.log, {
       fg: "green",
       selectedFg: "green",
-      label: "Server Log",
+      label: "Lambda Logs",
       interactive: true,
       scrollbar: { bg: "blue" },
       mouse: true,

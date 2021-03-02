@@ -30,8 +30,10 @@
   },
   "scripts": {
     "build": "babel ./src --out-dir lib",
+    "build-maps": "babel ./src --out-dir lib --source-maps",
     "dev": "babel ./src --out-dir lib --watch",
     "start": "node ./lib/index.js",
+    "debug": "node --nolazy --inspect-brk=9229 ./lib/index.js",
     "lint": "eslint ./src",
     "fix": "yarn lint --fix",
     "test": "yarn lint",

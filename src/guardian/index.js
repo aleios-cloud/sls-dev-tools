@@ -12,7 +12,7 @@ import {
   getStackResources,
   getLambdaFunctions,
 } from "../services";
-import Serverless from "../services/serverless";
+import ServerlessConfigParser from "../services/serverlessConfigParser";
 
 const infoLog = chalk.greenBright;
 const titleLog = chalk.greenBright.underline.bold;
@@ -57,7 +57,7 @@ class GuardianCI {
       this.ignoreConfig = this.config.ignore;
     }
 
-    this.SLS = new Serverless(program.location);
+    this.SLS = new ServerlessConfigParser(program.location);
   }
 
   async getAllLambdaFunctions() {

@@ -1,20 +1,20 @@
 import transformArgsToDict from "../utils/transformArgsToDict";
+import replaceVariablesInYml from "../utils/replaceVariablesInYml";
 
 const fs = require("fs");
 const path = require("path");
 const YAML = require("js-yaml");
 
-class Serverless {
+class ServerlessConfigParser {
   constructor(program) {
-    const { argv, location } = program;
-    const options = transformArgsToDict(argv);
+    const { args, location } = program;
+    const options = transformArgsToDict(args);
     const ymlPath = path.join(location, "serverless.yml");
     const yamlPath = path.join(location, "serverless.yaml");
     const jsonPath = path.join(location, "serverless.json");
 
     if (fs.existsSync(ymlPath)) {
       this.config = YAML.load(fs.readFileSync(ymlPath).toString("utf8"));
-      return;
     }
     if (fs.existsSync(yamlPath)) {
       this.config = YAML.load(fs.readFileSync(yamlPath).toString("utf8"));
@@ -22,6 +22,8 @@ class Serverless {
     if (fs.existsSync(jsonPath)) {
       this.config = JSON.parse(fs.readFileSync(jsonPath).toString("utf8"));
     }
+
+    replaceVariablesInYml(this.config, options);
   }
 
   getFunctionConfig(functionName) {
@@ -95,4 +97,4 @@ class Serverless {
   }
 }
 
-export default Serverless;
+export default ServerlessConfigParser;

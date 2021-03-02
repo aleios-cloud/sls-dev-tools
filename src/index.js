@@ -33,10 +33,11 @@ program
   .option("--sam", "use the SAM framework to execute commands")
   .option("-c, --ci", "ci mode for sls-dev-guardian checks")
   .option("--mfa <mfa>", "mfa token for profiles with mfa authentication")
+  .ignoreUnknownOptions()
   .parse(process.argv);
 
 program.location = program.location || process.cwd();
-const SLS = new Serverless(program.location);
+const SLS = new Serverless(program);
 if (!program.stage) {
   program.stage = SLS.getStage();
 }

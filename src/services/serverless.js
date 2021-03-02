@@ -1,9 +1,13 @@
+import transformArgsToDict from "../utils/transformArgsToDict";
+
 const fs = require("fs");
 const path = require("path");
 const YAML = require("js-yaml");
 
 class Serverless {
-  constructor(location) {
+  constructor(program) {
+    const { argv, location } = program;
+    const options = transformArgsToDict(argv);
     const ymlPath = path.join(location, "serverless.yml");
     const yamlPath = path.join(location, "serverless.yaml");
     const jsonPath = path.join(location, "serverless.json");

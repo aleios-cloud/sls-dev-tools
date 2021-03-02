@@ -289,8 +289,8 @@ Heavily based off the amazing [blessed](https://github.com/chjj/blessed) and [bl
 
 sls-dev-tools has a predefined debug configuration for Visual Studio Code. If you would like to use this, please follow these steps after cloning the repository:
 
-1. Build the project with source maps using `yarn build-maps`
-2. Start a node debugger instance for the project using <code>yarn debug -p _your-profile_</code>
+1. Build the project with source maps using `yarn build-maps`.
+2. Run the project with a node debugger attached using `yarn debug` plus any options that you would provide to the sls-dev-tools command.
 3. Navigate to VS Code's debug side panel, ensure that the 'Attach' configuration is selected in the dropdown next to the green 'Run' arrow.
 4. Press the green 'Run' arrow.
 

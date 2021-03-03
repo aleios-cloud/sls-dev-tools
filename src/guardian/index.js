@@ -73,9 +73,7 @@ class GuardianCI {
       cloudformation
     );
     const lambdaFunctionResources = stackResources.StackResourceSummaries.filter(
-      (res) => {
-        return res.ResourceType === "AWS::Lambda::Function";
-      }
+      (res) => res.ResourceType === "AWS::Lambda::Function"
     );
     return lambdaFunctionResources.map((lambda) => lambda.PhysicalResourceId);
   }

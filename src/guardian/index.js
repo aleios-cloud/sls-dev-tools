@@ -12,7 +12,7 @@ import {
   getStackResources,
   getLambdaFunctions,
 } from "../services";
-import ServerlessConfigParser from "../services/serverlessConfigParser";
+import ServerlessConfigParser from "../services/severlessConfigParser/serverlessConfigParser";
 
 const infoLog = chalk.greenBright;
 const titleLog = chalk.greenBright.underline.bold;

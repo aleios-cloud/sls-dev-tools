@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import ServerlessConfigParser from "./services/serverlessConfigParser";
+import ServerlessConfigParser from "./services/severlessConfigParser/serverlessConfigParser";
 import GuardianCI from "./guardian/index";
 import Main from "./CLIMain";
 

@@ -1,5 +1,4 @@
-import transformArgsToDict from "../utils/transformArgsToDict";
-import replaceVariablesInYml from "../utils/replaceVariablesInYml";
+import { transformArgsToDict, replaceStacknameOpt } from "./helpers";
 
 const fs = require("fs");
 const path = require("path");
@@ -15,15 +14,18 @@ class ServerlessConfigParser {
 
     if (fs.existsSync(ymlPath)) {
       this.config = YAML.load(fs.readFileSync(ymlPath).toString("utf8"));
-    }
-    if (fs.existsSync(yamlPath)) {
+    } else if (fs.existsSync(yamlPath)) {
       this.config = YAML.load(fs.readFileSync(yamlPath).toString("utf8"));
-    }
-    if (fs.existsSync(jsonPath)) {
+    } else if (fs.existsSync(jsonPath)) {
       this.config = JSON.parse(fs.readFileSync(jsonPath).toString("utf8"));
     }
 
-    replaceVariablesInYml(this.config, options);
+    if (!this.config) return;
+
+    this.config.service.name = replaceStacknameOpt(
+      this.config.service.name,
+      options
+    );
   }
 
   getFunctionConfig(functionName) {

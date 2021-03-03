@@ -12,7 +12,7 @@
     "js-yaml": "^3.13.1",
     "moment": "^2.24.0",
     "node-emoji": "^1.10.0",
-    "open": "^7.0.3",
+    "open": "^8.0.2",
     "prop-types": "^15.7.2",
     "update-notifier": "^5.1.0"
   },

@@ -12,41 +12,11 @@ const TEST_YAML_FILE = `
 service:
   name: test-\${opt:testArg1}
 
-package:
-  exclude:
-    - .git/**
-    - .gitignore
-
-plugins:
-  - serverless-webpack
-
 provider:
   name: aws
   runtime: nodejs10.x
   region: eu-west-1
   stage: \${opt:stage, 'dev'}
-  usagePlan:
-    quota:
-      limit: 5000
-      offset: 2
-      period: MONTH
-    throttle:
-      burstLimit: 200
-      rateLimit: 100
-  iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - dynamodb:DescribeTable
-        - dynamodb:Query
-        - dynamodb:Scan
-        - dynamodb:GetItem
-        - dynamodb:PutItem
-        - dynamodb:UpdateItem
-        - dynamodb:DeleteItem
-      Resource:
-        - 'Fn::GetAtt': [Table, Arn]
-  environment:
-    tableName: \${self:custom.dynamodbTableName}
 
 functions:
   hello:
@@ -57,61 +27,6 @@ functions:
       - http:
           method: get
           path: hello
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId:
-              Ref: ApiGatewayAuthorizer
-  create:
-    handler: create.main
-    events:
-      - http:
-          method: post
-          path: items
-          cors: true
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId:
-              Ref: ApiGatewayAuthorizer
-  list:
-    handler: list.main
-    events:
-      - http:
-          method: get
-          path: items
-          cors: true
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId:
-              Ref: ApiGatewayAuthorizer
-  get:
-    handler: get.main
-    events:
-      - http:
-          method: get
-          path: items/{id}
-          cors: true
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId:
-              Ref: ApiGatewayAuthorizer
-  update:
-    handler: update.main
-    events:
-      - http:
-          method: put
-          path: items/{id}
-          cors: true
-          authorizer:
-            type: COGNITO_USER_POOLS
-            authorizerId:
-              Ref: ApiGatewayAuthorizer
-  delete:
-    handler: delete.main
-    events:
-      - http:
-          method: delete
-          path: items/{id}
-          cors: true
           authorizer:
             type: COGNITO_USER_POOLS
             authorizerId:

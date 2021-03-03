@@ -6,7 +6,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Theodo-UK/sls-dev-tools)
 [![Tweet](./img/tweetBadge.svg)](https://twitter.com/intent/tweet?text=@SlsDevTools)
 [![Follow](https://img.shields.io/twitter/follow/SlsDevTools?style=social)](https://twitter.com/SlsDevTools)
-![Maintained](https://img.shields.io/maintenance/yes/2020.svg)
+![Maintained](https://img.shields.io/maintenance/yes/2021.svg)
 [![CircleCI](https://circleci.com/gh/Theodo-UK/sls-dev-tools.svg?style=svg)](https://circleci.com/gh/Theodo-UK/sls-dev-tools)
 [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/Theodo-UK/sls-dev-tools.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Theodo-UK/sls-dev-tools/context:javascript)
 
@@ -318,6 +318,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://www.artoliukkonen.net"><img src="https://avatars3.githubusercontent.com/u/683856?v=4" width="100px;" alt=""/><br /><sub><b>Arto Liukkonen</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=artoliukkonen" title="Code">💻</a></td>
     <td align="center"><a href="https://blog.james-mullen.me.uk"><img src="https://avatars3.githubusercontent.com/u/24397992?v=4" width="100px;" alt=""/><br /><sub><b>James Mullen</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=jnmullen" title="Code">💻</a></td>
     <td align="center"><a href="https://evalphobia.dev/"><img src="https://avatars1.githubusercontent.com/u/2827521?v=4" width="100px;" alt=""/><br /><sub><b>evalphobia</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=evalphobia" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/bgowers"><img src="https://avatars1.githubusercontent.com/u/24320064?v=4" width="100px;" alt=""/><br /><sub><b>Ben Gowers</b></sub></a><br /><a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=BenEllerby" title="Code">💻</a> <a href="https://github.com/Theodo-UK/sls-dev-tools/commits?author=evalphobia" title="Documentation">📖</a></td>
   </tr>
 </table>
 

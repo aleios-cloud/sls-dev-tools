@@ -17,6 +17,8 @@ Run `sls-dev-tools` in your serverless project directory.
 
 If the tool isn't able to find the stack name or region in local files or in the command arguments, it will open up a wizard to allow you to select the region and any available stacks.
 
+If you have used CLI option variables to define the stack name in your serverless config files (e.g. `myproject-stack-${opt:env}`) then you can supply these CLI options to the sls-dev-tools command. (e.g. `sls-dev-tools --env myenv1`).
+
 ![argumentWizard](./assets/modalWizard.gif)
 
 ### Options:

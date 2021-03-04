@@ -9,7 +9,7 @@
     "blessed-contrib": "^4.8.17",
     "chalk": "^4.0.0",
     "commander": "^7.1.0",
-    "js-yaml": "^3.13.1",
+    "js-yaml": "^4.0.0",
     "moment": "^2.24.0",
     "node-emoji": "^1.10.0",
     "open": "^8.0.2",

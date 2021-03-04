@@ -57,7 +57,7 @@ class GuardianCI {
       this.ignoreConfig = this.config.ignore;
     }
 
-    this.SLS = new ServerlessConfigParser(program.location);
+    this.SLS = new ServerlessConfigParser(program);
   }
 
   async getAllLambdaFunctions() {

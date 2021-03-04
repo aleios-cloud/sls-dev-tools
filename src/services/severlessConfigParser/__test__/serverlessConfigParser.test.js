@@ -4,8 +4,8 @@ import {
   transformArgsToDict,
   replaceStacknameOpt,
   CYAN_STRING_FORMAT,
-} from "../../src/services/severlessConfigParser/helpers";
-import ServerlessConfigParser from "../../src/services/severlessConfigParser/serverlessConfigParser";
+} from "../helpers";
+import ServerlessConfigParser from "../serverlessConfigParser";
 
 const TEST_YAML_FILE_EMPTY = "";
 const TEST_YAML_FILE = `
@@ -40,6 +40,30 @@ provider:
   runtime: nodejs10.x
   region: eu-west-1
   stage: \${opt:stage, 'dev'}
+`;
+
+const TEST_YAML_FILE_REF = `
+service:
+  name: test-\${opt:testArg1}
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: eu-west-1
+  stage: \${opt:stage, 'dev'}
+
+functions:
+  hello:
+    handler: hello.main
+    memorySize: 1024
+    timeout: 6
+    events:
+      - http:
+          method: get
+          path: hello
+          authorizer:
+            type: COGNITO_USER_POOLS
+            authorizerId: !Ref ApiGatewayAuthorizer
 `;
 
 // eslint-disable-next-line no-template-curly-in-string
@@ -160,5 +184,12 @@ describe("Serverless Config Parsing", () => {
     const SLS = setupConfigParser(TEST_YAML_DEFAULT_STACKNAME);
     const stage = "test";
     expect(SLS.getStackName(stage)).toBe("test-backend-test");
+  });
+
+  it("should continue as normal when the config contains AWS intrinsic function tags", () => {
+    const SLS = setupConfigParser(TEST_YAML_FILE_REF);
+    expect(SLS.getStage()).toBe("dev");
+    expect(SLS.getStackName("dev")).toBe("test-backend-dev");
+    expect(SLS.getRegion()).toBe("eu-west-1");
   });
 });

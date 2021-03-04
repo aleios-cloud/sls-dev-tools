@@ -1,8 +1,13 @@
+import YAML_SCHEMA from "./ymlParsingSchema";
 import { transformArgsToDict, replaceStacknameOpt } from "./helpers";
 
 const fs = require("fs");
 const path = require("path");
 const YAML = require("js-yaml");
+
+function parseYaml(yamlString) {
+  return YAML.load(yamlString, { schema: YAML_SCHEMA });
+}
 
 class ServerlessConfigParser {
   constructor(program) {
@@ -13,9 +18,9 @@ class ServerlessConfigParser {
     const jsonPath = path.join(location, "serverless.json");
 
     if (fs.existsSync(ymlPath)) {
-      this.config = YAML.load(fs.readFileSync(ymlPath).toString("utf8"));
+      this.config = parseYaml(fs.readFileSync(ymlPath, { encoding: "utf-8" }));
     } else if (fs.existsSync(yamlPath)) {
-      this.config = YAML.load(fs.readFileSync(yamlPath).toString("utf8"));
+      this.config = parseYaml(fs.readFileSync(yamlPath, { encoding: "utf-8" }));
     } else if (fs.existsSync(jsonPath)) {
       this.config = JSON.parse(fs.readFileSync(jsonPath).toString("utf8"));
     }

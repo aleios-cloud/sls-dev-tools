@@ -319,7 +319,9 @@ class ResourceTable {
           `serverless deploy -f ${selectedLambdaFunctionName} -r ${
             this.program.region
           } --aws-profile ${this.profile} ${
-            this.slsDevToolsConfig ? this.slsDevToolsConfig.deploymentArgs : ""
+            this.slsDevToolsConfig && this.slsDevToolsConfig.deploymentArgs
+              ? this.slsDevToolsConfig.deploymentArgs
+              : ""
           }`,
           { cwd: this.location },
           (error, stdout) => {

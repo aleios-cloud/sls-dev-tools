@@ -32,6 +32,15 @@ functions:
             authorizerId:
               Ref: ApiGatewayAuthorizer
 `;
+const TEST_YAML_DEFAULT_STACKNAME = `
+service: test-\${opt:testArg1}
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  region: eu-west-1
+  stage: \${opt:stage, 'dev'}
+`;
 
 // eslint-disable-next-line no-template-curly-in-string
 const STACK_NAME_OPT = "test-${opt:testArg1}";
@@ -144,5 +153,12 @@ describe("Serverless Config Parsing", () => {
     expect(SLS.getStage()).toBe("dev");
     expect(SLS.getStackName("dev")).toBe(null);
     expect(SLS.getRegion()).toBe(null);
+  });
+
+  it(`should parse the stack name from a serverless config file when a default
+  value for 'service' (not service.name) is used`, () => {
+    const SLS = setupConfigParser(TEST_YAML_DEFAULT_STACKNAME);
+    const stage = "test";
+    expect(SLS.getStackName(stage)).toBe("test-backend-test");
   });
 });

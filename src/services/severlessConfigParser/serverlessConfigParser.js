@@ -22,9 +22,22 @@ class ServerlessConfigParser {
 
     if (!this.config) return;
 
+    if (this.isNameNotInService()) {
+      const name = this.config.service;
+      this.config.service = { name };
+    }
+
     this.config.service.name = replaceStacknameOpt(
       this.config.service.name,
       options
+    );
+  }
+
+  isNameNotInService() {
+    return (
+      (typeof this.config.service === "object" &&
+        !("name" in this.config.service)) ||
+      !(typeof this.config.service === "object")
     );
   }
 

@@ -55,7 +55,15 @@ class ServerlessConfig {
     if (typeof this.config.service === "string") {
       return `${this.config.service}-${stage}`;
     }
-    return `${this.config.service.name}-${stage}`;
+    if (
+      this.config.service &&
+      this.config.service.name &&
+      typeof this.config.service.name === "string"
+    ) {
+      return `${this.config.service.name}-${stage}`;
+    }
+
+    return null;
   }
 
   getRegion() {

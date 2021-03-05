@@ -33,7 +33,7 @@ const resolveYaml = (command, location) =>
       result = data;
     });
 
-    return childProcess.stdout.on("close", () => {
+    childProcess.stdout.on("close", () => {
       resolve(result);
     });
   });

@@ -8,9 +8,9 @@ import loadConfig from "./services/severlessConfig/serverlessConfigParser";
 const program = require("commander");
 const packageJson = require("../package.json");
 
-function startTool() {
+function startTool(config) {
   if (program.ci) {
-    const guardian = new GuardianCI(program);
+    const guardian = new GuardianCI(program, config);
     guardian.runChecks().then((exitCode) => {
       process.exitCode = exitCode;
     });
@@ -63,7 +63,7 @@ loadConfig(program).then((config) => {
     program.region = SLS.getRegion();
   }
 
-  startTool();
+  startTool(config);
 });
 
 exports.slsDevTools = () => startTool();

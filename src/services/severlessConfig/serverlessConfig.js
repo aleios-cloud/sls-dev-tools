@@ -1,49 +1,6 @@
-import YAML_SCHEMA from "./ymlParsingSchema";
-import { transformArgsToDict, replaceStacknameOpt } from "./helpers";
-
-const fs = require("fs");
-const path = require("path");
-const YAML = require("js-yaml");
-
-function parseYaml(yamlString) {
-  return YAML.load(yamlString, { schema: YAML_SCHEMA });
-}
-
-class ServerlessConfigParser {
-  constructor(program) {
-    const { args, location } = program;
-    const options = transformArgsToDict(args);
-    const ymlPath = path.join(location, "serverless.yml");
-    const yamlPath = path.join(location, "serverless.yaml");
-    const jsonPath = path.join(location, "serverless.json");
-
-    if (fs.existsSync(ymlPath)) {
-      this.config = parseYaml(fs.readFileSync(ymlPath, { encoding: "utf-8" }));
-    } else if (fs.existsSync(yamlPath)) {
-      this.config = parseYaml(fs.readFileSync(yamlPath, { encoding: "utf-8" }));
-    } else if (fs.existsSync(jsonPath)) {
-      this.config = JSON.parse(fs.readFileSync(jsonPath).toString("utf8"));
-    }
-
-    if (!this.config) return;
-
-    if (this.isNameNotInService()) {
-      const name = this.config.service;
-      this.config.service = { name };
-    }
-
-    this.config.service.name = replaceStacknameOpt(
-      this.config.service.name,
-      options
-    );
-  }
-
-  isNameNotInService() {
-    return (
-      (typeof this.config.service === "object" &&
-        !("name" in this.config.service)) ||
-      !(typeof this.config.service === "object")
-    );
+class ServerlessConfig {
+  constructor(config) {
+    this.config = config;
   }
 
   getFunctionConfig(functionName) {
@@ -117,4 +74,4 @@ class ServerlessConfigParser {
   }
 }
 
-export default ServerlessConfigParser;
+export default ServerlessConfig;

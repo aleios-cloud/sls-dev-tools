@@ -1,10 +1,23 @@
 #!/usr/bin/env node
-import ServerlessConfigParser from "./services/severlessConfigParser/serverlessConfigParser";
+
 import GuardianCI from "./guardian/index";
 import Main from "./CLIMain";
+import ServerlessConfig from "./services/severlessConfig/serverlessConfig";
+import loadConfig from "./services/severlessConfig/serverlessConfigParser";
 
 const program = require("commander");
 const packageJson = require("../package.json");
+
+function startTool() {
+  if (program.ci) {
+    const guardian = new GuardianCI(program);
+    guardian.runChecks().then((exitCode) => {
+      process.exitCode = exitCode;
+    });
+  } else {
+    new Main(program);
+  }
+}
 
 program.storeOptionsAsProperties();
 
@@ -37,27 +50,20 @@ program
   .parse(process.argv);
 
 program.location = program.location || process.cwd();
-const SLS = new ServerlessConfigParser(program);
-if (!program.stage) {
-  program.stage = SLS.getStage();
-}
-if (!program.stackName) {
-  program.stackName = SLS.getStackName(program.stage);
-}
-if (!program.region) {
-  program.region = SLS.getRegion();
-}
 
-function startTool() {
-  if (program.ci) {
-    const guardian = new GuardianCI(program);
-    guardian.runChecks().then((exitCode) => {
-      process.exitCode = exitCode;
-    });
-  } else {
-    new Main(program);
+loadConfig(program).then((config) => {
+  const SLS = new ServerlessConfig(config);
+  if (!program.stage) {
+    program.stage = SLS.getStage();
   }
-}
+  if (!program.stackName) {
+    program.stackName = SLS.getStackName(program.stage);
+  }
+  if (!program.region) {
+    program.region = SLS.getRegion();
+  }
 
-startTool();
+  startTool();
+});
+
 exports.slsDevTools = () => startTool();

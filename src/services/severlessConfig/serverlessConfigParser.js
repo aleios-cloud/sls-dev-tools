@@ -34,7 +34,6 @@ const resolveYaml = (command, location) =>
     });
 
     return childProcess.stdout.on("close", () => {
-      console.log("finished");
       resolve(result);
     });
   });

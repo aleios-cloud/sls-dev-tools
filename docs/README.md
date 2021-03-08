@@ -64,6 +64,10 @@ module.exports = {
 };
 ```
 
+### Other frameworks
+
+The tool can be used with any other Cloudformation framework (such as Serverless Stack) by passing your stackname and region to the tool using the -n and -r options, respectively.
+
 ## Features
 
 ### Navigating the tool

@@ -44,6 +44,7 @@ sls-dev-tools is currently being actively maintained. If you find a problem with
 
 - [Serverless framework](#serverless-framework)
 - [SAM framework](#sam-framework)
+- [Other frameworks](#other-frameworks)
 
 [Features](#features)
 

@@ -1,6 +1,26 @@
 import { defaultProvider } from "@aws-sdk/credential-provider-node";
-
+import { AssumeRoleCommand, STSClient } from "@aws-sdk/client-sts";
 import { promptMfaModal } from "../modals";
+
+async function RoleAssumer(sourceCredentials, params) {
+  const client = new STSClient({
+    credentials: sourceCredentials,
+  });
+
+  const command = new AssumeRoleCommand(params);
+
+  try {
+    const response = await client.send(command);
+    return {
+      expiration: response.Credentials.Expiration,
+      accessKeyId: response.Credentials.AccessKeyId,
+      secretAccessKey: response.Credentials.SecretAccessKey,
+      sessionToken: response.Credentials.SessionToken,
+    };
+  } catch (e) {
+    console.error("Failed to assume role", e);
+  }
+}
 
 function getAWSCredentials(profile, program, screen) {
   // Define tokenCodeFn for SharedIniFileCredentials:
@@ -34,6 +54,7 @@ function getAWSCredentials(profile, program, screen) {
   return defaultProvider({
     profile,
     mfaCodeProvider: mfaCodeFn,
+    roleAssumer: RoleAssumer,
   });
 }
 

@@ -212,7 +212,11 @@ class Main {
         }
       })
       .catch((error) => {
-        console.error(error);
+        console.error(
+          `Credentials Error ${
+            process.env.AWS_PROFILE || this.program.profile
+          } \n${error.message}\n${error.stack}`
+        );
       });
   }
 

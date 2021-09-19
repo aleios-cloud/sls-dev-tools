@@ -194,10 +194,9 @@ class Main {
       this.screen
     );
 
-    return creds
-      .getPromise()
-      .then(() => {
-        AWS.config.credentials = creds;
+    return creds()
+      .then((credentials) => {
+        AWS.config.credentials = credentials;
         this.updateAWSServices();
 
         if (

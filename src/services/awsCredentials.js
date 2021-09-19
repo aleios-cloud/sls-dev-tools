@@ -1,5 +1,4 @@
-import AWS from "aws-sdk";
-import { fromSSO } from "@aws-sdk/credential-provider-sso";
+import { defaultProvider } from "@aws-sdk/credential-provider-node";
 
 import { promptMfaModal } from "../modals";
 
@@ -23,50 +22,19 @@ function getAWSCredentials(profile, program, screen) {
       );
   }
 
-  if (profile) {
-    process.env.AWS_SDK_LOAD_CONFIG = 1;
-
-    fromSSO({
-      profile,
-    })()
-      .then((creds) => {
-        console.log(
-          `SSO for ${profile}, expires ${creds.expiration.toTimeString()}`
-        );
-      })
-      .catch((e) => {
-        console.error(`fromSSO Error: ${e}`);
-      });
-
-    // return new AWS.SharedIniFileCredentials({
-    //   profile,
-    //   tokenCodeFn: mfaCodeFn,
-    //   callback: (err) => {
-    //     if (err) {
-    //       console.error(`SharedIniFileCreds Error: ${err}`);
-    //     }
-    //   },
-    // });
-  }
-  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-    return new AWS.Credentials({
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      sessionToken: process.env.AWS_SESSION_TOKEN,
-    });
-  }
-  if (process.env.AWS_PROFILE) {
-    return new AWS.SharedIniFileCredentials({
-      profile: process.env.AWS_PROFILE,
-      tokenCodeFn: mfaCodeFn,
-      callback: (err) => {
-        if (err) {
-          console.error(`SharedIniFileCreds Error: ${err}`);
-        }
-      },
-    });
-  }
-  return new AWS.SharedIniFileCredentials({ profile: "default" });
+  // https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_credential_provider_node.html
+  //
+  // It will attempt to find credentials from the following sources (listed in order of precedence):
+  //
+  // Environment variables exposed via process.env
+  // SSO credentials from token cache
+  // Web identity token credentials
+  // Shared credentials and config ini files
+  // The EC2/ECS Instance Metadata Service
+  return defaultProvider({
+    profile,
+    mfaCodeProvider: mfaCodeFn,
+  });
 }
 
 module.exports = {

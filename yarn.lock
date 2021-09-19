@@ -98,7 +98,70 @@
     "@aws-sdk/types" "3.32.0"
     tslib "^2.3.0"
 
-"@aws-sdk/credential-provider-sso@^3.32.0":
+"@aws-sdk/credential-provider-env@3.32.0":
+  version "3.32.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/credential-provider-env/-/credential-provider-env-3.32.0.tgz#445a8657c56264c533f11e2fef46039d753c3352"
+  integrity sha512-L/YL20wmgXY3R+6lZ94aIomPVIwxj4obfZkjSEncFZwBeB1A7UPSOsqrXFwrag5rPwgfyzy6Dgz1sIUYcdH1XQ==
+  dependencies:
+    "@aws-sdk/property-provider" "3.32.0"
+    "@aws-sdk/types" "3.32.0"
+    tslib "^2.3.0"
+
+"@aws-sdk/credential-provider-imds@3.32.0":
+  version "3.32.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/credential-provider-imds/-/credential-provider-imds-3.32.0.tgz#931c2f4511381fb306262d0bad1cb08872ba01b0"
+  integrity sha512-jRXqE0nQta91KVNKtVl3Pqc/vveGEaLfWvqhkJEbhVX+myI5pzTLxINNyTR111oBvoq1sFIeqJQY0KT3qn5BMA==
+  dependencies:
+    "@aws-sdk/node-config-provider" "3.32.0"
+    "@aws-sdk/property-provider" "3.32.0"
+    "@aws-sdk/types" "3.32.0"
+    "@aws-sdk/url-parser" "3.32.0"
+    tslib "^2.3.0"
+
+"@aws-sdk/credential-provider-ini@3.32.0":
+  version "3.32.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/credential-provider-ini/-/credential-provider-ini-3.32.0.tgz#25f5a1407651ea6ccb3ff5bc7f10fdeb65f404d9"
+  integrity sha512-lX1I+DkW2CS0EA8KS/3IBGc6/4rKygGo5h70cSnxPL+8Sc/Tk7jhLNB9f/tN1mIQNOeOhs1irma8XyYfcscfTg==
+  dependencies:
+    "@aws-sdk/credential-provider-env" "3.32.0"
+    "@aws-sdk/credential-provider-imds" "3.32.0"
+    "@aws-sdk/credential-provider-sso" "3.32.0"
+    "@aws-sdk/credential-provider-web-identity" "3.32.0"
+    "@aws-sdk/property-provider" "3.32.0"
+    "@aws-sdk/shared-ini-file-loader" "3.32.0"
+    "@aws-sdk/types" "3.32.0"
+    "@aws-sdk/util-credentials" "3.32.0"
+    tslib "^2.3.0"
+
+"@aws-sdk/credential-provider-node@^3.32.0":
+  version "3.32.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/credential-provider-node/-/credential-provider-node-3.32.0.tgz#7ef932ed374257e4477b9362b27f291f770723ba"
+  integrity sha512-Y10+D6huLP85MqPtKV7tDaV2V+uVyIvH6JXDuOVqAQXcwNCEY6+TeCoIeFVWZB2lbDmq20Dd19YN05VKgng6dA==
+  dependencies:
+    "@aws-sdk/credential-provider-env" "3.32.0"
+    "@aws-sdk/credential-provider-imds" "3.32.0"
+    "@aws-sdk/credential-provider-ini" "3.32.0"
+    "@aws-sdk/credential-provider-process" "3.32.0"
+    "@aws-sdk/credential-provider-sso" "3.32.0"
+    "@aws-sdk/credential-provider-web-identity" "3.32.0"
+    "@aws-sdk/property-provider" "3.32.0"
+    "@aws-sdk/shared-ini-file-loader" "3.32.0"
+    "@aws-sdk/types" "3.32.0"
+    "@aws-sdk/util-credentials" "3.32.0"
+    tslib "^2.3.0"
+
+"@aws-sdk/credential-provider-process@3.32.0":
+  version "3.32.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/credential-provider-process/-/credential-provider-process-3.32.0.tgz#06317464f136de52179e4b8a408b874cd2624e59"
+  integrity sha512-9DbcunIMW6Xmpq9mDlNlZ59q23X37uEfi9aESX1fBtu6r2cfbNKPZyY1984GsDLA3jEnXj+LhNympeAD2psAew==
+  dependencies:
+    "@aws-sdk/property-provider" "3.32.0"
+    "@aws-sdk/shared-ini-file-loader" "3.32.0"
+    "@aws-sdk/types" "3.32.0"
+    "@aws-sdk/util-credentials" "3.32.0"
+    tslib "^2.3.0"
+
+"@aws-sdk/credential-provider-sso@3.32.0":
   version "3.32.0"
   resolved "https://registry.yarnpkg.com/@aws-sdk/credential-provider-sso/-/credential-provider-sso-3.32.0.tgz#2a6285aaf9b57384876580e4e775bd547f1b52e9"
   integrity sha512-MQhGhbA8ElHazddEJKtbn+dPq/JyvW9Qz3eK+UUpk+damtvk4ojV2QTwnNlyRTxfjnEHKOL783aTNpef9Fm8TA==
@@ -108,6 +171,15 @@
     "@aws-sdk/shared-ini-file-loader" "3.32.0"
     "@aws-sdk/types" "3.32.0"
     "@aws-sdk/util-credentials" "3.32.0"
+    tslib "^2.3.0"
+
+"@aws-sdk/credential-provider-web-identity@3.32.0":
+  version "3.32.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/credential-provider-web-identity/-/credential-provider-web-identity-3.32.0.tgz#e787741779bc0a5f929837bf281e5f8646f5bf52"
+  integrity sha512-0aqG2ioVoekXgTdlYhcbOM3HDsgq7J1SRwib/jpRy/gKa+EeYwk79NI6SnMpSQH8ThHwSK5LCe0SCBj8G5mCCg==
+  dependencies:
+    "@aws-sdk/property-provider" "3.32.0"
+    "@aws-sdk/types" "3.32.0"
     tslib "^2.3.0"
 
 "@aws-sdk/fetch-http-handler@3.32.0":

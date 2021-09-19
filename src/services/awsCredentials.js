@@ -1,4 +1,5 @@
 import AWS from "aws-sdk";
+import { fromSSO } from "@aws-sdk/credential-provider-sso";
 
 import { promptMfaModal } from "../modals";
 
@@ -24,15 +25,28 @@ function getAWSCredentials(profile, program, screen) {
 
   if (profile) {
     process.env.AWS_SDK_LOAD_CONFIG = 1;
-    return new AWS.SharedIniFileCredentials({
+
+    fromSSO({
       profile,
-      tokenCodeFn: mfaCodeFn,
-      callback: (err) => {
-        if (err) {
-          console.error(`SharedIniFileCreds Error: ${err}`);
-        }
-      },
-    });
+    })()
+      .then((creds) => {
+        console.log(
+          `SSO for ${profile}, expires ${creds.expiration.toTimeString()}`
+        );
+      })
+      .catch((e) => {
+        console.error(`fromSSO Error: ${e}`);
+      });
+
+    // return new AWS.SharedIniFileCredentials({
+    //   profile,
+    //   tokenCodeFn: mfaCodeFn,
+    //   callback: (err) => {
+    //     if (err) {
+    //       console.error(`SharedIniFileCreds Error: ${err}`);
+    //     }
+    //   },
+    // });
   }
   if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
     return new AWS.Credentials({

@@ -13,6 +13,7 @@ import {
   getLambdaFunctions,
 } from "../services";
 import ServerlessConfigParser from "../services/severlessConfigParser/serverlessConfigParser";
+import LightBundle from "./rules/best_practices/light-bundle";
 
 const infoLog = chalk.greenBright;
 const titleLog = chalk.greenBright.underline.bold;
@@ -37,6 +38,7 @@ class GuardianCI {
     this.AWS = AWS;
     this.stackName = program.stackName;
     this.checksToRun = [
+      LightBundle,
       NoDefaultMemory,
       NoDefaultTimeout,
       NoMaximumTimeout,

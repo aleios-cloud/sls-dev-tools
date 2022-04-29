@@ -7,6 +7,7 @@ import NoMaximumTimeout from "./rules/best_practices/no-max-timeout";
 import NoMaximumMemory from "./rules/best_practices/no-max-memory";
 import NoIdenticalCode from "./rules/best_practices/no-identical-code";
 import NoSharedRoles from "./rules/best_practices/no-shared-roles";
+import UseArm from "./rules/best_practices/use-arm";
 import {
   getAWSCredentials,
   getStackResources,
@@ -43,6 +44,7 @@ class GuardianCI {
       NoMaximumMemory,
       NoIdenticalCode,
       NoSharedRoles,
+      UseArm,
     ];
     this.failingChecks = [];
 

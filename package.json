@@ -4,7 +4,7 @@
     "sls-dev-tools": "./lib/index.js"
   },
   "dependencies": {
-    "aws-sdk": "^2.655.0",
+    "aws-sdk": "2.1124.0",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.17",
     "chalk": "^4.0.0",

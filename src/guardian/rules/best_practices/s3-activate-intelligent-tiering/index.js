@@ -1,11 +1,11 @@
-class S3ActivateIntelligentTiering {
+class S3IntelligentTiering {
   constructor(AWS, stackName, stackFunctions, SLS, stackS3Buckets) {
     this.AWS = AWS;
     this.stackName = stackName;
     this.stackFunctions = stackFunctions;
     this.SLS = SLS;
     this.stackS3Buckets = stackS3Buckets;
-    this.name = "s3-activate-intelligent-tiering";
+    this.name = "s3-intl-tiering";
     this.failureMessage =
       "The following S3 buckets have no Intelligent Tiering configurations defined";
     this.S3 = new this.AWS.S3();
@@ -48,4 +48,4 @@ class S3ActivateIntelligentTiering {
   }
 }
 
-export default S3ActivateIntelligentTiering;
+export default S3IntelligentTiering;

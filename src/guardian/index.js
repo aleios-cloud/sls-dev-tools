@@ -7,10 +7,12 @@ import NoMaximumTimeout from "./rules/best_practices/no-max-timeout";
 import NoMaximumMemory from "./rules/best_practices/no-max-memory";
 import NoIdenticalCode from "./rules/best_practices/no-identical-code";
 import NoSharedRoles from "./rules/best_practices/no-shared-roles";
+import S3ActivateIntelligentTiering from "./rules/best_practices/s3-activate-intelligent-tiering";
 import {
   getAWSCredentials,
   getStackResources,
   getLambdaFunctions,
+  getAllS3Buckets,
 } from "../services";
 import ServerlessConfigParser from "../services/severlessConfigParser/serverlessConfigParser";
 
@@ -43,12 +45,14 @@ class GuardianCI {
       NoMaximumMemory,
       NoIdenticalCode,
       NoSharedRoles,
+      S3ActivateIntelligentTiering,
     ];
     this.failingChecks = [];
 
     this.resourceIDs = [];
     this.allFunctions = [];
     this.stackFunctions = [];
+    this.allS3Buckets = [];
 
     if (program.slsDevToolsConfig) {
       this.config = program.slsDevToolsConfig.guardian;
@@ -78,12 +82,19 @@ class GuardianCI {
     return lambdaFunctionResources.map((lambda) => lambda.PhysicalResourceId);
   }
 
+  async getAllS3Buckets() {
+    const S3 = new this.AWS.S3();
+    const allBuckets = getAllS3Buckets(S3);
+    return allBuckets;
+  }
+
   async initResources() {
     this.resourceIDs = await this.getStackFunctionResouceIDs();
     this.allFunctions = await this.getAllLambdaFunctions();
     this.stackFunctions = this.allFunctions.filter((lambda) =>
       this.resourceIDs.includes(lambda.FunctionName)
     );
+    this.allS3Buckets = await this.getAllS3Buckets();
   }
 
   ignoreCheck(check) {
@@ -144,7 +155,8 @@ class GuardianCI {
         this.AWS,
         this.stackName,
         this.stackFunctions,
-        this.SLS
+        this.SLS,
+        this.allS3Buckets
       );
       if (!this.ignoreCheck(check)) {
         const filteredStack = this.ignoreArns(check, this.stackFunctions);

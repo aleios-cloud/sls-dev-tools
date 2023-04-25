@@ -29,7 +29,7 @@ sls-dev-tools is an open source project, and we welcome and encourage all issues
 
 sls-dev-tools is currently being actively maintained. If you find a problem with the tool, let us know and we'll solve it as quickly as possible.
 
-[Docs Site](https://theodo-uk.github.io/sls-dev-tools)
+[Docs Site](https://aleios-cloud.github.io/sls-dev-tools/)
 
 [📹YouTube Demo Video](https://youtu.be/bBA6upK5Ugk)
 
